@@ -59,6 +59,8 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
 .mic-icon{font-size:52px;transition:transform .2s}
 .mic-icon.active{animation:micPulse .8s ease-in-out infinite}
 @keyframes micPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+@keyframes tapPulse{0%,100%{transform:scale(1);box-shadow:0 6px 24px rgba(74,222,128,.5)}
+  50%{transform:scale(1.04);box-shadow:0 8px 32px rgba(74,222,128,.8)}}
 .mic-dots{display:flex;gap:6px;align-items:center;height:32px}
 .mic-dot{width:8px;border-radius:4px;background:#4ade80;transition:height .1s}
 .mic-status{font-family:'Fredoka One',cursive;font-size:16px;color:#4ade80;min-height:24px;text-align:center}
@@ -122,9 +124,10 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
   <div class="main-title">Voice Math Tutor</div>
   <div class="main-sub">Hands-free maths practice.<br>Listen, answer out loud, learn!</div>
   <div class="permission-box">
-    📱 This app uses your microphone to hear your answers.<br>
-    When Safari asks <strong>"Allow microphone?"</strong> — tap <strong>Allow</strong>.<br>
-    <strong>Note:</strong> Microphone only works on GitHub Pages, not in Claude.
+    🎤 One tap per question to activate the microphone.<br>
+    <strong>iPad/iPhone:</strong> Allow mic when Safari asks.<br>
+    <strong>Windows/Edge:</strong> Allow mic in the address bar.<br>
+    <em>Works on GitHub Pages — not in Claude sandbox.</em>
   </div>
   <button class="btn btn-gold" onclick="goToNameEntry()" style="width:100%;max-width:320px">Let's Start! 🎙️</button>
   <button class="btn btn-dark btn-sm" onclick="window.location.href='index.html'">← Back to Math</button>
@@ -177,7 +180,16 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
   </div>
 
   <div class="mic-wrap">
-    <div class="mic-icon" id="mic-icon">🎙️</div>
+    <!-- BIG TAP BUTTON — main interaction for iOS Safari -->
+    <button id="tap-to-answer-btn" onclick="userTapToListen()"
+      style="display:none;font-family:'Fredoka One',cursive;font-size:22px;
+             padding:20px 40px;border:none;border-radius:50px;
+             background:linear-gradient(135deg,#4ade80,#16a34a);color:#fff;
+             box-shadow:0 6px 24px rgba(74,222,128,.5);cursor:pointer;
+             animation:tapPulse 1.2s ease-in-out infinite;width:100%;max-width:320px;">
+      🎙️ Tap to Answer
+    </button>
+    <div class="mic-icon" id="mic-icon" style="display:none">🎙️</div>
     <div class="mic-dots" id="mic-dots">
       <div class="mic-dot" id="md0" style="height:8px"></div>
       <div class="mic-dot" id="md1" style="height:16px"></div>
@@ -185,7 +197,7 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
       <div class="mic-dot" id="md3" style="height:16px"></div>
       <div class="mic-dot" id="md4" style="height:8px"></div>
     </div>
-    <div class="mic-status" id="mic-status">Listening...</div>
+    <div class="mic-status" id="mic-status"></div>
     <div class="heard-text" id="heard-text"></div>
   </div>
 
@@ -677,15 +689,36 @@ function askQuestion(){
 
 function startListening(){
   if(!sessionActive) return;
+  // iOS Safari REQUIRES a direct user tap to start mic each time
+  // Show the tap button and wait for user gesture
+  showTapButton();
+}
+
+function showTapButton(){
+  var btn = document.getElementById('tap-to-answer-btn');
+  if(btn) btn.style.display='block';
+  setMicStatus('idle','👇 Tap the button then say your answer!');
+  document.getElementById('q-card').className='q-card';
+  document.getElementById('heard-text').textContent='';
+}
+
+function userTapToListen(){
+  var btn = document.getElementById('tap-to-answer-btn');
+  if(btn) btn.style.display='none';
+  actuallyStartListening();
+}
+
+function actuallyStartListening(){
+  if(!sessionActive) return;
   if(!window.SpeechRecognition && !window.webkitSpeechRecognition){
-    setMicStatus('error','Voice not supported. Use tap mode instead.');
+    setMicStatus('error','Voice not supported on this browser.');
     return;
   }
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   recognition = new SR();
   recognition.lang='en-US';
   recognition.continuous=false;
-  recognition.interimResults=false;
+  recognition.interimResults=true;
   recognition.maxAlternatives=5;
 
   recognition.onstart = function(){
@@ -696,21 +729,49 @@ function startListening(){
   };
 
   recognition.onresult = function(e){
-    stopMicAnimation();
-    var heard = e.results[0][0].transcript;
-    document.getElementById('heard-text').textContent='I heard: "'+heard+'"';
-    processAnswer(heard);
+    var heard = '';
+    var isFinal = false;
+    for(var i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal){
+        heard = e.results[i][0].transcript;
+        isFinal = true;
+      } else {
+        // Show interim transcript
+        var interim = e.results[i][0].transcript;
+        document.getElementById('heard-text').textContent = '👂 "' + interim + '"';
+      }
+    }
+    if(isFinal && heard){
+      stopMicAnimation();
+      // Remove mic help box if showing
+      var hb = document.getElementById('mic-help-box');
+      if(hb) hb.remove();
+      document.getElementById('heard-text').textContent = 'I heard: "' + heard + '"';
+      processAnswer(heard);
+    }
   };
 
   recognition.onerror = function(e){
     stopMicAnimation();
     isListening=false;
+    console.log('Speech error:', e.error);
     if(e.error==='no-speech'){
-      setMicStatus('idle','No answer heard. Trying again...');
-      speak("I did not hear you. Please say your answer again.");
-      setTimeout(startListening,2000);
+      setMicStatus('idle','No answer heard!');
+      showTapButton();
+    } else if(e.error==='not-allowed'){
+      setMicStatus('error','Microphone blocked! Allow mic in browser settings.');
+      showMicHelp('not-allowed');
+    } else if(e.error==='audio-capture'){
+      setMicStatus('error','No microphone found on this device.');
+      showMicHelp('audio-capture');
+    } else if(e.error==='network'){
+      setMicStatus('idle','Network issue. Tap to try again.');
+      showTapButton();
+    } else if(e.error==='aborted'){
+      showTapButton();
     } else {
-      setMicStatus('error','Mic error. Tap Skip or try again.');
+      setMicStatus('idle','Could not hear. Tap to try again!');
+      showTapButton();
     }
   };
 
@@ -749,6 +810,8 @@ function processAnswer(heard){
 
 function showAnswerFeedback(isCorrect, heard, extracted){
   document.getElementById('q-card').className='q-card '+(isCorrect?'correct-state':'wrong-state');
+  var btn=document.getElementById('tap-to-answer-btn');
+  if(btn) btn.style.display='none';
   var banner=document.getElementById('feedback-banner');
   var correctMsgs=['🌟 Correct! Well done!','✅ That is right!','🎉 Brilliant!','⭐ Perfect!','🏆 Excellent!'];
   var wrongMsgs=['❌ Not quite.','💪 Good try!','🙏 Almost!'];
@@ -782,6 +845,8 @@ function skipQuestion(){
   if(recognition) try{recognition.stop();}catch(e){}
   clearTimeout(speakTimeout);
   stopMicAnimation();
+  var btn=document.getElementById('tap-to-answer-btn');
+  if(btn) btn.style.display='none';
   qIdx++;
   speak("Skipping. Next question.");
   setTimeout(askQuestion,1200);
@@ -791,7 +856,9 @@ function repeatQuestion(){
   if(recognition) try{recognition.stop();}catch(e){}
   clearTimeout(speakTimeout);
   stopMicAnimation();
-  setMicStatus('idle','Repeating...');
+  var btn=document.getElementById('tap-to-answer-btn');
+  if(btn) btn.style.display='none';
+  setMicStatus('idle','Repeating question...');
   var speakTime = Math.max(2000,(currentQ.speak||currentQ.q).split(' ').length*350);
   speak(currentQ.speak||currentQ.q);
   speakTimeout = setTimeout(startListening, speakTime+800);
@@ -842,6 +909,26 @@ function playAgain(){
 // ═══════════════════════════════════════
 //  MIC ANIMATION
 // ═══════════════════════════════════════
+function showMicHelp(reason){
+  var existing = document.getElementById('mic-help-box');
+  if(existing) existing.remove();
+  var box = document.createElement('div');
+  box.id = 'mic-help-box';
+  box.style.cssText = 'background:rgba(255,100,0,.15);border:2px solid #ff6600;border-radius:14px;padding:12px 16px;font-size:13px;color:#ffb74d;line-height:1.7;text-align:center;margin-top:8px;width:100%;max-width:380px;';
+  if(reason==='not-allowed'){
+    box.innerHTML = '<strong>🔒 Microphone is blocked</strong><br>'
+      + '• Click the 🔒 or 🎤 icon in the browser address bar<br>'
+      + '• Select <strong>Allow microphone</strong><br>'
+      + '• Then tap <strong>Repeat</strong> to try again';
+  } else {
+    box.innerHTML = '<strong>🎤 Microphone not found</strong><br>'
+      + 'Make sure a microphone is connected and try again.';
+  }
+  var sessionEl = document.getElementById('screen-session');
+  var actionRow = sessionEl ? sessionEl.querySelector('.action-row') : null;
+  if(actionRow) actionRow.parentNode.insertBefore(box, actionRow);
+}
+
 function setMicStatus(state, text){
   var icon=document.getElementById('mic-icon');
   var status=document.getElementById('mic-status');
