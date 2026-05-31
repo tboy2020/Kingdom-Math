@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Kingdom Kids Math</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;min-height:100vh;background:#f0f7ff;color:#1a1a2e;overflow-x:hidden}
+
+/* ── NAV ── */
+.nav{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#fff;border-bottom:3px solid #e0e0e0;position:sticky;top:0;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.nav-title{font-family:'Fredoka One',cursive;font-size:20px;color:#6c63ff}
+.nav-btn{background:#f5f5f5;border:2px solid #e0e0e0;border-radius:20px;padding:6px 14px;font-size:13px;font-weight:800;color:#666;cursor:pointer;text-decoration:none;font-family:'Nunito',sans-serif}
+
+/* ── SCREENS ── */
+.screen{display:none;flex-direction:column;align-items:center;padding:16px 14px 48px;min-height:calc(100vh - 56px)}
+.screen.active{display:flex}
+
+/* ── BUTTONS ── */
+.btn{font-family:'Fredoka One',cursive;font-size:18px;padding:13px 28px;border:none;border-radius:50px;cursor:pointer;transition:transform .1s,box-shadow .1s;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.btn:active{transform:scale(.96)}
+.btn-purple{background:linear-gradient(135deg,#6c63ff,#a855f7);color:#fff}
+.btn-green{background:linear-gradient(135deg,#4caf50,#2e7d32);color:#fff}
+.btn-orange{background:linear-gradient(135deg,#ff9800,#e65100);color:#fff}
+.btn-blue{background:linear-gradient(135deg,#2196f3,#1565c0);color:#fff}
+.btn-light{background:#f5f5f5;border:2px solid #e0e0e0;color:#666;font-size:14px;padding:10px 20px}
+.btn-sm{font-size:14px;padding:9px 20px}
+.action-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+
+/* ── PLAYER SELECT ── */
+.player-cards{width:100%;max-width:400px;display:flex;flex-direction:column;gap:14px;margin-top:16px}
+.player-card{background:#fff;border:3px solid #e0e0e0;border-radius:20px;padding:18px 20px;cursor:pointer;display:flex;align-items:center;gap:16px;transition:border-color .2s,transform .15s;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.player-card:hover{border-color:#6c63ff;transform:scale(1.02)}
+.player-card:active{transform:scale(.98)}
+.pc-avatar{font-size:44px;flex-shrink:0}
+.pc-name{font-family:'Fredoka One',cursive;font-size:24px;color:#1a1a2e}
+.pc-grade{font-size:13px;color:#888;margin-top:2px;font-weight:700}
+.pc-progress{font-size:12px;color:#6c63ff;margin-top:4px;font-weight:700}
+
+/* ── TOPIC GRID ── */
+.grade-title{font-family:'Fredoka One',cursive;font-size:24px;text-align:center;margin:10px 0 4px}
+.grade-sub{font-size:13px;color:#888;text-align:center;margin-bottom:16px}
+.topic-grid{width:100%;max-width:420px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.topic-card{background:#fff;border:3px solid #e0e0e0;border-radius:16px;padding:14px 12px;cursor:pointer;text-align:center;transition:all .15s;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.topic-card:hover{transform:scale(1.03)}
+.topic-card:active{transform:scale(.97)}
+.topic-card.locked{opacity:.45;cursor:not-allowed;filter:grayscale(.5)}
+.topic-card.completed{border-color:#4caf50;background:#f1fff1}
+.topic-card.in-progress{border-color:#ff9800;background:#fff8f0}
+.tc-icon{font-size:32px;margin-bottom:6px}
+.tc-name{font-family:'Fredoka One',cursive;font-size:14px;color:#1a1a2e;line-height:1.3}
+.tc-stars{font-size:14px;margin-top:4px;min-height:18px}
+.tc-lock{font-size:18px;margin-top:4px}
+
+/* ── GAME SCREEN — LANDSCAPE SPLIT ── */
+.game-container{display:flex;width:100%;max-width:100vw;gap:0;flex-direction:column}
+@media(min-width:600px){
+  .game-container{flex-direction:row;height:calc(100vh - 56px);overflow:hidden}
+}
+.question-panel{flex:1;display:flex;flex-direction:column;align-items:center;padding:16px 14px 120px;overflow-y:auto;background:#f0f7ff}
+.scratch-panel{width:100%;background:#fffde7;border-top:3px solid #ffd54f;padding:14px;overflow-y:auto}
+@media(min-width:600px){
+  .scratch-panel{width:260px;flex-shrink:0;border-top:none;border-left:3px solid #ffd54f;padding:16px;height:100%}
+}
+.scratch-title{font-family:'Fredoka One',cursive;font-size:15px;color:#f57f17;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+
+/* ── QUESTION UI ── */
+.q-header{width:100%;max-width:380px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.q-progress{font-size:13px;color:#888;font-weight:700}
+.q-score{font-family:'Fredoka One',cursive;font-size:18px;color:#6c63ff}
+.progress-track{width:100%;max-width:380px;background:#e0e0e0;border-radius:20px;height:10px;margin-bottom:14px;overflow:hidden}
+.progress-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#6c63ff,#a855f7);transition:width .4s ease}
+
+.q-box{width:100%;max-width:380px;background:#fff;border-radius:20px;padding:20px 18px;box-shadow:0 4px 16px rgba(0,0,0,.08);border:3px solid #e0e0e0;margin-bottom:14px}
+.q-topic-tag{font-size:11px;font-weight:800;color:#6c63ff;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.q-visual{font-size:32px;text-align:center;margin:8px 0;min-height:40px;line-height:1.4}
+.q-text{font-family:'Fredoka One',cursive;font-size:22px;color:#1a1a2e;text-align:center;margin:10px 0;line-height:1.4}
+.q-sub{font-size:13px;color:#888;text-align:center;margin-bottom:10px}
+
+/* ── ANSWER MODES ── */
+/* Multiple choice */
+.mc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:380px}
+.mc-btn{background:#f5f5f5;border:3px solid #e0e0e0;border-radius:14px;padding:14px 10px;font-family:'Fredoka One',cursive;font-size:20px;color:#1a1a2e;cursor:pointer;transition:all .15s;text-align:center}
+.mc-btn:active{transform:scale(.95)}
+.mc-btn.correct{background:#e8f5e9;border-color:#4caf50;color:#2e7d32}
+.mc-btn.wrong{background:#ffebee;border-color:#f44336;color:#b71c1c}
+.mc-btn.reveal{background:#e3f2fd;border-color:#2196f3;color:#1565c0}
+.mc-btn:disabled{cursor:default}
+
+/* Number pad */
+.answer-display{width:100%;max-width:380px;background:#fff;border:3px solid #6c63ff;border-radius:14px;padding:14px 18px;font-family:'Fredoka One',cursive;font-size:32px;color:#1a1a2e;text-align:center;min-height:60px;margin-bottom:10px;letter-spacing:4px}
+.answer-display.correct{border-color:#4caf50;background:#e8f5e9;color:#2e7d32}
+.answer-display.wrong{border-color:#f44336;background:#ffebee;color:#b71c1c}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:380px}
+.np-btn{background:#fff;border:3px solid #e0e0e0;border-radius:12px;padding:14px;font-family:'Fredoka One',cursive;font-size:22px;color:#1a1a2e;cursor:pointer;transition:all .15s;text-align:center}
+.np-btn:active{transform:scale(.93);background:#e8eaf6}
+.np-btn.np-del{background:#fff3e0;border-color:#ff9800;color:#e65100;font-size:18px}
+.np-btn.np-enter{background:linear-gradient(135deg,#4caf50,#2e7d32);border-color:#2e7d32;color:#fff;font-size:16px}
+.np-btn.np-zero{grid-column:2}
+
+/* Feedback */
+.feedback-msg{font-family:'Fredoka One',cursive;font-size:18px;text-align:center;min-height:26px;padding:6px}
+.feedback-msg.correct{color:#2e7d32}
+.feedback-msg.wrong{color:#c62828}
+.feedback-msg.info{color:#1565c0}
+
+/* ── SCRATCH SHEET VISUALS ── */
+.scratch-section{margin-bottom:14px}
+.scratch-label{font-size:11px;font-weight:800;color:#f57f17;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+/* Ten frame */
+.ten-frame{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;max-width:160px}
+.tf-cell{width:28px;height:28px;border:2px solid #f57f17;border-radius:4px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:16px}
+.tf-cell.filled{background:#ff9800}
+/* Number line */
+.number-line-wrap{overflow-x:auto;padding-bottom:4px}
+.number-line{display:flex;align-items:flex-end;gap:0;position:relative;padding:20px 0 4px}
+.nl-tick{display:flex;flex-direction:column;align-items:center;min-width:28px}
+.nl-line{width:100%;height:3px;background:#f57f17;position:absolute;bottom:20px;left:0;right:0}
+.nl-mark{width:3px;height:10px;background:#f57f17;margin-bottom:2px}
+.nl-num{font-size:11px;font-weight:800;color:#f57f17}
+.nl-dot{width:20px;height:20px;border-radius:50%;background:#6c63ff;position:absolute;top:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:800}
+/* Dots/objects */
+.dot-groups{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start}
+.dot-group{display:flex;flex-direction:column;align-items:center;gap:2px}
+.dot-row{display:flex;gap:3px}
+.dot{width:18px;height:18px;border-radius:50%;background:#6c63ff;border:2px solid #4a3fa0}
+.dot.crossed{background:#f44336;border-color:#b71c1c;position:relative}
+/* Place value */
+.pv-box{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
+.pv-col{display:flex;flex-direction:column;align-items:center;gap:4px}
+.pv-label{font-size:10px;font-weight:800;color:#888;text-transform:uppercase}
+.pv-block{width:28px;height:28px;border-radius:4px;border:2px solid;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:12px}
+.pv-hundred{background:#fce4ec;border-color:#e91e63;color:#880e4f}
+.pv-ten{background:#e3f2fd;border-color:#2196f3;color:#0d47a1}
+.pv-one{background:#e8f5e9;border-color:#4caf50;color:#1b5e20}
+/* Column method */
+.col-method{background:#fff;border:2px solid #e0e0e0;border-radius:10px;padding:10px 14px;font-family:'Fredoka One',cursive;font-size:20px;display:inline-block}
+.col-method .cm-row{text-align:right;border-bottom:2px solid #333;padding-bottom:2px;margin-bottom:2px}
+.col-method .cm-op{color:#f44336}
+/* Array */
+.array-grid{display:inline-flex;flex-direction:column;gap:4px}
+.array-row{display:flex;gap:4px}
+.array-dot{width:18px;height:18px;border-radius:50%;background:#ff9800;border:2px solid #e65100}
+/* Shape display */
+.shape-display{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center}
+/* Clock */
+.clock-svg{display:block;margin:0 auto}
+/* Coin display */
+.coin-row{display:flex;gap:8px;flex-wrap:wrap}
+.coin{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;border:3px solid}
+.coin-penny{background:#b5651d;border-color:#7b3f00;color:#fff}
+.coin-nickel{background:#9e9e9e;border-color:#616161;color:#fff}
+.coin-dime{background:#bdbdbd;border-color:#757575;color:#fff;width:28px;height:28px}
+.coin-quarter{background:#c0c0c0;border-color:#808080;color:#333}
+/* Bar model */
+.bar-model{width:100%}
+.bar-total{background:#6c63ff;border-radius:6px 6px 0 0;height:24px;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Fredoka One',cursive;font-size:14px}
+.bar-parts{display:flex;gap:2px;margin-top:2px}
+.bar-part{flex:1;height:24px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:13px;color:#fff}
+
+/* ── RESULT SCREEN ── */
+.result-card{width:100%;max-width:400px;background:#fff;border-radius:24px;padding:28px 22px;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.12);border:3px solid #e0e0e0}
+.result-icon{font-size:64px;animation:resPop .5s ease}
+@keyframes resPop{0%{transform:scale(0)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+.result-title{font-family:'Fredoka One',cursive;font-size:28px;color:#1a1a2e;margin:8px 0}
+.result-stars{font-size:36px;letter-spacing:8px;margin:8px 0}
+.result-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.rs-box{background:#f5f5f5;border-radius:12px;padding:10px}
+.rs-val{font-family:'Fredoka One',cursive;font-size:24px;color:#6c63ff}
+.rs-label{font-size:10px;color:#888;text-transform:uppercase;margin-top:2px}
+.badge-earned{background:linear-gradient(135deg,#ffd700,#ff9800);border-radius:14px;padding:12px 16px;margin:10px 0;font-family:'Fredoka One',cursive;font-size:16px;color:#fff;display:none}
+.badge-earned.show{display:block;animation:resPop .5s ease}
+.encourage-msg{font-size:14px;color:#666;margin-top:8px;font-style:italic}
+
+/* ── MODE SELECT ── */
+.mode-cards{width:100%;max-width:400px;display:flex;flex-direction:column;gap:12px}
+.mode-card{background:#fff;border:3px solid #e0e0e0;border-radius:18px;padding:16px 18px;cursor:pointer;display:flex;align-items:center;gap:14px;transition:all .15s;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.mode-card:hover{border-color:#6c63ff;transform:scale(1.02)}
+.mode-icon{font-size:38px;flex-shrink:0}
+.mode-title{font-family:'Fredoka One',cursive;font-size:18px;color:#1a1a2e}
+.mode-desc{font-size:12px;color:#888;margin-top:2px;line-height:1.4}
+
+/* ── FLASHCARD ── */
+.flashcard{width:100%;max-width:380px;min-height:200px;background:#fff;border-radius:24px;border:4px solid #6c63ff;padding:30px 20px;text-align:center;box-shadow:0 6px 20px rgba(108,99,255,.2);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:transform .2s}
+.flashcard:active{transform:scale(.97)}
+.fc-question{font-family:'Fredoka One',cursive;font-size:36px;color:#1a1a2e}
+.fc-hint{font-size:13px;color:#aaa}
+.fc-answer{font-family:'Fredoka One',cursive;font-size:48px;color:#4caf50;display:none}
+.fc-answer.show{display:block;animation:resPop .4s ease}
+.fc-buttons{display:flex;gap:12px;margin-top:14px}
+.fc-easy{background:#e8f5e9;border:3px solid #4caf50;color:#2e7d32}
+.fc-hard{background:#ffebee;border:3px solid #f44336;color:#b71c1c}
+
+/* ── SPEAK BUTTON ── */
+.speak-btn{background:#e3f2fd;border:2px solid #2196f3;border-radius:50px;padding:6px 16px;font-size:13px;font-weight:800;color:#1565c0;cursor:pointer;display:flex;align-items:center;gap:6px;margin:0 auto 8px}
+
+/* ── ENCOURAGE MESSAGES ── */
+.encourage-pop{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#fff;border:3px solid #4caf50;border-radius:20px;padding:10px 20px;font-family:'Fredoka One',cursive;font-size:16px;color:#2e7d32;z-index:500;animation:encPop .6s ease forwards;pointer-events:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.encourage-pop.wrong{border-color:#f44336;color:#b71c1c}
+@keyframes encPop{0%{opacity:0;transform:translateX(-50%) translateY(-20px)}20%{opacity:1;transform:translateX(-50%) translateY(0)}80%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(-10px)}}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a class="nav-btn" href="../index.html" id="nav-back">← Hub</a>
+  <div class="nav-title">🧮 Kingdom Kids Math</div>
+  <button class="nav-btn" id="music-btn" onclick="toggleMusic()">🎵</button>
+</div>
+
+<!-- ══ SCREEN: PLAYER SELECT ══ -->
+<div class="screen active" id="screen-player">
+  <div style="font-size:48px;text-align:center;margin-top:16px">🧮</div>
+  <div style="font-family:'Fredoka One',cursive;font-size:26px;text-align:center;margin:8px 0;color:#6c63ff">Kingdom Kids Math</div>
+  <div style="font-size:14px;color:#888;text-align:center;margin-bottom:4px">Who is doing maths today?</div>
+  <div class="player-cards">
+    <div class="player-card" onclick="selectPlayer('anu')">
+      <div class="pc-avatar">⭐</div>
+      <div>
+        <div class="pc-name">Anu</div>
+        <div class="pc-grade">Kindergarten · Age 5</div>
+        <div class="pc-progress" id="anu-math-progress">Loading...</div>
+      </div>
+    </div>
+    <div class="player-card" onclick="selectPlayer('dominion')">
+      <div class="pc-avatar">🏆</div>
+      <div>
+        <div class="pc-name">Dominion</div>
+        <div class="pc-grade">2nd Grade · Age 7</div>
+        <div class="pc-progress" id="dom-math-progress">Loading...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN: MODE SELECT ══ -->
+<div class="screen" id="screen-mode">
+  <div style="font-family:'Fredoka One',cursive;font-size:22px;text-align:center;margin:10px 0 4px;color:#6c63ff" id="mode-welcome">Hi Anu! Choose how to practise</div>
+  <div class="mode-cards" style="margin-top:14px">
+    <div class="mode-card" onclick="goToTopics('worksheet')">
+      <div class="mode-icon">📝</div>
+      <div><div class="mode-title">Worksheet Mode</div><div class="mode-desc">10 questions per topic. Answer on the number pad or tap A/B/C/D. Earn stars and badges!</div></div>
+    </div>
+    <div class="mode-card" onclick="goToTopics('flashcard')">
+      <div class="mode-icon">🃏</div>
+      <div><div class="mode-title">Flashcard Mode</div><div class="mode-desc">See the problem, think, then tap to reveal the answer. Mark easy or hard.</div></div>
+    </div>
+    <div class="mode-card" onclick="goToTopics('game')">
+      <div class="mode-icon">🎮</div>
+      <div><div class="mode-title">Game Mode</div><div class="mode-desc">Race against a countdown timer. Answer fast to score bonus points!</div></div>
+    </div>
+  </div>
+  <button class="btn btn-light btn-sm" onclick="showScreen('screen-player')" style="margin-top:14px">← Change Player</button>
+</div>
+
+<!-- ══ SCREEN: TOPIC SELECT ══ -->
+<div class="screen" id="screen-topics">
+  <div class="grade-title" id="topic-grade-title">Kindergarten Topics</div>
+  <div class="grade-sub" id="topic-grade-sub">Complete a topic to unlock the next one!</div>
+  <div class="topic-grid" id="topic-grid"></div>
+  <div class="action-row">
+    <button class="btn btn-light btn-sm" onclick="showScreen('screen-mode')">← Back</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN: WORKSHEET / GAME ══ -->
+<div class="screen" id="screen-question" style="padding:0">
+  <div class="game-container">
+    <!-- Question panel -->
+    <div class="question-panel">
+      <div class="q-header">
+        <div class="q-progress" id="q-progress">Q 1/10</div>
+        <div class="q-score" id="q-score">Score: 0</div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="q-progress-fill" style="width:0%"></div></div>
+
+      <div id="timer-bar" style="display:none;width:100%;max-width:380px;background:#ffecb3;border-radius:10px;padding:6px 14px;font-family:'Fredoka One',cursive;font-size:16px;color:#e65100;text-align:center;margin-bottom:10px">⏱ <span id="timer-display">15</span>s</div>
+
+      <div class="q-box">
+        <div class="q-topic-tag" id="q-topic-tag">Counting</div>
+        <div id="speak-btn-wrap"><button class="speak-btn" onclick="speakQuestion()">🔊 Read to me</button></div>
+        <div class="q-visual" id="q-visual"></div>
+        <div class="q-text" id="q-text">Loading...</div>
+        <div class="q-sub" id="q-sub"></div>
+      </div>
+
+      <!-- Answer area (swapped by mode/topic) -->
+      <div id="answer-area"></div>
+      <div class="feedback-msg" id="feedback-msg"></div>
+
+      <div class="action-row" style="margin-top:8px">
+        <button class="btn btn-purple btn-sm" id="next-q-btn" onclick="nextQuestion()" style="display:none">Next →</button>
+        <button class="btn btn-light btn-sm" onclick="exitToTopics()">📋 Topics</button>
+      </div>
+    </div>
+
+    <!-- Scratch panel (always visible landscape) -->
+    <div class="scratch-panel" id="scratch-panel">
+      <div class="scratch-title">✏️ Working Space</div>
+      <div id="scratch-content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN: FLASHCARD ══ -->
+<div class="screen" id="screen-flashcard">
+  <div style="font-family:'Fredoka One',cursive;font-size:16px;color:#888;text-align:center;margin:10px 0" id="fc-progress">Card 1 of 10</div>
+  <div class="flashcard" id="flashcard" onclick="revealFlashcard()">
+    <div class="q-topic-tag" id="fc-topic">Topic</div>
+    <div class="fc-question" id="fc-question">?</div>
+    <div class="fc-hint" id="fc-hint">Tap to reveal</div>
+    <div class="fc-answer" id="fc-answer">?</div>
+  </div>
+  <div class="fc-buttons action-row" id="fc-buttons" style="display:none">
+    <button class="btn fc-easy btn-sm" onclick="fcMark('easy')">✅ Got it!</button>
+    <button class="btn fc-hard btn-sm" onclick="fcMark('hard')">🔄 Again</button>
+  </div>
+  <button class="btn btn-light btn-sm" onclick="exitToTopics()" style="margin-top:12px">📋 Topics</button>
+  <!-- Scratch panel for flashcard -->
+  <div class="scratch-panel" id="fc-scratch" style="margin-top:14px;border-top:3px solid #ffd54f;border-left:none;width:100%;max-width:420px;border-radius:14px">
+    <div class="scratch-title">✏️ Working Space</div>
+    <div id="fc-scratch-content"></div>
+  </div>
+</div>
+
+<!-- ══ SCREEN: RESULT ══ -->
+<div class="screen" id="screen-result">
+  <div class="result-card">
+    <div class="result-icon" id="res-icon">🌟</div>
+    <div class="result-stars" id="res-stars">⭐⭐⭐</div>
+    <div class="result-title" id="res-title">Amazing!</div>
+    <div class="result-stats" id="res-stats"></div>
+    <div class="badge-earned" id="badge-earned">🏅 Badge Earned!</div>
+    <div class="encourage-msg" id="res-encourage"></div>
+  </div>
+  <div class="action-row" style="margin-top:14px">
+    <button class="btn btn-green" onclick="playAgain()">▶ Play Again</button>
+    <button class="btn btn-light btn-sm" onclick="exitToTopics()">📋 Topics</button>
+    <button class="btn btn-light btn-sm" onclick="showScreen('screen-player')">🏠 Home</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  CURRICULUM DATA
+// ═══════════════════════════════════════════
+
+const KINDERGARTEN_TOPICS = [
+  {id:'k_count10', name:'Counting 1–10', icon:'🔢', color:'#6c63ff',
+   desc:'Count objects up to 10', method:'dots',
+   gen: function() { return genCounting(1,10); }},
+  {id:'k_count20', name:'Counting 11–20', icon:'🔢', color:'#e91e63',
+   desc:'Count objects up to 20', method:'dots',
+   gen: function() { return genCounting(11,20); }},
+  {id:'k_count100', name:'Count to 100', icon:'💯', color:'#ff9800',
+   desc:'Count by 1s and 10s', method:'numberline',
+   gen: function() { return genCountTo100(); }},
+  {id:'k_bonds5', name:'Number Bonds to 5', icon:'5️⃣', color:'#4caf50',
+   desc:'Ways to make 5', method:'tenframe',
+   gen: function() { return genBonds(5); }},
+  {id:'k_bonds10', name:'Number Bonds to 10', icon:'🔟', color:'#2196f3',
+   desc:'Ways to make 10', method:'tenframe',
+   gen: function() { return genBonds(10); }},
+  {id:'k_add10', name:'Addition to 10', icon:'➕', color:'#00bcd4',
+   desc:'Add two numbers up to 10', method:'dots',
+   gen: function() { return genAdd(0,10); }},
+  {id:'k_sub10', name:'Subtraction to 10', icon:'➖', color:'#9c27b0',
+   desc:'Subtract within 10', method:'crossdots',
+   gen: function() { return genSub(0,10); }},
+  {id:'k_moreorless', name:'More / Less / Equal', icon:'⚖️', color:'#ff5722',
+   desc:'Compare two groups', method:'dots',
+   gen: function() { return genMoreLess(); }},
+  {id:'k_ordinal', name:'Ordinal Numbers', icon:'🥇', color:'#795548',
+   desc:'1st, 2nd, 3rd… to 10th', method:'none',
+   gen: function() { return genOrdinal(); }},
+  {id:'k_shapes2d', name:'2D Shapes', icon:'🔷', color:'#607d8b',
+   desc:'Circle, square, triangle, rectangle, hexagon', method:'shape',
+   gen: function() { return genShapes2D(); }},
+  {id:'k_shapes3d', name:'3D Shapes', icon:'🎲', color:'#8bc34a',
+   desc:'Cube, cone, cylinder, sphere', method:'shape',
+   gen: function() { return genShapes3D(); }},
+  {id:'k_measure', name:'Measurement', icon:'📏', color:'#ffc107',
+   desc:'Longer, shorter, heavier, lighter', method:'none',
+   gen: function() { return genMeasure(); }},
+  {id:'k_time', name:'Telling Time', icon:'🕐', color:'#e91e63',
+   desc:'Time to the hour', method:'clock',
+   gen: function() { return genTimeHour(); }},
+  {id:'k_coins', name:'Coins', icon:'🪙', color:'#ff9800',
+   desc:'Penny, nickel, dime, quarter', method:'coins',
+   gen: function() { return genCoins(); }},
+  {id:'k_sorting', name:'Sorting & Data', icon:'📊', color:'#4caf50',
+   desc:'Sort by colour and shape, count categories', method:'none',
+   gen: function() { return genSorting(); }},
+];
+
+const GRADE2_TOPICS = [
+  {id:'g2_add20', name:'Addition to 20', icon:'➕', color:'#6c63ff',
+   desc:'Mental strategies, fluency', method:'numberline',
+   gen: function() { return genAdd(0,20); }},
+  {id:'g2_sub20', name:'Subtraction to 20', icon:'➖', color:'#e91e63',
+   desc:'Mental strategies, fluency', method:'numberline',
+   gen: function() { return genSub(0,20); }},
+  {id:'g2_add100', name:'Addition to 100', icon:'➕', color:'#ff9800',
+   desc:'2-digit addition', method:'column',
+   gen: function() { return genAdd2Digit(); }},
+  {id:'g2_sub100', name:'Subtraction to 100', icon:'➖', color:'#4caf50',
+   desc:'2-digit subtraction', method:'column',
+   gen: function() { return genSub2Digit(); }},
+  {id:'g2_place', name:'Place Value', icon:'🔢', color:'#2196f3',
+   desc:'Hundreds, tens, ones to 1000', method:'placevalue',
+   gen: function() { return genPlaceValue(); }},
+  {id:'g2_skip', name:'Skip Counting', icon:'🦘', color:'#00bcd4',
+   desc:'Count by 2s, 5s, 10s, 100s', method:'numberline',
+   gen: function() { return genSkipCount(); }},
+  {id:'g2_word', name:'Word Problems', icon:'📖', color:'#9c27b0',
+   desc:'1 and 2-step problems', method:'barmodel',
+   gen: function() { return genWordProblem(); }},
+  {id:'g2_oddeven', name:'Odd & Even', icon:'🎭', color:'#ff5722',
+   desc:'Determine odd or even', method:'dots',
+   gen: function() { return genOddEven(); }},
+  {id:'g2_arrays', name:'Arrays', icon:'⬛', color:'#795548',
+   desc:'Equal groups, intro to multiplication', method:'array',
+   gen: function() { return genArrays(); }},
+  {id:'g2_add1000', name:'Addition to 1000', icon:'➕', color:'#607d8b',
+   desc:'3-digit addition', method:'column',
+   gen: function() { return genAdd3Digit(); }},
+  {id:'g2_sub1000', name:'Subtraction to 1000', icon:'➖', color:'#8bc34a',
+   desc:'3-digit subtraction', method:'column',
+   gen: function() { return genSub3Digit(); }},
+  {id:'g2_measure', name:'Measurement', icon:'📐', color:'#ffc107',
+   desc:'Inches, feet, cm, metres', method:'none',
+   gen: function() { return genMeasure2(); }},
+  {id:'g2_time', name:'Time to 5 Minutes', icon:'🕐', color:'#e91e63',
+   desc:'Tell time to 5 minutes, AM/PM', method:'clock',
+   gen: function() { return genTime5(); }},
+  {id:'g2_money', name:'Money', icon:'💵', color:'#ff9800',
+   desc:'Dollars and cents, making change', method:'coins',
+   gen: function() { return genMoney(); }},
+  {id:'g2_graphs', name:'Graphs & Data', icon:'📊', color:'#4caf50',
+   desc:'Bar graphs, picture graphs', method:'none',
+   gen: function() { return genGraphs(); }},
+  {id:'g2_geometry', name:'Geometry', icon:'🔷', color:'#2196f3',
+   desc:'Triangles, quadrilaterals, pentagons, hexagons', method:'shape',
+   gen: function() { return genGeometry(); }},
+  {id:'g2_fractions', name:'Fractions', icon:'🍕', color:'#9c27b0',
+   desc:'Halves, thirds, quarters', method:'shape',
+   gen: function() { return genFractions(); }},
+];
+
+// ═══════════════════════════════════════════
+//  QUESTION GENERATORS
+// ═══════════════════════════════════════════
+function rnd(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function choice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function shuffle(arr){ return arr.slice().sort(()=>Math.random()-.5); }
+function wrongChoices(correct, min, max, count){
+  var wrongs=[], attempts=0;
+  while(wrongs.length<count && attempts<50){
+    attempts++;
+    var w=rnd(min,max);
+    if(w!==correct && !wrongs.includes(w)) wrongs.push(w);
+  }
+  return wrongs;
+}
+function mcOptions(correct, min, max){
+  var opts=wrongChoices(correct,Math.max(0,min),max+4,3);
+  opts.push(correct);
+  return shuffle(opts);
+}
+
+// Counting
+function genCounting(min,max){
+  var n=rnd(min,max);
+  var opts=mcOptions(n,Math.max(0,n-3),n+3);
+  return {
+    text:'How many dots are there?',
+    visual:'dots:'+n,
+    answer:n, opts:opts, type:'mc',
+    speak:'How many dots are there? Count them carefully.'
+  };
+}
+
+// Count to 100
+function genCountTo100(){
+  var types=['by1','by10'];
+  var t=choice(types);
+  if(t==='by1'){
+    var start=rnd(1,95); var n=start+rnd(1,4);
+    var opts=mcOptions(n,Math.max(1,n-3),n+3);
+    return {text:'Count on: '+start+', ___', answer:n, opts:opts, type:'mc',
+      speak:'What number comes next after '+start+'?'};
+  } else {
+    var start=rnd(0,8)*10; var n=start+10;
+    var opts=mcOptions(n,Math.max(0,n-20),n+20);
+    return {text:'Count by 10s: '+start+', ___', answer:n, opts:opts, type:'mc',
+      speak:'Count by tens. What comes after '+start+'?'};
+  }
+}
+
+// Number bonds
+function genBonds(total){
+  var a=rnd(0,total); var b=total-a;
+  var types=['missing_b','missing_a','total'];
+  var t=choice(types);
+  if(t==='missing_b'){
+    var opts=mcOptions(b,0,total);
+    return {text:a+' + ___ = '+total, answer:b, opts:opts, type:'mc',
+      visual:'tenframe:'+total+':'+a, speak:a+' plus what equals '+total+'?'};
+  } else if(t==='missing_a'){
+    var opts=mcOptions(a,0,total);
+    return {text:'___ + '+b+' = '+total, answer:a, opts:opts, type:'mc',
+      visual:'tenframe:'+total+':'+a, speak:'What plus '+b+' equals '+total+'?'};
+  } else {
+    var opts=mcOptions(total,0,total+2);
+    return {text:a+' + '+b+' = ___', answer:total, opts:opts, type:'mc',
+      visual:'tenframe:'+total+':'+a, speak:'What is '+a+' plus '+b+'?'};
+  }
+}
+
+// Addition
+function genAdd(min,max){
+  var a=rnd(min,max-1); var b=rnd(0,max-a); var ans=a+b;
+  var opts=mcOptions(ans,Math.max(0,ans-3),ans+4);
+  return {text:a+' + '+b+' = ?', answer:ans, opts:opts, type:'mc',
+    visual:'dots:'+a+'+'+b, speak:'What is '+a+' plus '+b+'?'};
+}
+
+// Subtraction
+function genSub(min,max){
+  var a=rnd(1,max); var b=rnd(0,a); var ans=a-b;
+  var opts=mcOptions(ans,Math.max(0,ans-3),ans+4);
+  return {text:a+' - '+b+' = ?', answer:ans, opts:opts, type:'mc',
+    visual:'crossdots:'+a+':'+b, speak:'What is '+a+' minus '+b+'?'};
+}
+
+// 2-digit addition
+function genAdd2Digit(){
+  var a=rnd(10,89); var b=rnd(1,99-a); var ans=a+b;
+  return {text:a+' + '+b+' = ?', answer:ans, type:'numpad',
+    visual:'column:'+a+'+'+b, speak:'What is '+a+' plus '+b+'?'};
+}
+
+// 2-digit subtraction
+function genSub2Digit(){
+  var a=rnd(11,99); var b=rnd(1,a); var ans=a-b;
+  return {text:a+' - '+b+' = ?', answer:ans, type:'numpad',
+    visual:'column:'+a+'-'+b, speak:'What is '+a+' minus '+b+'?'};
+}
+
+// 3-digit addition
+function genAdd3Digit(){
+  var a=rnd(100,899); var b=rnd(1,999-a); var ans=a+b;
+  return {text:a+' + '+b+' = ?', answer:ans, type:'numpad',
+    visual:'column:'+a+'+'+b, speak:'What is '+a+' plus '+b+'?'};
+}
+
+// 3-digit subtraction
+function genSub3Digit(){
+  var a=rnd(101,999); var b=rnd(1,a-1); var ans=a-b;
+  return {text:a+' - '+b+' = ?', answer:ans, type:'numpad',
+    visual:'column:'+a+'-'+b, speak:'What is '+a+' minus '+b+'?'};
+}
+
+// Place value
+function genPlaceValue(){
+  var types=['identify','build','expanded'];
+  var t=choice(types);
+  if(t==='identify'){
+    var n=rnd(10,999);
+    var digits={h:Math.floor(n/100),t:Math.floor((n%100)/10),o:n%10};
+    var q=choice(['hundreds','tens','ones']);
+    var ans=q==='hundreds'?digits.h:q==='tens'?digits.t:digits.o;
+    var opts=mcOptions(ans,0,9);
+    return {text:'In '+n+', the '+q+' digit is ___', answer:ans, opts:opts, type:'mc',
+      visual:'placevalue:'+n, speak:'In the number '+n+', what is the '+q+' digit?'};
+  } else if(t==='build'){
+    var h=rnd(0,9),ten=rnd(0,9),o=rnd(0,9); var n=h*100+ten*10+o;
+    var opts=mcOptions(n,Math.max(0,n-10),n+10);
+    return {text:h+' hundreds, '+ten+' tens, '+o+' ones = ___', answer:n, opts:opts, type:'mc',
+      visual:'placevalue:'+n, speak:h+' hundreds, '+ten+' tens, '+o+' ones. What is the number?'};
+  } else {
+    var n=rnd(100,999);
+    var h=Math.floor(n/100),ten=Math.floor((n%100)/10),o=n%10;
+    var exp=h*100+'+'+ten*10+'+'+o;
+    var opts=mcOptions(n,n-20,n+20);
+    return {text:'Write in standard form: '+exp, answer:n, opts:opts, type:'mc',
+      visual:'placevalue:'+n, speak:'What is '+h+' hundred plus '+ten*10+' plus '+o+'?'};
+  }
+}
+
+// Skip counting
+function genSkipCount(){
+  var steps=[2,5,10,100];
+  var step=choice(steps);
+  var start=rnd(0,10)*step;
+  var seq=[start, start+step, start+step*2, start+step*3];
+  var missingIdx=rnd(1,3);
+  var ans=seq[missingIdx];
+  var display=seq.map(function(v,i){return i===missingIdx?'___':v});
+  var opts=mcOptions(ans,Math.max(0,ans-step*2),ans+step*2);
+  return {text:'Skip count by '+step+'s: '+display.join(', '), answer:ans, opts:opts, type:'mc',
+    speak:'Skip counting by '+step+'s. What is the missing number?'};
+}
+
+// Word problems
+function genWordProblem(){
+  var templates=[
+    function(){ var a=rnd(5,20),b=rnd(1,15); return {
+      text:a+' birds sat on a tree. '+b+' more flew in. How many birds now?',
+      answer:a+b, type:'numpad', speak:a+' birds sat on a tree. '+b+' more flew in. How many birds are there now?'};},
+    function(){ var a=rnd(10,25),b=rnd(1,a-1); return {
+      text:'There were '+a+' apples. '+b+' were eaten. How many are left?',
+      answer:a-b, type:'numpad', speak:'There were '+a+' apples. '+b+' were eaten. How many apples are left?'};},
+    function(){ var a=rnd(5,15),b=rnd(5,15); return {
+      text:a+' boys and '+b+' girls are in class. How many children altogether?',
+      answer:a+b, type:'numpad', speak:a+' boys and '+b+' girls are in class. How many children altogether?'};},
+    function(){ var a=rnd(20,50),b=rnd(5,a); return {
+      text:'A shop had '+a+' sweets. They sold '+b+'. How many remain?',
+      answer:a-b, type:'numpad', speak:'A shop had '+a+' sweets. They sold '+b+'. How many sweets remain?'};}
+  ];
+  var q=choice(templates)();
+  q.visual='barmodel:'+q.answer;
+  return q;
+}
+
+// Odd and Even
+function genOddEven(){
+  var n=rnd(1,20);
+  var ans=n%2===0?'Even':'Odd';
+  var opts=['Odd','Even'];
+  return {text:'Is '+n+' odd or even?', answer:ans, opts:opts, type:'mc',
+    visual:'dots:'+n, speak:'Is '+n+' odd or even?'};
+}
+
+// Arrays
+function genArrays(){
+  var rows=rnd(2,5), cols=rnd(2,5), ans=rows*cols;
+  var opts=mcOptions(ans,Math.max(2,ans-4),ans+4);
+  return {text:rows+' rows of '+cols+' = ___', answer:ans, opts:opts, type:'mc',
+    visual:'array:'+rows+':'+cols,
+    speak:'There are '+rows+' rows with '+cols+' in each row. How many altogether?'};
+}
+
+// Measurement K
+function genMeasure(){
+  var items=[
+    {q:'A pencil is ___ than a ruler.', ans:'Shorter', opts:['Shorter','Longer','Same'], speak:'A pencil is blank than a ruler.'},
+    {q:'A feather is ___ than a brick.', ans:'Lighter', opts:['Lighter','Heavier','Same'], speak:'A feather is blank than a brick.'},
+    {q:'A cat is ___ than an elephant.', ans:'Smaller', opts:['Smaller','Bigger','Same'], speak:'A cat is blank than an elephant.'},
+    {q:'A house is ___ than a car.', ans:'Taller', opts:['Taller','Shorter','Same'], speak:'A house is blank than a car.'},
+  ];
+  var item=choice(items);
+  return {text:item.q, answer:item.ans, opts:item.opts, type:'mc', speak:item.speak};
+}
+
+// Measurement Grade 2
+function genMeasure2(){
+  var types=['estimate','compare'];
+  var t=choice(types);
+  if(t==='estimate'){
+    var items=[
+      {obj:'A door', unit:'feet', ans:7, opts:[2,7,20,100]},
+      {obj:'A pencil', unit:'inches', ans:7, opts:[1,7,30,100]},
+      {obj:'A classroom', unit:'metres', ans:10, opts:[1,10,100,1000]},
+      {obj:'A book', unit:'centimetres', ans:25, opts:[2,25,100,500]},
+    ];
+    var item=choice(items);
+    return {text:'About how many '+item.unit+' long is '+item.obj+'?',
+      answer:item.ans, opts:shuffle(item.opts), type:'mc',
+      speak:'About how many '+item.unit+' long is a '+item.obj+'?'};
+  } else {
+    var a=rnd(5,30), b=rnd(5,30);
+    var ans=a>b?'First':'Second';
+    var opts=['First','Second','Same'];
+    return {text:'Object A: '+a+' cm. Object B: '+b+' cm. Which is longer?',
+      answer:a===b?'Same':ans, opts:opts, type:'mc',
+      speak:'Object A is '+a+' centimetres. Object B is '+b+' centimetres. Which is longer?'};
+  }
+}
+
+// More/Less
+function genMoreLess(){
+  var a=rnd(1,10), b=rnd(1,10);
+  var ans=a>b?'First group':a<b?'Second group':'Equal';
+  var opts=['First group','Second group','Equal'];
+  return {text:'Group A has '+a+' dots. Group B has '+b+' dots. Which has more?',
+    answer:ans, opts:opts, type:'mc', visual:'dots:'+a+'+'+b,
+    speak:'Group A has '+a+'. Group B has '+b+'. Which group has more?'};
+}
+
+// Ordinal numbers
+function genOrdinal(){
+  var ords=['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th'];
+  var nums=['first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth'];
+  var i=rnd(0,9);
+  var types=['word_to_num','num_to_word','position'];
+  var t=choice(types);
+  if(t==='word_to_num'){
+    var opts=shuffle(ords).slice(0,3); if(!opts.includes(ords[i])) opts[0]=ords[i]; opts=shuffle(opts);
+    return {text:'Write the ordinal number for "'+nums[i]+'":', answer:ords[i], opts:opts, type:'mc',
+      speak:'What is the ordinal number for '+nums[i]+'?'};
+  } else if(t==='num_to_word'){
+    var opts=shuffle(nums).slice(0,3); if(!opts.includes(nums[i])) opts[0]=nums[i]; opts=shuffle(opts);
+    return {text:'Write in words: '+ords[i], answer:nums[i], opts:opts, type:'mc',
+      speak:'How do you write '+ords[i]+' in words?'};
+  } else {
+    var pos=i+1;
+    return {text:'In a race, Sam finished in position '+pos+'. How do we say that?',
+      answer:ords[i], opts:shuffle(ords).slice(0,3).concat([ords[i]]).filter(function(v,idx,a){return a.indexOf(v)===idx;}).slice(0,4),
+      type:'mc', speak:'Sam finished in position '+pos+'. How do we say that?'};
+  }
+}
+
+// 2D Shapes K
+function genShapes2D(){
+  var shapes=[
+    {name:'Circle', sides:0, emoji:'⭕'},
+    {name:'Square', sides:4, emoji:'🟥'},
+    {name:'Triangle', sides:3, emoji:'🔺'},
+    {name:'Rectangle', sides:4, emoji:'▬'},
+    {name:'Hexagon', sides:6, emoji:'⬡'},
+  ];
+  var s=choice(shapes);
+  var types=['name','sides'];
+  var t=choice(types);
+  if(t==='name'){
+    var allNames=shapes.map(function(x){return x.name;});
+    var opts=shuffle(allNames).slice(0,4); if(!opts.includes(s.name)) opts[0]=s.name; opts=shuffle(opts);
+    return {text:'What shape is this? '+s.emoji, answer:s.name, opts:opts, type:'mc',
+      speak:'What is the name of this shape?'};
+  } else {
+    var opts=mcOptions(s.sides,0,8);
+    return {text:'How many sides does a '+s.name+' have?', answer:s.sides, opts:opts, type:'mc',
+      speak:'How many sides does a '+s.name+' have?'};
+  }
+}
+
+// 3D Shapes K
+function genShapes3D(){
+  var shapes=[
+    {name:'Cube', faces:6, emoji:'🎲', prop:'flat faces'},
+    {name:'Cone', faces:1, emoji:'🍦', prop:'pointed top'},
+    {name:'Cylinder', faces:2, emoji:'🥫', prop:'round top and bottom'},
+    {name:'Sphere', faces:0, emoji:'⚽', prop:'completely round'},
+  ];
+  var s=choice(shapes);
+  var allNames=shapes.map(function(x){return x.name;});
+  var opts=shuffle(allNames); if(!opts.includes(s.name)) opts[0]=s.name; opts=shuffle(opts.slice(0,4));
+  return {text:'What 3D shape is this? '+s.emoji, answer:s.name, opts:opts, type:'mc',
+    speak:'What is the name of this 3D shape?'};
+}
+
+// Telling time (hour)
+function genTimeHour(){
+  var h=rnd(1,12);
+  var display=h+':00';
+  var ans=h+" o'clock";
+  var wrong1=((h%12)+1)+" o'clock";
+  var wrong2=(h===1?12:h-1)+" o'clock";
+  var wrong3=((h+2)%12+1)+" o'clock";
+  var opts=shuffle([ans,wrong1,wrong2,wrong3]).slice(0,4);
+  if(!opts.includes(ans)) opts[0]=ans;
+  opts=shuffle(opts);
+  return {text:'What time does the clock show?\n🕐 '+display, answer:ans, opts:opts, type:'mc',
+    visual:'clock:'+h+':0', speak:'The clock shows '+display+'. What time is it?'};
+}
+
+// Time to 5 minutes
+function genTime5(){
+  var h=rnd(1,12), m=rnd(0,11)*5;
+  var mStr=m<10?'0'+m:String(m);
+  var ans=h+':'+(m<10?'0'+m:m);
+  var ampm=rnd(0,1)?'AM':'PM';
+  var opts=[];
+  for(var i=0;i<3;i++){
+    var fh=rnd(1,12),fm=rnd(0,11)*5;
+    opts.push(fh+':'+(fm<10?'0'+fm:fm));
+  }
+  opts.push(ans); opts=shuffle(opts.filter(function(v,i,a){return a.indexOf(v)===i;})).slice(0,4);
+  if(!opts.includes(ans)){opts[0]=ans; opts=shuffle(opts);}
+  return {text:'What time is shown? 🕐 '+h+':'+mStr+' '+ampm, answer:ans, opts:opts, type:'mc',
+    visual:'clock:'+h+':'+m, speak:'The clock shows '+h+' '+mStr+' '+ampm+'. What time is it?'};
+}
+
+// Coins K
+function genCoins(){
+  var coins=[
+    {name:'penny', value:1, emoji:'🪙', color:'copper'},
+    {name:'nickel', value:5, emoji:'🪙', color:'silver-small'},
+    {name:'dime', value:10, emoji:'🪙', color:'silver-tiny'},
+    {name:'quarter', value:25, emoji:'🪙', color:'silver-big'},
+  ];
+  var c=choice(coins);
+  var types=['name','value'];
+  var t=choice(types);
+  if(t==='name'){
+    var allNames=coins.map(function(x){return x.name;});
+    var opts=shuffle(allNames); if(!opts.includes(c.name)) opts[0]=c.name; opts=shuffle(opts.slice(0,4));
+    return {text:'This coin is worth '+c.value+' cent'+(c.value>1?'s':'')+'. What is it called?',
+      answer:c.name, opts:opts, type:'mc', visual:'coin:'+c.name,
+      speak:'This coin is worth '+c.value+' cents. What is it called?'};
+  } else {
+    var opts=mcOptions(c.value,1,30);
+    return {text:'How many cents is a '+c.name+' worth?', answer:c.value, opts:opts, type:'mc',
+      visual:'coin:'+c.name, speak:'How many cents is a '+c.name+' worth?'};
+  }
+}
+
+// Money Grade 2
+function genMoney(){
+  var types=['total','change'];
+  var t=choice(types);
+  if(t==='total'){
+    var dollars=rnd(0,5), cents=rnd(0,99);
+    var total=dollars*100+cents;
+    var totalStr='$'+dollars+'.'+(cents<10?'0':'')+cents;
+    var centsStr=cents+'¢';
+    var opts=mcOptions(cents,Math.max(0,cents-15),cents+15);
+    return {text:'How many cents in '+totalStr+'?', answer:cents, opts:opts, type:'mc',
+      speak:'How many cents are in '+totalStr+'?'};
+  } else {
+    var price=rnd(5,95), paid=100;
+    var change=paid-price;
+    var opts=mcOptions(change,Math.max(0,change-10),change+10);
+    return {text:'Item costs '+price+'¢. You pay $1.00. Change = ___¢', answer:change, opts:opts, type:'mc',
+      speak:'An item costs '+price+' cents. You pay one dollar. How much change do you get?'};
+  }
+}
+
+// Sorting
+function genSorting(){
+  var items=[
+    {q:'How many red shapes? ●●● □ ■ ●', ans:4, opts:[2,3,4,5]},
+    {q:'How many animals have 4 legs? 🐕 🐦 🐈 🐟 🐄', ans:3, opts:[1,2,3,5]},
+    {q:'How many fruits? 🍎 🚗 🍌 🏠 🍊 🍇', ans:4, opts:[2,3,4,6]},
+    {q:'How many blue objects if: 3 blue, 2 red, 4 green?', ans:3, opts:[2,3,4,5]},
+  ];
+  var item=choice(items);
+  return {text:item.q, answer:item.ans, opts:item.opts, type:'mc',
+    speak:item.q.replace(/[^\w\s?]/g,'')};
+}
+
+// Graphs
+function genGraphs(){
+  var items=[
+    {q:'A bar graph shows: Cats=4, Dogs=7, Birds=2. How many dogs?', ans:7, opts:[2,4,7,9]},
+    {q:'Picture graph: ⭐⭐⭐⭐⭐ = Monday, ⭐⭐⭐ = Tuesday. How many more stars on Monday?', ans:2, opts:[2,3,5,8]},
+    {q:'Total in graph: Apples=5, Bananas=3, Oranges=4. What is the total?', ans:12, opts:[9,10,12,15]},
+    {q:'Bar graph: Red=6, Blue=4. How many more red than blue?', ans:2, opts:[2,4,6,10]},
+  ];
+  var item=choice(items);
+  return {text:item.q, answer:item.ans, opts:item.opts, type:'mc', speak:item.q};
+}
+
+// Geometry Grade 2
+function genGeometry(){
+  var shapes=[
+    {name:'Triangle', sides:3, angles:3},
+    {name:'Quadrilateral', sides:4, angles:4},
+    {name:'Pentagon', sides:5, angles:5},
+    {name:'Hexagon', sides:6, angles:6},
+    {name:'Cube', faces:6, prop:'6 faces'},
+  ];
+  var s=choice(shapes.slice(0,4));
+  var types=['identify_sides','name_from_sides'];
+  var t=choice(types);
+  if(t==='identify_sides'){
+    var opts=mcOptions(s.sides,3,8);
+    return {text:'How many sides does a '+s.name+' have?', answer:s.sides, opts:opts, type:'mc',
+      speak:'How many sides does a '+s.name+' have?'};
+  } else {
+    var opts=shapes.slice(0,4).map(function(x){return x.name;});
+    opts=shuffle(opts).slice(0,4);
+    if(!opts.includes(s.name)) opts[0]=s.name;
+    opts=shuffle(opts);
+    return {text:'A shape has '+s.sides+' sides. What is it?', answer:s.name, opts:opts, type:'mc',
+      speak:'A shape has '+s.sides+' sides. What shape is it?'};
+  }
+}
+
+// Fractions
+function genFractions(){
+  var fracs=[
+    {num:1,den:2,word:'one half',emoji:'½'},
+    {num:1,den:3,word:'one third',emoji:'⅓'},
+    {num:1,den:4,word:'one quarter',emoji:'¼'},
+    {num:2,den:4,word:'two quarters',emoji:'½'},
+    {num:3,den:4,word:'three quarters',emoji:'¾'},
+  ];
+  var f=choice(fracs);
+  var types=['name','shade_count'];
+  var t=choice(types);
+  if(t==='name'){
+    var opts=fracs.map(function(x){return x.word;});
+    opts=shuffle(opts).slice(0,4); if(!opts.includes(f.word)) opts[0]=f.word; opts=shuffle(opts);
+    return {text:'What fraction is shaded? '+f.emoji, answer:f.word, opts:opts, type:'mc',
+      speak:'What fraction is shaded?'};
+  } else {
+    var opts=mcOptions(f.num,0,f.den);
+    return {text:'A pizza has '+f.den+' slices. '+f.word+' is eaten. How many slices eaten?',
+      answer:f.num, opts:opts, type:'mc',
+      speak:'A pizza has '+f.den+' slices. '+f.word+' is eaten. How many slices is that?'};
+  }
+}
+
+// ═══════════════════════════════════════════
+//  SCRATCH SHEET BUILDERS
+// ═══════════════════════════════════════════
+function buildScratch(q, topic){
+  var method = topic.method;
+  var visual = q.visual || '';
+  var html = '';
+
+  if(method==='dots' || visual.startsWith('dots:')){
+    html += buildDotsScratch(visual, q);
+  }
+  if(method==='crossdots' || visual.startsWith('crossdots:')){
+    html += buildCrossedDotsScratch(visual, q);
+  }
+  if(method==='tenframe' || visual.startsWith('tenframe:')){
+    html += buildTenFrame(visual);
+  }
+  if(method==='numberline' || visual.startsWith('numberline:')){
+    html += buildNumberLine(q);
+  }
+  if(method==='column' || visual.startsWith('column:')){
+    html += buildColumnMethod(visual);
+  }
+  if(method==='placevalue' || visual.startsWith('placevalue:')){
+    html += buildPlaceValue(visual);
+  }
+  if(method==='array' || visual.startsWith('array:')){
+    html += buildArray(visual);
+  }
+  if(method==='barmodel' || visual.startsWith('barmodel:')){
+    html += buildBarModel(q);
+  }
+  if(method==='clock' || visual.startsWith('clock:')){
+    html += buildClock(visual);
+  }
+  if(method==='coins' || visual.startsWith('coin:')){
+    html += buildCoinDisplay(visual, q);
+  }
+  if(method==='shape'){
+    html += buildShapeHint(q);
+  }
+
+  // Always add working lines
+  html += '<div class="scratch-section"><div class="scratch-label">My Working</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:6px;">';
+  for(var i=0;i<5;i++){
+    html += '<div style="border-bottom:2px solid #ffd54f;height:24px;"></div>';
+  }
+  html += '</div></div>';
+
+  return html;
+}
+
+function buildDotsScratch(visual, q){
+  var html = '<div class="scratch-section"><div class="scratch-label">Count the dots</div>';
+  html += '<div class="dot-groups">';
+  if(visual.includes('+')){
+    var parts=visual.replace('dots:','').split('+');
+    var a=parseInt(parts[0]), b=parseInt(parts[1])||0;
+    html += '<div class="dot-group"><div class="scratch-label" style="font-size:9px">Group A ('+a+')</div><div class="dot-row" style="flex-wrap:wrap;max-width:100px">';
+    for(var i=0;i<Math.min(a,20);i++) html+='<div class="dot"></div>';
+    html += '</div></div>';
+    if(b>0){
+      html += '<div style="font-size:20px;align-self:center">+</div>';
+      html += '<div class="dot-group"><div class="scratch-label" style="font-size:9px">Group B ('+b+')</div><div class="dot-row" style="flex-wrap:wrap;max-width:100px">';
+      for(var i=0;i<Math.min(b,20);i++) html+='<div class="dot" style="background:#ff9800;border-color:#e65100"></div>';
+      html += '</div></div>';
+    }
+  } else {
+    var n=parseInt((visual||'').replace('dots:',''))||0;
+    html += '<div class="dot-row" style="flex-wrap:wrap;max-width:140px">';
+    for(var i=0;i<Math.min(n,20);i++) html+='<div class="dot"></div>';
+    html += '</div>';
+  }
+  html += '</div></div>';
+  return html;
+}
+
+function buildCrossedDotsScratch(visual, q){
+  var parts=(visual||'').replace('crossdots:','').split(':');
+  var total=parseInt(parts[0])||0, cross=parseInt(parts[1])||0;
+  var html='<div class="scratch-section"><div class="scratch-label">Cross out '+cross+' dots</div>';
+  html+='<div class="dot-row" style="flex-wrap:wrap;max-width:140px">';
+  for(var i=0;i<Math.min(total,20);i++){
+    if(i<cross) html+='<div class="dot crossed" style="text-decoration:line-through;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px">✕</div>';
+    else html+='<div class="dot"></div>';
+  }
+  html+='</div></div>';
+  return html;
+}
+
+function buildTenFrame(visual){
+  var parts=(visual||'').replace('tenframe:','').split(':');
+  var total=parseInt(parts[0])||10, filled=parseInt(parts[1])||0;
+  var html='<div class="scratch-section"><div class="scratch-label">Ten Frame</div>';
+  html+='<div class="ten-frame">';
+  for(var i=0;i<10;i++){
+    html+='<div class="tf-cell'+(i<filled?' filled':'')+'"></div>';
+  }
+  html+='</div>';
+  html+='<div style="font-size:11px;color:#f57f17;margin-top:4px">Filled: '+filled+' | Empty: '+(10-filled)+'</div>';
+  html+='</div>';
+  return html;
+}
+
+function buildNumberLine(q){
+  var ans=parseInt(q.answer)||0;
+  var min=Math.max(0,ans-5), max=ans+5;
+  var html='<div class="scratch-section"><div class="scratch-label">Number Line</div>';
+  html+='<div class="number-line-wrap"><div class="number-line" style="position:relative;padding:24px 8px 4px;display:flex;align-items:flex-end">';
+  html+='<div style="position:absolute;bottom:20px;left:0;right:0;height:3px;background:#f57f17"></div>';
+  for(var i=min;i<=max;i++){
+    var isAns=(i===ans);
+    html+='<div style="display:flex;flex-direction:column;align-items:center;min-width:28px;position:relative;">';
+    if(isAns) html+='<div style="position:absolute;top:0;width:20px;height:20px;border-radius:50%;background:#6c63ff;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:800">★</div>';
+    html+='<div style="width:2px;height:10px;background:#f57f17;margin-top:14px"></div>';
+    html+='<div style="font-size:11px;font-weight:800;color:#f57f17">'+i+'</div>';
+    html+='</div>';
+  }
+  html+='</div></div></div>';
+  return html;
+}
+
+function buildColumnMethod(visual){
+  var str=(visual||'').replace('column:','');
+  var op=str.includes('+')?'+':'-';
+  var parts=str.split(op);
+  var a=parts[0], b=parts[1]||'';
+  var ans=op==='+'?parseInt(a)+parseInt(b):parseInt(a)-parseInt(b);
+  var html='<div class="scratch-section"><div class="scratch-label">Column Method</div>';
+  html+='<div class="col-method">';
+  html+='<div style="text-align:right;padding:2px 4px">'+a+'</div>';
+  html+='<div class="cm-row"><span class="cm-op">'+op+'</span><span style="float:right">'+b+'</span></div>';
+  html+='<div style="text-align:right;padding:2px 4px;color:#4caf50;font-size:22px">'+ans+'</div>';
+  html+='</div></div>';
+  return html;
+}
+
+function buildPlaceValue(visual){
+  var n=parseInt((visual||'').replace('placevalue:',''))||0;
+  var h=Math.floor(n/100), t=Math.floor((n%100)/10), o=n%10;
+  var html='<div class="scratch-section"><div class="scratch-label">Place Value: '+n+'</div>';
+  html+='<div class="pv-box">';
+  if(h>0){
+    html+='<div class="pv-col"><div class="pv-label">100s</div>';
+    for(var i=0;i<h;i++) html+='<div class="pv-block pv-hundred">H</div>';
+    html+='</div>';
+  }
+  if(t>0){
+    html+='<div class="pv-col"><div class="pv-label">10s</div>';
+    for(var i=0;i<t;i++) html+='<div class="pv-block pv-ten">T</div>';
+    html+='</div>';
+  }
+  html+='<div class="pv-col"><div class="pv-label">1s</div>';
+  for(var i=0;i<o;i++) html+='<div class="pv-block pv-one">O</div>';
+  html+='</div>';
+  html+='</div></div>';
+  return html;
+}
+
+function buildArray(visual){
+  var parts=(visual||'').replace('array:','').split(':');
+  var rows=parseInt(parts[0])||2, cols=parseInt(parts[1])||2;
+  var html='<div class="scratch-section"><div class="scratch-label">Array: '+rows+' × '+cols+'</div>';
+  html+='<div class="array-grid">';
+  for(var r=0;r<rows;r++){
+    html+='<div class="array-row">';
+    for(var c=0;c<cols;c++) html+='<div class="array-dot"></div>';
+    html+='</div>';
+  }
+  html+='</div>';
+  html+='<div style="font-size:12px;color:#f57f17;margin-top:6px">'+rows+' rows × '+cols+' = '+rows*cols+'</div>';
+  html+='</div>';
+  return html;
+}
+
+function buildBarModel(q){
+  var ans=parseInt(q.answer)||0;
+  var html='<div class="scratch-section"><div class="scratch-label">Bar Model</div>';
+  html+='<div class="bar-model">';
+  html+='<div class="bar-total">Total: ?</div>';
+  html+='<div class="bar-parts">';
+  html+='<div class="bar-part" style="background:#6c63ff">Part A</div>';
+  html+='<div class="bar-part" style="background:#a855f7">Part B</div>';
+  html+='</div></div></div>';
+  return html;
+}
+
+function buildClock(visual){
+  var parts=(visual||'').replace('clock:','').split(':');
+  var h=parseInt(parts[0])||12, m=parseInt(parts[1])||0;
+  var hAngle=(h%12)*30 + m*0.5 - 90;
+  var mAngle=m*6 - 90;
+  var hx=50+30*Math.cos(hAngle*Math.PI/180);
+  var hy=50+30*Math.sin(hAngle*Math.PI/180);
+  var mx=50+40*Math.cos(mAngle*Math.PI/180);
+  var my=50+40*Math.sin(mAngle*Math.PI/180);
+  var html='<div class="scratch-section"><div class="scratch-label">Clock</div>';
+  html+='<svg class="clock-svg" width="100" height="100" viewBox="0 0 100 100">';
+  html+='<circle cx="50" cy="50" r="48" fill="white" stroke="#6c63ff" stroke-width="3"/>';
+  for(var i=1;i<=12;i++){
+    var a=(i*30-90)*Math.PI/180;
+    var x=50+38*Math.cos(a), y=50+38*Math.sin(a);
+    html+='<text x="'+x+'" y="'+y+'" text-anchor="middle" dominant-baseline="middle" font-size="8" font-weight="bold" fill="#333">'+i+'</text>';
+  }
+  html+='<line x1="50" y1="50" x2="'+hx+'" y2="'+hy+'" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>';
+  html+='<line x1="50" y1="50" x2="'+mx+'" y2="'+my+'" stroke="#6c63ff" stroke-width="2.5" stroke-linecap="round"/>';
+  html+='<circle cx="50" cy="50" r="3" fill="#f44336"/>';
+  html+='</svg></div>';
+  return html;
+}
+
+function buildCoinDisplay(visual, q){
+  var coinName=(visual||'').replace('coin:','');
+  var coinMap={penny:'🟤 1¢',nickel:'⚪ 5¢',dime:'⚪ 10¢',quarter:'⚪ 25¢'};
+  var html='<div class="scratch-section"><div class="scratch-label">Coin Reference</div>';
+  html+='<div class="coin-row">';
+  Object.keys(coinMap).forEach(function(c){
+    html+='<div style="text-align:center;font-size:10px;font-weight:800;color:#f57f17">'+coinMap[c]+'<br><span style="font-size:9px">'+c+'</span></div>';
+  });
+  html+='</div></div>';
+  return html;
+}
+
+function buildShapeHint(q){
+  var html='<div class="scratch-section"><div class="scratch-label">Shape Reference</div>';
+  html+='<div style="font-size:11px;line-height:1.8;color:#555">';
+  html+='▲ Triangle = 3 sides<br>';
+  html+='⬛ Square = 4 equal sides<br>';
+  html+='▬ Rectangle = 4 sides<br>';
+  html+='⬠ Pentagon = 5 sides<br>';
+  html+='⬡ Hexagon = 6 sides<br>';
+  html+='</div></div>';
+  return html;
+}
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+var currentPlayer='anu';
+var currentTopics=KINDERGARTEN_TOPICS;
+var currentTopic=null;
+var currentMode='worksheet';
+var questions=[], qIdx=0, score=0, correct=0;
+var numpadAnswer='';
+var gameTimer=null, timeLeft=15;
+var fcIdx=0, fcRevealed=false;
+
+// Save/load
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+function loadMathSave(player){
+  try{var r=lsGet('math_'+player);return r?JSON.parse(r):{topics:{}};}catch(e){return {topics:{}};}
+}
+function saveMathSave(player,data){
+  try{lsSet('math_'+player,JSON.stringify(data));}catch(e){}
+}
+function getTopicSave(player,topicId){
+  var save=loadMathSave(player);
+  return save.topics[topicId]||{stars:0,badge:false,plays:0,bestScore:0};
+}
+function saveTopicResult(player,topicId,stars,score){
+  var save=loadMathSave(player);
+  if(!save.topics) save.topics={};
+  var existing=save.topics[topicId]||{stars:0,badge:false,plays:0,bestScore:0};
+  existing.plays=(existing.plays||0)+1;
+  if(stars>existing.stars) existing.stars=stars;
+  if(score>existing.bestScore) existing.bestScore=score;
+  if(stars>=1) existing.badge=true;
+  save.topics[topicId]=existing;
+  saveMathSave(player,save);
+}
+
+// ═══════════════════════════════════════════
+//  SCREENS
+// ═══════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById(id).classList.add('active');
+}
+
+// ═══════════════════════════════════════════
+//  PLAYER SELECT
+// ═══════════════════════════════════════════
+function selectPlayer(player){
+  currentPlayer=player;
+  currentTopics=player==='anu'?KINDERGARTEN_TOPICS:GRADE2_TOPICS;
+  var save=loadMathSave(player);
+  var total=currentTopics.length;
+  var done=Object.keys(save.topics).filter(function(k){return save.topics[k].badge;}).length;
+  document.getElementById('mode-welcome').textContent='Hi '+(player==='anu'?'Anu':'Dominion')+'! Choose your mode!';
+  showScreen('screen-mode');
+}
+
+function refreshPlayerCards(){
+  ['anu','dominion'].forEach(function(p){
+    var save=loadMathSave(p);
+    var topics=p==='anu'?KINDERGARTEN_TOPICS:GRADE2_TOPICS;
+    var badges=Object.keys(save.topics).filter(function(k){return save.topics[k].badge;}).length;
+    var el=document.getElementById(p+'-math-progress');
+    if(el) el.textContent=badges+' of '+topics.length+' topics completed';
+  });
+  // Load from KK profile
+  var kk=null;
+  try{var r=lsGet('kk_profile');kk=r?JSON.parse(r):null;}catch(e){}
+  if(kk&&kk.name){
+    var anuCard=document.querySelector('#screen-player .player-card:first-of-type .pc-name');
+    // Keep Anu/Dominion names as they map to grade levels
+  }
+}
+
+// ═══════════════════════════════════════════
+//  TOPIC SELECT
+// ═══════════════════════════════════════════
+function goToTopics(mode){
+  currentMode=mode;
+  renderTopics();
+  showScreen('screen-topics');
+}
+
+function renderTopics(){
+  var save=loadMathSave(currentPlayer);
+  var grid=document.getElementById('topic-grid');
+  grid.innerHTML='';
+  var title=currentPlayer==='anu'?'Kindergarten Topics':'2nd Grade Topics';
+  document.getElementById('topic-grade-title').textContent=title;
+
+  currentTopics.forEach(function(topic,i){
+    var ts=getTopicSave(currentPlayer,topic.id);
+    var unlocked=i===0||getTopicSave(currentPlayer,currentTopics[i-1].id).badge;
+    var div=document.createElement('div');
+    div.className='topic-card'+(ts.badge?' completed':ts.plays>0?' in-progress':'')+(unlocked?'':' locked');
+    var stars=ts.stars>0?'⭐'.repeat(ts.stars):'';
+    div.innerHTML='<div class="tc-icon">'+topic.icon+'</div>'
+      +'<div class="tc-name">'+topic.name+'</div>'
+      +'<div class="tc-stars">'+stars+'</div>'
+      +'<div class="tc-lock">'+(unlocked?(ts.badge?'✅':'▶'):'🔒')+'</div>';
+    if(unlocked) div.onclick=function(t){return function(){startTopic(t);};}(topic);
+    grid.appendChild(div);
+  });
+}
+
+// ═══════════════════════════════════════════
+//  GAME FLOW
+// ═══════════════════════════════════════════
+function startTopic(topic){
+  currentTopic=topic;
+  questions=[];
+  for(var i=0;i<10;i++) questions.push(topic.gen());
+  qIdx=0; score=0; correct=0;
+
+  if(currentMode==='flashcard'){
+    fcIdx=0; fcRevealed=false;
+    loadFlashcard();
+    showScreen('screen-flashcard');
+    return;
+  }
+
+  loadQuestion();
+  showScreen('screen-question');
+}
+
+function loadQuestion(){
+  if(qIdx>=questions.length){ endSession(); return; }
+  var q=questions[qIdx];
+  numpadAnswer='';
+
+  // Header
+  document.getElementById('q-progress').textContent='Q '+(qIdx+1)+'/'+questions.length;
+  document.getElementById('q-score').textContent='Score: '+score;
+  document.getElementById('q-progress-fill').style.width=(qIdx/questions.length*100)+'%';
+  document.getElementById('q-topic-tag').textContent=currentTopic.name;
+  document.getElementById('q-text').textContent=q.text;
+  document.getElementById('q-visual').textContent='';
+  document.getElementById('q-sub').textContent='';
+  document.getElementById('feedback-msg').textContent='';
+  document.getElementById('feedback-msg').className='feedback-msg';
+  document.getElementById('next-q-btn').style.display='none';
+
+  // Speak button - always show
+  document.getElementById('speak-btn-wrap').style.display='block';
+
+  // Build answer area
+  var area=document.getElementById('answer-area');
+  area.innerHTML='';
+
+  if(q.type==='mc'){
+    var grid=document.createElement('div');
+    grid.className='mc-grid';
+    var labels=['A','B','C','D'];
+    (q.opts||[]).forEach(function(opt,i){
+      var btn=document.createElement('button');
+      btn.className='mc-btn';
+      btn.textContent=labels[i]+'.  '+opt;
+      btn.onclick=function(o,idx){return function(){checkMC(o,idx,q);};}(opt,i);
+      grid.appendChild(btn);
+    });
+    area.appendChild(grid);
+  } else {
+    // Number pad
+    var disp=document.createElement('div');
+    disp.className='answer-display';
+    disp.id='np-display';
+    disp.textContent='___';
+    area.appendChild(disp);
+    var pad=document.createElement('div');
+    pad.className='numpad';
+    [1,2,3,4,5,6,7,8,9].forEach(function(n){
+      var btn=document.createElement('button');
+      btn.className='np-btn';
+      btn.textContent=n;
+      btn.onclick=function(d){return function(){npPress(d);};}(n);
+      pad.appendChild(btn);
+    });
+    var del=document.createElement('button');
+    del.className='np-btn np-del'; del.textContent='⌫';
+    del.onclick=function(){npDel();};
+    var zero=document.createElement('button');
+    zero.className='np-btn np-zero'; zero.textContent='0';
+    zero.onclick=function(){npPress(0);};
+    var enter=document.createElement('button');
+    enter.className='np-btn np-enter'; enter.textContent='✓ Enter';
+    enter.onclick=function(){npEnter(q);};
+    pad.appendChild(del); pad.appendChild(zero); pad.appendChild(enter);
+    area.appendChild(pad);
+  }
+
+  // Scratch sheet
+  document.getElementById('scratch-panel').querySelector('#scratch-content').innerHTML=buildScratch(q,currentTopic);
+
+  // Timer for game mode
+  if(currentMode==='game'){
+    clearInterval(gameTimer);
+    timeLeft=15;
+    document.getElementById('timer-bar').style.display='block';
+    document.getElementById('timer-display').textContent=timeLeft;
+    gameTimer=setInterval(function(){
+      timeLeft--;
+      document.getElementById('timer-display').textContent=timeLeft;
+      if(timeLeft<=0){
+        clearInterval(gameTimer);
+        showFeedback(false,'⏱ Time up! The answer was: '+q.answer);
+        setTimeout(nextQuestion,1800);
+      }
+    },1000);
+  } else {
+    document.getElementById('timer-bar').style.display='none';
+  }
+
+  // Auto-speak for Anu
+  if(currentPlayer==='anu' && q.speak) setTimeout(function(){speak(q.speak);},600);
+}
+
+function checkMC(chosen, chosenIdx, q){
+  clearInterval(gameTimer);
+  var btns=document.querySelectorAll('.mc-btn');
+  btns.forEach(function(b){b.disabled=true;});
+  var isCorrect=(String(chosen)===String(q.answer));
+  if(isCorrect){
+    btns[chosenIdx].classList.add('correct');
+    var pts=currentMode==='game'?Math.max(5,timeLeft*2):10;
+    score+=pts; correct++;
+    showFeedback(true);
+  } else {
+    btns[chosenIdx].classList.add('wrong');
+    // Reveal correct
+    var opts=q.opts||[];
+    opts.forEach(function(opt,i){
+      if(String(opt)===String(q.answer)) btns[i].classList.add('reveal');
+    });
+    showFeedback(false);
+  }
+  document.getElementById('q-score').textContent='Score: '+score;
+  setTimeout(nextQuestion, 1400);
+}
+
+function npPress(d){
+  if(numpadAnswer.length>=6) return;
+  numpadAnswer+=String(d);
+  var disp=document.getElementById('np-display');
+  if(disp) disp.textContent=numpadAnswer;
+}
+function npDel(){
+  numpadAnswer=numpadAnswer.slice(0,-1);
+  var disp=document.getElementById('np-display');
+  if(disp) disp.textContent=numpadAnswer||'___';
+}
+function npEnter(q){
+  if(!numpadAnswer) return;
+  clearInterval(gameTimer);
+  var isCorrect=String(numpadAnswer)===String(q.answer);
+  var disp=document.getElementById('np-display');
+  if(isCorrect){
+    if(disp) disp.className='answer-display correct';
+    var pts=currentMode==='game'?Math.max(5,timeLeft*2):10;
+    score+=pts; correct++;
+    showFeedback(true);
+  } else {
+    if(disp) disp.className='answer-display wrong';
+    showFeedback(false,'The answer is: '+q.answer);
+  }
+  document.getElementById('q-score').textContent='Score: '+score;
+  // Disable numpad
+  document.querySelectorAll('.np-btn').forEach(function(b){b.disabled=true;});
+  setTimeout(nextQuestion,1600);
+}
+
+function showFeedback(correct, extra){
+  var msgs_correct=['🌟 Amazing!','✅ Well done!','🎉 Brilliant!','👏 Correct!','⭐ Superstar!','🏆 Perfect!'];
+  var msgs_wrong=['💪 Keep going!','🙏 Try again next time!','📖 Look at the scratch sheet!','🌱 You are learning!','💡 Almost there!'];
+  var fb=document.getElementById('feedback-msg');
+  if(correct){
+    fb.textContent=choice(msgs_correct);
+    fb.className='feedback-msg correct';
+    showEncourage(true);
+  } else {
+    fb.textContent=(extra||choice(msgs_wrong));
+    fb.className='feedback-msg wrong';
+    showEncourage(false);
+  }
+}
+
+function showEncourage(isCorrect){
+  var div=document.createElement('div');
+  div.className='encourage-pop'+(isCorrect?'':' wrong');
+  div.textContent=isCorrect?choice(['⭐ Great job!','🌟 Brilliant!','🎉 Yes!','👏 Correct!'])
+                           :choice(['💪 Try again!','🙏 Keep going!','📖 Use the scratch sheet!']);
+  document.body.appendChild(div);
+  setTimeout(function(){div.remove();},2200);
+}
+
+function nextQuestion(){
+  qIdx++;
+  loadQuestion();
+}
+
+function exitToTopics(){
+  clearInterval(gameTimer);
+  renderTopics();
+  showScreen('screen-topics');
+}
+
+function playAgain(){
+  if(currentTopic) startTopic(currentTopic);
+}
+
+function endSession(){
+  clearInterval(gameTimer);
+  var pct=Math.round(correct/questions.length*100);
+  var stars=pct>=80?3:pct>=60?2:1;
+  var badgeEarned=pct>=80;
+  saveTopicResult(currentPlayer,currentTopic.id,stars,score);
+
+  document.getElementById('res-icon').textContent=stars===3?'🏆':stars===2?'⭐':'👏';
+  document.getElementById('res-stars').textContent='⭐'.repeat(stars);
+  document.getElementById('res-title').textContent=
+    stars===3?'Outstanding!':stars===2?'Well Done!':'Good Effort!';
+  document.getElementById('res-stats').innerHTML=
+    '<div class="rs-box"><div class="rs-val">'+correct+'</div><div class="rs-label">Correct</div></div>'+
+    '<div class="rs-box"><div class="rs-val">'+questions.length+'</div><div class="rs-label">Questions</div></div>'+
+    '<div class="rs-box"><div class="rs-val">'+pct+'%</div><div class="rs-label">Score</div></div>';
+
+  var badge=document.getElementById('badge-earned');
+  if(badgeEarned){
+    badge.textContent='🏅 '+currentTopic.name+' Badge Earned!';
+    badge.className='badge-earned show';
+  } else {
+    badge.className='badge-earned';
+  }
+
+  var encourages=['Keep practising — you can do it!',
+    'Every mistake is a step to success!',
+    'God made you smart! Keep going!',
+    'Practise makes perfect!',
+    '"I can do all things through Christ who strengthens me." — Phil 4:13'];
+  document.getElementById('res-encourage').textContent=choice(encourages);
+
+  showScreen('screen-result');
+}
+
+// ═══════════════════════════════════════════
+//  FLASHCARD MODE
+// ═══════════════════════════════════════════
+function loadFlashcard(){
+  if(fcIdx>=questions.length){ endSession(); return; }
+  var q=questions[fcIdx];
+  fcRevealed=false;
+  document.getElementById('fc-progress').textContent='Card '+(fcIdx+1)+' of '+questions.length;
+  document.getElementById('fc-topic').textContent=currentTopic.name;
+  document.getElementById('fc-question').textContent=q.text;
+  document.getElementById('fc-hint').textContent='Tap to reveal answer';
+  document.getElementById('fc-answer').textContent=String(q.answer);
+  document.getElementById('fc-answer').className='fc-answer';
+  document.getElementById('fc-buttons').style.display='none';
+  document.getElementById('fc-scratch-content').innerHTML=buildScratch(q,currentTopic);
+  if(currentPlayer==='anu'&&q.speak) setTimeout(function(){speak(q.speak);},600);
+}
+
+function revealFlashcard(){
+  if(fcRevealed) return;
+  fcRevealed=true;
+  document.getElementById('fc-answer').className='fc-answer show';
+  document.getElementById('fc-hint').textContent='Did you get it right?';
+  document.getElementById('fc-buttons').style.display='flex';
+}
+
+function fcMark(result){
+  if(result==='easy'){correct++;score+=10;}
+  fcIdx++;
+  loadFlashcard();
+}
+
+// ═══════════════════════════════════════════
+//  SPEAK
+// ═══════════════════════════════════════════
+function speakQuestion(){
+  var q=questions[qIdx];
+  if(q&&q.speak) speak(q.speak);
+}
+
+var selectedVoice=null;
+function initVoices(){
+  if(!window.speechSynthesis) return;
+  function set(){
+    var voices=window.speechSynthesis.getVoices();
+    selectedVoice=voices.find(function(v){
+      return v.name.match(/samantha|karen|victoria|moira|tessa|fiona|google uk english female|google us english/i);
+    })||voices.find(function(v){return v.lang&&v.lang.startsWith('en');})||voices[0]||null;
+  }
+  set();
+  if(window.speechSynthesis.onvoiceschanged!==undefined) window.speechSynthesis.onvoiceschanged=set;
+  setTimeout(set,500);
+}
+
+function speak(text){
+  if(!window.speechSynthesis||!text) return;
+  try{
+    window.speechSynthesis.cancel();
+    var u=new SpeechSynthesisUtterance(text);
+    u.rate=currentPlayer==='anu'?0.85:0.92;
+    u.pitch=currentPlayer==='anu'?1.1:1.0;
+    u.volume=1;
+    if(selectedVoice) u.voice=selectedVoice;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+// ═══════════════════════════════════════════
+//  BACKGROUND MUSIC
+// ═══════════════════════════════════════════
+var audioCtx=null,musicPlaying=false,musicNodes=[],musicSched=null,nextNote=0,noteIdx=0;
+var MEL=[523,659,784,659,523,440,523,0,587,698,784,698,587,523,440,0,
+         659,784,880,784,659,587,523,0,523,587,659,523,440,392,440,0];
+var BAS=[261,329,392,329,261,220,261,0,293,349,392,349,293,261,220,0,
+         329,392,440,392,329,293,261,0,261,293,329,261,220,196,220,0];
+var ND=0.20,LA=0.30;
+function initMusic(){if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();}
+function playTone(f,st,dur,gv,tp){
+  if(!f||!audioCtx) return;
+  var o=audioCtx.createOscillator(),gn=audioCtx.createGain(),m=audioCtx.createGain();
+  o.type=tp||'triangle';o.frequency.setValueAtTime(f,st);
+  gn.gain.setValueAtTime(0,st);gn.gain.linearRampToValueAtTime(gv,st+.02);
+  gn.gain.setValueAtTime(gv,st+dur*.75);gn.gain.linearRampToValueAtTime(0,st+dur);
+  m.gain.value=.10;o.connect(gn);gn.connect(m);m.connect(audioCtx.destination);
+  o.start(st);o.stop(st+dur+.04);musicNodes.push(o);
+}
+function schedNotes(){
+  while(nextNote<audioCtx.currentTime+LA){
+    var i=noteIdx%MEL.length;
+    playTone(MEL[i],nextNote,ND*.85,.5,'triangle');
+    playTone(BAS[i],nextNote,ND,.25,'sine');
+    nextNote+=ND;noteIdx++;
+  }
+}
+function startMusic(){
+  initMusic();initVoices();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  nextNote=audioCtx.currentTime+.05;noteIdx=0;musicPlaying=true;
+  musicSched=setInterval(schedNotes,50);
+  document.getElementById('music-btn').textContent='🎵';
+}
+function stopMusic(){
+  musicPlaying=false;
+  if(musicSched){clearInterval(musicSched);musicSched=null;}
+  musicNodes.forEach(function(n){try{n.stop();}catch(e){}});musicNodes=[];
+  document.getElementById('music-btn').textContent='🔇';
+}
+function toggleMusic(){musicPlaying?stopMusic():startMusic();}
+function autoStart(){if(!musicPlaying) startMusic();}
+document.addEventListener('touchstart',autoStart,{once:true});
+document.addEventListener('click',autoStart,{once:true});
+
+window.addEventListener('load',function(){
+  refreshPlayerCards();
+  initVoices();
+});
+</script>
+</body>
+</html>
