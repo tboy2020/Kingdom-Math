@@ -182,11 +182,12 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
   <div class="mic-wrap">
     <!-- BIG TAP BUTTON — main interaction for iOS Safari -->
     <button id="tap-to-answer-btn" onclick="userTapToListen()"
-      style="display:none;font-family:'Fredoka One',cursive;font-size:22px;
-             padding:20px 40px;border:none;border-radius:50px;
+      style="display:none;font-family:'Fredoka One',cursive;font-size:24px;
+             padding:22px 44px;border:none;border-radius:50px;
              background:linear-gradient(135deg,#4ade80,#16a34a);color:#fff;
              box-shadow:0 6px 24px rgba(74,222,128,.5);cursor:pointer;
-             animation:tapPulse 1.2s ease-in-out infinite;width:100%;max-width:320px;">
+             animation:tapPulse 1.2s ease-in-out infinite;
+             width:100%;max-width:340px;margin:10px auto;letter-spacing:1px;">
       🎙️ Tap to Answer
     </button>
     <div class="mic-icon" id="mic-icon" style="display:none">🎙️</div>
@@ -681,10 +682,12 @@ function askQuestion(){
   document.getElementById('heard-text').textContent='';
   setMicStatus('idle','Preparing...');
 
-  // Speak the question then listen
+  // Speak the question then show tap button
   speak(currentQ.speak||currentQ.q);
   var speakTime = Math.max(2000, (currentQ.speak||currentQ.q).split(' ').length*350);
-  speakTimeout = setTimeout(startListening, speakTime+800);
+  speakTimeout = setTimeout(function(){
+    showTapButton();
+  }, speakTime+600);
 }
 
 function startListening(){
@@ -695,16 +698,23 @@ function startListening(){
 }
 
 function showTapButton(){
+  if(!sessionActive) return;
   var btn = document.getElementById('tap-to-answer-btn');
   if(btn) btn.style.display='block';
-  setMicStatus('idle','👇 Tap the button then say your answer!');
-  document.getElementById('q-card').className='q-card';
+  // Hide mic dots while waiting for tap
+  var dots = document.getElementById('mic-dots');
+  if(dots) dots.style.opacity='0.3';
+  setMicStatus('idle','👇 Tap the button to answer!');
+  document.getElementById('q-card').className='q-card listening-state';
   document.getElementById('heard-text').textContent='';
 }
 
 function userTapToListen(){
   var btn = document.getElementById('tap-to-answer-btn');
   if(btn) btn.style.display='none';
+  var dots = document.getElementById('mic-dots');
+  if(dots) dots.style.opacity='1';
+  setMicStatus('listening','🎙️ Listening...');
   actuallyStartListening();
 }
 
