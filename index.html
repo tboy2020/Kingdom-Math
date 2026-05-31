@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Kingdom Kids Math</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient(160deg,#0d1b0d 0%,#1a3a1a 60%,#0d2b1a 100%);display:flex;flex-direction:column;align-items:center;padding:24px 16px 48px;color:#fff}
+
+.crown{font-size:56px;text-align:center;margin-bottom:6px;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.title{font-family:'Fredoka One',cursive;font-size:34px;letter-spacing:2px;background:linear-gradient(135deg,#4caf50,#8bc34a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;margin-bottom:4px}
+.subtitle{font-size:12px;color:#aaa;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;text-align:center}
+.welcome-name{font-family:'Fredoka One',cursive;font-size:18px;color:#8bc34a;text-align:center;margin-bottom:20px;min-height:26px}
+
+.cards{width:100%;max-width:400px;display:flex;flex-direction:column;gap:16px}
+
+.app-card{border-radius:24px;padding:22px 20px;cursor:pointer;display:flex;align-items:center;gap:18px;transition:transform .15s,box-shadow .15s;text-decoration:none;color:inherit;box-shadow:0 6px 24px rgba(0,0,0,.4)}
+.app-card:active{transform:scale(.97)}
+.app-card.worksheet{background:linear-gradient(135deg,#1a2a1a,#2d4a2d);border:2px solid rgba(76,175,80,.4)}
+.app-card.voice{background:linear-gradient(135deg,#1a1a2e,#2d2d4a);border:2px solid rgba(108,99,255,.4)}
+
+.card-icon{font-size:52px;flex-shrink:0}
+.card-info{flex:1}
+.card-title{font-family:'Fredoka One',cursive;font-size:22px;margin-bottom:4px}
+.card-title.worksheet{color:#4caf50}
+.card-title.voice{color:#a5b4fc}
+.card-desc{font-size:13px;color:#aaa;line-height:1.5}
+.card-tag{display:inline-block;margin-top:8px;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px}
+.tag-green{background:rgba(76,175,80,.2);color:#4caf50;border:1px solid rgba(76,175,80,.4)}
+.tag-purple{background:rgba(108,99,255,.2);color:#a5b4fc;border:1px solid rgba(108,99,255,.4)}
+.card-arrow{font-size:22px;color:#555;flex-shrink:0}
+
+/* INFO STRIP */
+.info-strip{width:100%;max-width:400px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px 16px;margin-top:8px}
+.info-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.info-row:last-child{border-bottom:none}
+.info-icon{font-size:20px;flex-shrink:0;width:28px;text-align:center}
+.info-text{font-size:13px;color:#aaa;line-height:1.4}
+.info-text strong{color:#8bc34a}
+
+.edit-btn{margin-top:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:8px 20px;font-size:13px;color:#aaa;cursor:pointer;font-family:'Nunito',sans-serif}
+.footer{margin-top:24px;font-size:12px;color:#444;text-align:center}
+.footer span{color:#4caf50}
+
+/* SETUP */
+.setup-screen{display:none;flex-direction:column;align-items:center;gap:16px;width:100%;max-width:380px}
+.setup-screen.active{display:flex}
+.main-screen{display:none;flex-direction:column;align-items:center;width:100%}
+.main-screen.active{display:flex}
+.setup-card{background:rgba(255,255,255,.06);border:2px solid rgba(76,175,80,.3);border-radius:24px;padding:28px 22px;width:100%;text-align:center}
+.setup-title{font-family:'Fredoka One',cursive;font-size:26px;color:#4caf50;margin-bottom:6px}
+.setup-sub{font-size:14px;color:#aaa;margin-bottom:20px;line-height:1.5}
+.setup-input{width:100%;background:rgba(255,255,255,.08);border:2px solid rgba(76,175,80,.4);border-radius:14px;padding:14px 18px;font-family:'Fredoka One',cursive;font-size:22px;color:#fff;outline:none;text-align:center;letter-spacing:1px;margin-bottom:16px}
+.setup-input:focus{border-color:#4caf50}
+.setup-input::placeholder{color:#444;font-size:16px}
+.age-label{font-size:13px;color:#aaa;margin-bottom:10px;font-weight:700}
+.age-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;margin-bottom:20px}
+.age-btn{background:rgba(255,255,255,.06);border:2px solid rgba(76,175,80,.2);border-radius:12px;padding:12px 6px;font-family:'Fredoka One',cursive;font-size:18px;color:#aaa;cursor:pointer;transition:all .15s}
+.age-btn.selected{background:rgba(76,175,80,.2);border-color:#4caf50;color:#4caf50}
+.btn-setup{font-family:'Fredoka One',cursive;font-size:20px;padding:14px 36px;border:none;border-radius:50px;background:linear-gradient(135deg,#4caf50,#2e7d32);color:#fff;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,.3);transition:transform .1s;width:100%}
+.btn-setup:active{transform:scale(.96)}
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div class="setup-screen" id="setup-screen">
+  <div class="crown">🧮</div>
+  <div class="setup-card">
+    <div class="setup-title">Kingdom Kids Math!</div>
+    <div class="setup-sub">Let's set up your profile so the maths matches your grade level perfectly!</div>
+    <input class="setup-input" id="setup-name" type="text" placeholder="Your name..." maxlength="16" autocomplete="off"/>
+    <div class="age-label">How old are you?</div>
+    <div class="age-grid" id="age-grid"></div>
+    <button class="btn-setup" onclick="finishSetup()">Start Learning! 🧮</button>
+  </div>
+  <div style="font-size:12px;color:#555;text-align:center;margin-top:8px">Saved on your device. No account needed!</div>
+</div>
+
+<!-- MAIN SCREEN -->
+<div class="main-screen" id="main-screen">
+  <div class="crown">🧮</div>
+  <div class="title">Kingdom Kids Math</div>
+  <div class="subtitle">Kindergarten &amp; 2nd Grade</div>
+  <div class="welcome-name" id="welcome-name"></div>
+
+  <div class="cards">
+    <a class="app-card worksheet" href="worksheet/index.html">
+      <div class="card-icon">📝</div>
+      <div class="card-info">
+        <div class="card-title worksheet">Math Generator</div>
+        <div class="card-desc">Worksheets, flashcards and game mode. 32 topics with scratch sheet always visible!</div>
+        <span class="card-tag tag-green">32 Topics · 3 Modes · Scratch Sheet</span>
+      </div>
+      <div class="card-arrow">▶</div>
+    </a>
+
+    <a class="app-card voice" href="voice/index.html">
+      <div class="card-icon">🎙️</div>
+      <div class="card-info">
+        <div class="card-title voice">Voice Math Tutor</div>
+        <div class="card-desc">Hands-free! App reads every question aloud and listens for your spoken answer. One tap to start!</div>
+        <span class="card-tag tag-purple">Voice · 32 Topics · Hands-Free</span>
+      </div>
+      <div class="card-arrow">▶</div>
+    </a>
+  </div>
+
+  <!-- Info strip -->
+  <div class="info-strip">
+    <div class="info-row">
+      <div class="info-icon">🌟</div>
+      <div class="info-text"><strong>Kindergarten</strong> — 15 topics from counting to shapes, coins and time</div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">🏆</div>
+      <div class="info-text"><strong>2nd Grade</strong> — 17 topics from addition to fractions, graphs and geometry</div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">📏</div>
+      <div class="info-text"><strong>Scratch sheet</strong> always visible in landscape — see the working method for every topic</div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">🏅</div>
+      <div class="info-text">Score <strong>80% or more</strong> to earn a badge and unlock the next topic</div>
+    </div>
+  </div>
+
+  <button class="edit-btn" onclick="editProfile()">✏️ Change My Name or Age</button>
+  <div class="footer">Part of <span>Kingdom Kids Games</span> · Made with ❤️</div>
+</div>
+
+<script>
+var PROFILE_KEY = 'kk_profile';
+
+function loadProfile(){
+  try{var r=localStorage.getItem(PROFILE_KEY);return r?JSON.parse(r):null;}catch(e){return null;}
+}
+function saveProfile(p){
+  try{localStorage.setItem(PROFILE_KEY,JSON.stringify(p));}catch(e){}
+}
+
+var selectedAge = null;
+
+function buildAgeGrid(){
+  var grid = document.getElementById('age-grid');
+  grid.innerHTML = '';
+  for(var a=4;a<=11;a++){
+    var btn = document.createElement('button');
+    btn.className = 'age-btn';
+    btn.textContent = a;
+    btn.dataset.age = a;
+    btn.onclick = function(b){ return function(){
+      document.querySelectorAll('.age-btn').forEach(function(x){x.classList.remove('selected');});
+      b.classList.add('selected');
+      selectedAge = parseInt(b.dataset.age);
+    };}(btn);
+    grid.appendChild(btn);
+  }
+}
+
+function finishSetup(){
+  var name = document.getElementById('setup-name').value.trim();
+  if(!name){ alert('Please enter your name!'); return; }
+  if(!selectedAge){ alert('Please pick your age!'); return; }
+  var profile = {name:name, age:selectedAge, isEasy:selectedAge<=6};
+  saveProfile(profile);
+  showMain(profile);
+}
+
+function showMain(profile){
+  document.getElementById('setup-screen').classList.remove('active');
+  document.getElementById('main-screen').classList.add('active');
+  var grade = profile.isEasy ? 'Kindergarten' : '2nd Grade';
+  document.getElementById('welcome-name').textContent =
+    'Hi ' + profile.name + '! You are in ' + grade + ' 🎓';
+}
+
+function editProfile(){
+  document.getElementById('main-screen').classList.remove('active');
+  var profile = loadProfile();
+  if(profile){
+    document.getElementById('setup-name').value = profile.name;
+    selectedAge = profile.age;
+    document.querySelectorAll('.age-btn').forEach(function(b){
+      if(parseInt(b.dataset.age)===profile.age) b.classList.add('selected');
+    });
+  }
+  document.getElementById('setup-screen').classList.add('active');
+}
+
+buildAgeGrid();
+var profile = loadProfile();
+if(profile && profile.name){
+  showMain(profile);
+} else {
+  document.getElementById('setup-screen').classList.add('active');
+}
+</script>
+</body>
+</html>
