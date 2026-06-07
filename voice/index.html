@@ -8,1038 +8,758 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%);display:flex;flex-direction:column;align-items:center;color:#fff;overflow-x:hidden}
-
 .nav{width:100%;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(0,0,0,.3);border-bottom:1px solid rgba(255,255,255,.1)}
 .nav-title{font-family:'Fredoka One',cursive;font-size:18px;color:#ffd200}
 .nav-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:6px 14px;font-size:13px;font-weight:800;color:#fff;cursor:pointer;text-decoration:none;font-family:'Nunito',sans-serif}
-
-.screen{width:100%;max-width:420px;display:none;flex-direction:column;align-items:center;padding:20px 16px 48px;gap:16px}
+.screen{width:100%;max-width:460px;display:none;flex-direction:column;align-items:center;padding:20px 16px 60px;gap:14px}
 .screen.active{display:flex}
 
-/* ── WELCOME ── */
-.big-icon{font-size:80px;text-align:center;animation:float 3s ease-in-out infinite}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
-.main-title{font-family:'Fredoka One',cursive;font-size:34px;background:linear-gradient(135deg,#ffd200,#ff9800);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center}
-.main-sub{font-size:14px;color:#aaa;text-align:center;line-height:1.6}
+/* WELCOME */
+.big-icon{font-size:72px;text-align:center;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.main-title{font-family:'Fredoka One',cursive;font-size:32px;color:#ffd200;text-align:center}
+.info-box{background:rgba(255,255,255,.07);border:2px solid rgba(255,210,0,.3);border-radius:18px;padding:16px 18px;width:100%;font-size:13px;color:#ccc;line-height:1.8}
+.info-box strong{color:#ffd200}
 
-/* ── NAME ENTRY ── */
-.name-card{background:rgba(255,255,255,.07);border:2px solid rgba(255,210,0,.3);border-radius:24px;padding:24px 20px;width:100%;text-align:center}
-.name-title{font-family:'Fredoka One',cursive;font-size:22px;color:#ffd200;margin-bottom:8px}
-.name-sub{font-size:13px;color:#aaa;margin-bottom:20px;line-height:1.6}
-.name-display{font-family:'Fredoka One',cursive;font-size:28px;color:#fff;background:rgba(255,255,255,.08);border:2px solid rgba(255,210,0,.4);border-radius:14px;padding:14px 20px;min-height:60px;margin-bottom:14px;letter-spacing:3px;min-width:200px;text-align:center}
-.name-display.listening{border-color:#4ade80;animation:pulse 1s ease-in-out infinite}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.4)}50%{box-shadow:0 0 0 12px rgba(74,222,128,0)}}
+/* NAME */
+.setup-card{background:rgba(255,255,255,.07);border:2px solid rgba(255,210,0,.3);border-radius:24px;padding:24px 20px;width:100%;text-align:center}
+.setup-title{font-family:'Fredoka One',cursive;font-size:22px;color:#ffd200;margin-bottom:8px}
+.setup-input{width:100%;background:rgba(255,255,255,.1);border:2px solid rgba(255,210,0,.4);border-radius:14px;padding:14px 18px;font-family:'Fredoka One',cursive;font-size:24px;color:#fff;outline:none;text-align:center;margin-bottom:14px}
+.setup-input::placeholder{color:#444;font-size:16px}
+.age-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.age-btn{background:rgba(255,255,255,.06);border:2px solid rgba(255,210,0,.2);border-radius:10px;padding:12px 4px;font-family:'Fredoka One',cursive;font-size:18px;color:#aaa;cursor:pointer}
+.age-btn.sel{background:rgba(255,210,0,.2);border-color:#ffd200;color:#ffd200}
 
-/* ── TOPIC SELECTOR ── */
-.topic-list{width:100%;display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto}
-.topic-row{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.1);border-radius:12px;padding:10px 14px;cursor:pointer;transition:all .15s}
-.topic-row:hover{border-color:#ffd200;background:rgba(255,210,0,.1)}
-.topic-row.active-topic{border-color:#4ade80;background:rgba(74,222,128,.1)}
+/* TOPICS */
+.topic-list{width:100%;display:flex;flex-direction:column;gap:8px;max-height:380px;overflow-y:auto}
+.topic-row{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.1);border-radius:14px;padding:12px 14px;cursor:pointer;transition:all .15s}
+.topic-row:hover,.topic-row:active{border-color:#ffd200;background:rgba(255,210,0,.1)}
 .topic-row.locked{opacity:.4;cursor:not-allowed}
-.tr-icon{font-size:24px;flex-shrink:0}
-.tr-name{font-family:'Fredoka One',cursive;font-size:15px;color:#fff}
-.tr-stars{font-size:12px;margin-left:auto}
+.tr-icon{font-size:26px;flex-shrink:0}
+.tr-name{font-family:'Fredoka One',cursive;font-size:16px;color:#fff;flex:1}
+.tr-badge{font-size:16px}
 
-/* ── SESSION SCREEN ── */
-.session-header{width:100%;background:rgba(255,255,255,.07);border-radius:16px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
-.sh-stat{text-align:center}
+/* SESSION */
+.s-header{width:100%;background:rgba(255,255,255,.07);border-radius:16px;padding:12px 16px;display:flex;justify-content:space-between}
+.sh-box{text-align:center}
 .sh-label{font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:.5px}
-.sh-val{font-family:'Fredoka One',cursive;font-size:22px;color:#ffd200}
+.sh-val{font-family:'Fredoka One',cursive;font-size:24px;color:#ffd200}
+.prog-track{width:100%;background:rgba(255,255,255,.1);border-radius:20px;height:10px;overflow:hidden}
+.prog-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#ffd200,#ff9800);transition:width .4s}
 
-.q-card{width:100%;background:rgba(255,255,255,.08);border:3px solid rgba(255,210,0,.3);border-radius:24px;padding:24px 20px;text-align:center}
-.q-card.listening-state{border-color:#4ade80;background:rgba(74,222,128,.06)}
-.q-card.correct-state{border-color:#4ade80;background:rgba(74,222,128,.1)}
-.q-card.wrong-state{border-color:#f87171;background:rgba(248,113,113,.1)}
-.q-topic-label{font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
-.q-number{font-family:'Fredoka One',cursive;font-size:36px;color:#fff;margin:10px 0;line-height:1.3}
-.q-sub{font-size:13px;color:#aaa;margin-top:6px}
+/* QUESTION CARD */
+.q-card{width:100%;background:rgba(255,255,255,.08);border:3px solid rgba(255,210,0,.3);border-radius:22px;padding:22px 18px;text-align:center;transition:border-color .3s,background .3s}
+.q-card.listening{border-color:#4ade80;background:rgba(74,222,128,.07)}
+.q-card.correct{border-color:#4ade80;background:rgba(74,222,128,.12)}
+.q-card.wrong{border-color:#f87171;background:rgba(248,113,113,.1)}
+.q-topic{font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.q-text{font-family:'Fredoka One',cursive;font-size:34px;color:#fff;margin:8px 0;line-height:1.3}
+.q-hint{font-size:13px;color:#aaa;margin-top:6px}
 
-/* ── MIC VISUALIZER ── */
-.mic-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;margin:14px 0}
-.mic-icon{font-size:52px;transition:transform .2s}
-.mic-icon.active{animation:micPulse .8s ease-in-out infinite}
-@keyframes micPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
-@keyframes tapPulse{0%,100%{transform:scale(1);box-shadow:0 6px 24px rgba(74,222,128,.5)}
-  50%{transform:scale(1.04);box-shadow:0 8px 32px rgba(74,222,128,.8)}}
-.mic-dots{display:flex;gap:6px;align-items:center;height:32px}
-.mic-dot{width:8px;border-radius:4px;background:#4ade80;transition:height .1s}
-.mic-status{font-family:'Fredoka One',cursive;font-size:16px;color:#4ade80;min-height:24px;text-align:center}
-.heard-text{font-size:14px;color:#ffd200;font-style:italic;min-height:20px;text-align:center}
+/* MIC BUTTON — the heart of the app */
+.mic-btn{width:140px;height:140px;border-radius:50%;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;transition:all .2s;box-shadow:0 8px 32px rgba(0,0,0,.4);font-family:'Fredoka One',cursive}
+.mic-btn.ready{background:linear-gradient(135deg,#ffd200,#ff9800);animation:readyPulse 2s ease-in-out infinite}
+.mic-btn.listening{background:linear-gradient(135deg,#4ade80,#16a34a);animation:listenPulse .8s ease-in-out infinite;box-shadow:0 0 0 0 rgba(74,222,128,.6)}
+.mic-btn.processing{background:linear-gradient(135deg,#6c63ff,#a855f7)}
+.mic-btn.disabled{background:rgba(255,255,255,.1);cursor:not-allowed}
+.mic-btn-icon{font-size:44px;line-height:1}
+.mic-btn-text{font-size:14px;color:#1a1a1a;letter-spacing:.5px}
+.mic-btn.listening .mic-btn-text{color:#fff}
+.mic-btn.processing .mic-btn-text{color:#fff}
+.mic-btn.disabled .mic-btn-text{color:#666}
+@keyframes readyPulse{0%,100%{transform:scale(1);box-shadow:0 8px 32px rgba(255,210,0,.4)}50%{transform:scale(1.04);box-shadow:0 8px 40px rgba(255,210,0,.7)}}
+@keyframes listenPulse{0%{transform:scale(1);box-shadow:0 0 0 0 rgba(74,222,128,.7)}70%{transform:scale(1.06);box-shadow:0 0 0 20px rgba(74,222,128,0)}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(74,222,128,0)}}
 
-/* ── FEEDBACK ── */
-.feedback-banner{width:100%;border-radius:16px;padding:14px 18px;text-align:center;display:none}
-.feedback-banner.show{display:block;animation:fbPop .4s ease}
-@keyframes fbPop{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
-.feedback-banner.correct{background:rgba(74,222,128,.15);border:2px solid #4ade80}
-.feedback-banner.wrong{background:rgba(248,113,113,.15);border:2px solid #f87171}
+/* TRANSCRIPT */
+.transcript-box{width:100%;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.12);border-radius:14px;padding:12px 16px;min-height:52px;text-align:center}
+.transcript-interim{font-size:15px;color:#aaa;font-style:italic;min-height:22px}
+.transcript-final{font-family:'Fredoka One',cursive;font-size:20px;color:#ffd200;min-height:28px}
+
+/* FEEDBACK */
+.feedback{width:100%;border-radius:16px;padding:14px;text-align:center;display:none}
+.feedback.show{display:block;animation:fbpop .4s ease}
+.feedback.correct{background:rgba(74,222,128,.15);border:2px solid #4ade80}
+.feedback.wrong{background:rgba(248,113,113,.12);border:2px solid #f87171}
 .fb-icon{font-size:36px}
-.fb-text{font-family:'Fredoka One',cursive;font-size:20px;margin-top:4px}
-.fb-correct{color:#4ade80}
-.fb-wrong{color:#f87171}
+.fb-msg{font-family:'Fredoka One',cursive;font-size:22px;margin-top:4px}
 .fb-answer{font-size:14px;color:#aaa;margin-top:4px}
+.fb-msg.correct{color:#4ade80}
+.fb-msg.wrong{color:#f87171}
+@keyframes fbpop{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
 
-/* ── PROGRESS ── */
-.progress-track{width:100%;background:rgba(255,255,255,.1);border-radius:20px;height:10px;overflow:hidden}
-.progress-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#ffd200,#ff9800);transition:width .5s ease}
-.q-counter{font-size:13px;color:#aaa;text-align:center}
-
-/* ── RESULT ── */
+/* RESULT */
 .result-card{width:100%;background:rgba(255,255,255,.07);border:2px solid rgba(255,210,0,.3);border-radius:24px;padding:28px 20px;text-align:center}
-.res-icon{font-size:64px;animation:fbPop .6s ease}
+.res-icon{font-size:64px;animation:fbpop .6s ease}
 .res-stars{font-size:36px;letter-spacing:8px;margin:8px 0}
 .res-title{font-family:'Fredoka One',cursive;font-size:28px;color:#ffd200;margin-bottom:8px}
 .res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
 .res-box{background:rgba(255,255,255,.06);border-radius:12px;padding:10px}
-.res-val{font-family:'Fredoka One',cursive;font-size:24px;color:#ffd200}
+.res-val{font-family:'Fredoka One',cursive;font-size:26px;color:#ffd200}
 .res-label{font-size:10px;color:#888;text-transform:uppercase;margin-top:2px}
-.res-verse{background:rgba(255,210,0,.08);border-left:4px solid #ffd200;border-radius:0 10px 10px 0;padding:10px 14px;font-size:13px;color:#ffd200;font-style:italic;margin-top:12px;text-align:left}
+.res-verse{background:rgba(255,210,0,.08);border-left:4px solid #ffd200;border-radius:0 10px 10px 0;padding:10px 14px;font-size:13px;color:#ffd200;font-style:italic;margin-top:12px;text-align:left;line-height:1.6}
 .badge-pop{background:linear-gradient(135deg,#ffd200,#ff9800);border-radius:14px;padding:10px 16px;font-family:'Fredoka One',cursive;font-size:15px;color:#1a1a2e;margin-top:10px;display:none}
-.badge-pop.show{display:block;animation:fbPop .5s ease}
+.badge-pop.show{display:block;animation:fbpop .5s ease}
 
-/* ── BUTTONS ── */
-.btn{font-family:'Fredoka One',cursive;font-size:18px;padding:14px 32px;border:none;border-radius:50px;cursor:pointer;transition:transform .1s,box-shadow .1s;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+/* BUTTONS */
+.btn{font-family:'Fredoka One',cursive;font-size:18px;padding:13px 28px;border:none;border-radius:50px;cursor:pointer;transition:transform .1s;box-shadow:0 4px 14px rgba(0,0,0,.3)}
 .btn:active{transform:scale(.96)}
 .btn-gold{background:linear-gradient(135deg,#ffd200,#ff9800);color:#1a1a2e}
-.btn-purple{background:linear-gradient(135deg,#6c63ff,#a855f7);color:#fff}
 .btn-dark{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.2);color:#fff;font-size:14px;padding:10px 22px}
-.btn-start{font-size:24px;padding:20px 48px;background:linear-gradient(135deg,#4ade80,#2e7d32);color:#fff;width:100%;max-width:320px;box-shadow:0 6px 24px rgba(74,222,128,.4)}
+.btn-green{background:linear-gradient(135deg,#4caf50,#2e7d32);color:#fff}
 .btn-sm{font-size:14px;padding:9px 20px}
-.action-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.action-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 
-/* ── PERMISSION INFO ── */
-.permission-box{background:rgba(255,165,0,.1);border:2px solid rgba(255,165,0,.4);border-radius:14px;padding:14px 16px;font-size:13px;color:#ffd200;line-height:1.6;text-align:center;width:100%}
+/* STATUS */
+.status-text{font-family:'Fredoka One',cursive;font-size:16px;color:#4ade80;text-align:center;min-height:24px}
 </style>
 </head>
 <body>
-
 <div class="nav">
-  <a class="nav-btn" href="index.html">← Math</a>
+  <a class="nav-btn" href="../index.html">← Math</a>
   <div class="nav-title">🎙️ Voice Math Tutor</div>
-  <button class="nav-btn" id="music-btn" onclick="toggleMusic()">🎵</button>
+  <span id="vol-icon" style="font-size:20px;cursor:pointer" onclick="toggleSpeak()">🔊</span>
 </div>
 
-<!-- ══ WELCOME ══ -->
+<!-- WELCOME -->
 <div class="screen active" id="screen-welcome">
   <div class="big-icon">🎙️</div>
   <div class="main-title">Voice Math Tutor</div>
-  <div class="main-sub">Hands-free maths practice.<br>Listen, answer out loud, learn!</div>
-  <div class="permission-box">
-    🎤 One tap per question to activate the microphone.<br>
-    <strong>iPad/iPhone:</strong> Allow mic when Safari asks.<br>
-    <strong>Windows/Edge:</strong> Allow mic in the address bar.<br>
-    <em>Works on GitHub Pages — not in Claude sandbox.</em>
+  <div class="info-box">
+    <strong>How it works:</strong><br>
+    1. Type your name and pick your age<br>
+    2. Choose a topic<br>
+    3. App reads each question aloud<br>
+    4. Tap the big button and say your answer<br>
+    5. App marks it right or wrong automatically!<br><br>
+    <strong>Works best on:</strong> iPad Safari, Chrome on any device
   </div>
-  <button class="btn btn-gold" onclick="goToNameEntry()" style="width:100%;max-width:320px">Let's Start! 🎙️</button>
-  <button class="btn btn-dark btn-sm" onclick="window.location.href='index.html'">← Back to Math</button>
+  <button class="btn btn-gold" onclick="showScreen('screen-name')" style="width:100%;max-width:320px;font-size:22px;padding:18px">Let's Start! 🎙️</button>
 </div>
 
-<!-- ══ NAME ENTRY ══ -->
+<!-- NAME -->
 <div class="screen" id="screen-name">
-  <div class="name-card">
-    <div class="name-title">Who is doing maths? 🤔</div>
-    <div class="name-sub">Type your name below, then tap <strong>Let's Go!</strong></div>
-    <input id="name-input" type="text" maxlength="20" autocomplete="off"
-      placeholder="Your name..."
-      style="width:100%;background:rgba(255,255,255,.1);border:2px solid rgba(255,210,0,.4);
-             border-radius:14px;padding:14px 18px;font-family:'Fredoka One',cursive;
-             font-size:26px;color:#fff;outline:none;text-align:center;
-             letter-spacing:2px;margin-bottom:16px;"
-      oninput="onNameInput(this.value)"
-      onkeydown="if(event.key==='Enter') confirmName()"/>
-    <div style="font-size:13px;color:#4ade80;min-height:20px;text-align:center;margin-bottom:12px"
-         id="name-status"></div>
-    <button class="btn btn-gold" id="name-confirm-btn" onclick="confirmName()"
-            style="width:100%;display:none">✅ Let's Go!</button>
+  <div class="setup-card">
+    <div class="setup-title">What is your name? 👋</div>
+    <input class="setup-input" id="name-input" type="text" placeholder="Type your name..." maxlength="16" autocomplete="off"/>
+    <div style="font-size:13px;color:#aaa;margin-bottom:10px;font-weight:700">How old are you?</div>
+    <div class="age-grid" id="age-grid"></div>
+    <button class="btn btn-gold" onclick="confirmName()" style="width:100%">Let's Go! 🎓</button>
   </div>
 </div>
 
-<!-- ══ TOPIC SELECT ══ -->
+<!-- TOPICS -->
 <div class="screen" id="screen-topics">
-  <div style="font-family:'Fredoka One',cursive;font-size:22px;color:#ffd200;text-align:center" id="topic-welcome">Choose a topic!</div>
-  <div style="font-size:13px;color:#aaa;text-align:center">10 questions per session. Speak your answers!</div>
+  <div style="font-family:'Fredoka One',cursive;font-size:20px;color:#ffd200;text-align:center" id="topic-welcome">Choose a topic!</div>
+  <div style="font-size:13px;color:#aaa;text-align:center;margin-bottom:4px">Complete each topic to unlock the next one 🔓</div>
   <div class="topic-list" id="topic-list"></div>
-  <div class="action-row">
-    <button class="btn btn-dark btn-sm" onclick="showScreen('screen-name')">← Change Name</button>
-  </div>
+  <button class="btn btn-dark btn-sm" onclick="showScreen('screen-name')">← Change Name</button>
 </div>
 
-<!-- ══ SESSION ══ -->
+<!-- SESSION -->
 <div class="screen" id="screen-session">
-  <div class="session-header">
-    <div class="sh-stat"><div class="sh-label">Question</div><div class="sh-val" id="s-qnum">1/10</div></div>
-    <div class="sh-stat"><div class="sh-label">Score</div><div class="sh-val" id="s-score">0</div></div>
-    <div class="sh-stat"><div class="sh-label">Correct</div><div class="sh-val" id="s-correct">0</div></div>
+  <div class="s-header">
+    <div class="sh-box"><div class="sh-label">Question</div><div class="sh-val" id="s-qnum">1/10</div></div>
+    <div class="sh-box"><div class="sh-label">Score</div><div class="sh-val" id="s-score">0</div></div>
+    <div class="sh-box"><div class="sh-label">Correct</div><div class="sh-val" id="s-correct">0</div></div>
   </div>
-
-  <div class="progress-track"><div class="progress-fill" id="s-progress" style="width:0%"></div></div>
+  <div class="prog-track"><div class="prog-fill" id="s-prog" style="width:0%"></div></div>
 
   <div class="q-card" id="q-card">
-    <div class="q-topic-label" id="q-topic-label">Topic</div>
-    <div class="q-number" id="q-number">Loading...</div>
-    <div class="q-sub" id="q-sub"></div>
+    <div class="q-topic" id="q-topic">Topic</div>
+    <div class="q-text" id="q-text">Loading...</div>
+    <div class="q-hint" id="q-hint">Listen carefully!</div>
   </div>
 
-  <div class="mic-wrap">
-    <!-- BIG TAP BUTTON — main interaction for iOS Safari -->
-    <button id="tap-to-answer-btn" onclick="userTapToListen()"
-      style="display:none;font-family:'Fredoka One',cursive;font-size:24px;
-             padding:22px 44px;border:none;border-radius:50px;
-             background:linear-gradient(135deg,#4ade80,#16a34a);color:#fff;
-             box-shadow:0 6px 24px rgba(74,222,128,.5);cursor:pointer;
-             animation:tapPulse 1.2s ease-in-out infinite;
-             width:100%;max-width:340px;margin:10px auto;letter-spacing:1px;">
-      🎙️ Tap to Answer
-    </button>
-    <div class="mic-icon" id="mic-icon" style="display:none">🎙️</div>
-    <div class="mic-dots" id="mic-dots">
-      <div class="mic-dot" id="md0" style="height:8px"></div>
-      <div class="mic-dot" id="md1" style="height:16px"></div>
-      <div class="mic-dot" id="md2" style="height:24px"></div>
-      <div class="mic-dot" id="md3" style="height:16px"></div>
-      <div class="mic-dot" id="md4" style="height:8px"></div>
-    </div>
-    <div class="mic-status" id="mic-status"></div>
-    <div class="heard-text" id="heard-text"></div>
+  <!-- THE MAIN MIC BUTTON -->
+  <button class="mic-btn ready" id="mic-btn" onclick="onMicTap()">
+    <div class="mic-btn-icon">🎙️</div>
+    <div class="mic-btn-text" id="mic-btn-text">TAP TO ANSWER</div>
+  </button>
+
+  <div class="status-text" id="status-text">App will read the question...</div>
+
+  <div class="transcript-box">
+    <div class="transcript-interim" id="transcript-interim"></div>
+    <div class="transcript-final" id="transcript-final"></div>
   </div>
 
-  <div class="feedback-banner" id="feedback-banner">
+  <div class="feedback" id="feedback">
     <div class="fb-icon" id="fb-icon">✅</div>
-    <div class="fb-text" id="fb-text">Correct!</div>
+    <div class="fb-msg" id="fb-msg">Correct!</div>
     <div class="fb-answer" id="fb-answer"></div>
   </div>
 
   <div class="action-row">
-    <button class="btn btn-dark btn-sm" onclick="skipQuestion()">⏭ Skip</button>
-    <button class="btn btn-dark btn-sm" onclick="repeatQuestion()">🔊 Repeat</button>
+    <button class="btn btn-dark btn-sm" onclick="skipQ()">⏭ Skip</button>
+    <button class="btn btn-dark btn-sm" onclick="repeatQ()">🔊 Repeat</button>
     <button class="btn btn-dark btn-sm" onclick="endSession()">🛑 Stop</button>
   </div>
 </div>
 
-<!-- ══ RESULT ══ -->
+<!-- RESULT -->
 <div class="screen" id="screen-result">
   <div class="result-card">
-    <div class="res-icon" id="res-icon">🌟</div>
+    <div class="res-icon" id="res-icon">⭐</div>
     <div class="res-stars" id="res-stars">⭐⭐⭐</div>
-    <div class="res-title" id="res-title">Amazing!</div>
+    <div class="res-title" id="res-title">Well done!</div>
     <div class="res-grid" id="res-grid"></div>
-    <div class="badge-pop" id="badge-pop">🏅 Topic Badge Earned!</div>
+    <div class="badge-pop" id="badge-pop">🏅 Badge Earned!</div>
     <div class="res-verse" id="res-verse"></div>
   </div>
-  <div class="action-row">
-    <button class="btn btn-gold" onclick="playAgain()">▶ Play Again</button>
+  <div class="action-row" style="margin-top:14px">
+    <button class="btn btn-gold" onclick="playAgain()">▶ Again</button>
     <button class="btn btn-dark btn-sm" onclick="showScreen('screen-topics')">📋 Topics</button>
     <button class="btn btn-dark btn-sm" onclick="showScreen('screen-welcome')">🏠 Home</button>
   </div>
 </div>
 
 <script>
-// ═══════════════════════════════════════
-//  ALL TOPICS + QUESTION GENERATORS
-// ═══════════════════════════════════════
+// ═══════════════════════
+//  HELPERS
+// ═══════════════════════
 function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
 function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
-function shuffle(arr){return arr.slice().sort(()=>Math.random()-.5);}
+function el(id){return document.getElementById(id);}
+function setText(id,v){var e=el(id);if(e)e.textContent=v;}
+function setClass(id,v){var e=el(id);if(e)e.className=v;}
+function setStyle(id,p,v){var e=el(id);if(e)e.style[p]=v;}
 
-// Word-to-number map for speech recognition
-var WORD_NUMS = {
-  'zero':0,'one':1,'two':2,'three':3,'four':4,'five':5,'six':6,'seven':7,
-  'eight':8,'nine':9,'ten':10,'eleven':11,'twelve':12,'thirteen':13,
-  'fourteen':14,'fifteen':15,'sixteen':16,'seventeen':17,'eighteen':18,
-  'nineteen':19,'twenty':20,'thirty':30,'forty':40,'fifty':50,
-  'sixty':60,'seventy':70,'eighty':80,'ninety':90,'hundred':100,
-  'oh':0,'to':2,'for':4,'ate':8,'won':1,'too':2,'tu':2,'tree':3,
-  'to':2,'nein':9,'fife':5
+// ═══════════════════════
+//  TOPICS
+// ═══════════════════════
+var TOPICS = [
+  // KINDERGARTEN
+  {id:'k_count10',name:'Counting 1–10',icon:'🔢',grade:'K',
+   gen:function(){var n=rnd(1,10);return{q:'Count the dots: '+repeat('●',n)+'\nHow many?',a:String(n),type:'number',speak:'How many dots? Count them. '+repeat('●',n)};}},
+  {id:'k_bonds10',name:'Number Bonds to 10',icon:'🔟',grade:'K',
+   gen:function(){var a=rnd(0,10),b=10-a;var t=rnd(0,1);
+     if(t===0)return{q:a+' + ___ = 10',a:String(b),type:'number',speak:''+a+' plus what equals 10?'};
+     return{q:'___ + '+b+' = 10',a:String(a),type:'number',speak:'What plus '+b+' equals 10?'};}},
+  {id:'k_add10',name:'Addition to 10',icon:'➕',grade:'K',
+   gen:function(){var a=rnd(0,9),b=rnd(0,10-a);return{q:a+' + '+b+' = ?',a:String(a+b),type:'number',speak:'What is '+a+' plus '+b+'?'};}},
+  {id:'k_sub10',name:'Subtraction to 10',icon:'➖',grade:'K',
+   gen:function(){var a=rnd(1,10),b=rnd(0,a);return{q:a+' - '+b+' = ?',a:String(a-b),type:'number',speak:'What is '+a+' minus '+b+'?'};}},
+  {id:'k_moreorless',name:'More / Less / Equal',icon:'⚖️',grade:'K',
+   gen:function(){var a=rnd(1,10),b=rnd(1,10);var ans=a>b?'more':a<b?'less':'equal';
+     return{q:'Is '+a+' MORE, LESS or EQUAL to '+b+'?',a:ans,type:'word',speak:'Is '+a+' more, less, or equal to '+b+'? Say more, less, or equal.'};}},
+  {id:'k_shapes',name:'2D Shapes',icon:'🔷',grade:'K',
+   gen:function(){var s=[{n:'circle',si:0},{n:'square',si:4},{n:'triangle',si:3},{n:'rectangle',si:4},{n:'hexagon',si:6}];
+     var sh=pick(s);return{q:'How many sides does a '+sh.n+' have?',a:String(sh.si),type:'number',speak:'How many sides does a '+sh.n+' have?'};}},
+  {id:'k_time',name:'Telling Time',icon:'🕐',grade:'K',
+   gen:function(){var h=rnd(1,12);return{q:'The clock shows '+h+':00\nWhat time is it?',a:h+" o'clock",type:'word',speak:'The clock shows '+h+' colon zero zero. What time is it? Say the time.'};}},
+  {id:'k_coins',name:'Coins',icon:'🪙',grade:'K',
+   gen:function(){var c=[{n:'penny',v:'1'},{n:'nickel',v:'5'},{n:'dime',v:'10'},{n:'quarter',v:'25'}];
+     var coin=pick(c);return{q:'How many cents is a '+coin.n+'?',a:coin.v,type:'number',speak:'How many cents is a '+coin.n+' worth?'};}},
+  {id:'k_oddeven',name:'Odd or Even',icon:'🎭',grade:'K',
+   gen:function(){var n=rnd(1,20);var ans=n%2===0?'even':'odd';
+     return{q:'Is '+n+' ODD or EVEN?',a:ans,type:'word',speak:'Is '+n+' odd or even? Say odd or even.'};}},
+  {id:'k_count20',name:'Counting 11–20',icon:'🔢',grade:'K',
+   gen:function(){var n=rnd(11,20);return{q:'Count: '+repeat('●',n)+'\nHow many?',a:String(n),type:'number',speak:'How many dots are there?'};}},
+  {id:'k_bonds5',name:'Number Bonds to 5',icon:'5️⃣',grade:'K',
+   gen:function(){var a=rnd(0,5),b=5-a;return{q:a+' + ___ = 5',a:String(b),type:'number',speak:''+a+' plus what equals 5?'};}},
+  {id:'k_count100',name:'Count to 100',icon:'💯',grade:'K',
+   gen:function(){var s=rnd(1,95);return{q:'What comes next?\n'+s+', ___',a:String(s+1),type:'number',speak:'What number comes next after '+s+'?'};}},
+  {id:'k_measure',name:'Measurement',icon:'📏',grade:'K',
+   gen:function(){var q=pick([{q:'A pencil or ruler — which is LONGER?',a:'ruler',speak:'Which is longer, a pencil or a ruler?'},
+     {q:'A feather or brick — which is HEAVIER?',a:'brick',speak:'Which is heavier, a feather or a brick?'},
+     {q:'A mouse or elephant — which is BIGGER?',a:'elephant',speak:'Which is bigger, a mouse or an elephant?'}]);
+     return{q:q.q,a:q.a,type:'word',speak:q.speak};}},
+  {id:'k_ordinal',name:'Ordinal Numbers',icon:'🥇',grade:'K',
+   gen:function(){var o=['first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth'];
+     var n=['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th'];var i=rnd(0,9);
+     return{q:'How do we say '+n[i]+'?',a:o[i],type:'word',speak:'How do we say position '+n[i]+'?'};}},
+  {id:'k_sorting',name:'Sorting & Data',icon:'📊',grade:'K',
+   gen:function(){var a=rnd(2,6),b=rnd(2,6),c=rnd(2,6);
+     return{q:'Cats:'+a+' Dogs:'+b+' Birds:'+c+'\nHow many in total?',a:String(a+b+c),type:'number',speak:'There are '+a+' cats, '+b+' dogs, and '+c+' birds. How many animals in total?'};}},
+  // GRADE 2
+  {id:'g2_add20',name:'Addition to 20',icon:'➕',grade:'2',
+   gen:function(){var a=rnd(1,19),b=rnd(1,20-a);return{q:a+' + '+b+' = ?',a:String(a+b),type:'number',speak:'What is '+a+' plus '+b+'?'};}},
+  {id:'g2_sub20',name:'Subtraction to 20',icon:'➖',grade:'2',
+   gen:function(){var a=rnd(2,20),b=rnd(1,a);return{q:a+' - '+b+' = ?',a:String(a-b),type:'number',speak:'What is '+a+' minus '+b+'?'};}},
+  {id:'g2_add100',name:'Addition to 100',icon:'➕',grade:'2',
+   gen:function(){var a=rnd(10,89),b=rnd(1,99-a);return{q:a+' + '+b+' = ?',a:String(a+b),type:'number',speak:'What is '+a+' plus '+b+'?'};}},
+  {id:'g2_sub100',name:'Subtraction to 100',icon:'➖',grade:'2',
+   gen:function(){var a=rnd(11,99),b=rnd(1,a);return{q:a+' - '+b+' = ?',a:String(a-b),type:'number',speak:'What is '+a+' minus '+b+'?'};}},
+  {id:'g2_place',name:'Place Value',icon:'🔢',grade:'2',
+   gen:function(){var n=rnd(10,999),d=pick(['tens','ones','hundreds']);
+     var ans=d==='hundreds'?Math.floor(n/100):d==='tens'?Math.floor((n%100)/10):n%10;
+     return{q:'In '+n+', what is the\n'+d+' digit?',a:String(ans),type:'number',speak:'In the number '+n+', what is the '+d+' digit?'};}},
+  {id:'g2_skip',name:'Skip Counting',icon:'🦘',grade:'2',
+   gen:function(){var step=pick([2,5,10,100]),start=rnd(0,8)*step;
+     return{q:'Count by '+step+'s:\n'+start+', '+(start+step)+', '+(start+step*2)+', ___',
+       a:String(start+step*3),type:'number',speak:'Skip counting by '+step+'s: '+start+', '+(start+step)+', '+(start+step*2)+', what comes next?'};}},
+  {id:'g2_word',name:'Word Problems',icon:'📖',grade:'2',
+   gen:function(){var a=rnd(5,20),b=rnd(1,15),t=rnd(0,2);
+     if(t===0)return{q:a+' birds. '+b+' more fly in.\nHow many now?',a:String(a+b),type:'number',speak:''+a+' birds sat on a tree. '+b+' more flew in. How many birds altogether?'};
+     if(t===1)return{q:a+' apples. '+b+' eaten.\nHow many left?',a:String(a-Math.min(b,a-1)),type:'number',speak:'There were '+a+' apples and '+Math.min(b,a-1)+' were eaten. How many are left?'};
+     return{q:a+' boys + '+b+' girls.\nHow many children?',a:String(a+b),type:'number',speak:''+a+' boys and '+b+' girls. How many children altogether?'};}},
+  {id:'g2_oddeven',name:'Odd & Even',icon:'🎭',grade:'2',
+   gen:function(){var n=rnd(1,50);return{q:'Is '+n+' ODD or EVEN?',a:n%2===0?'even':'odd',type:'word',speak:'Is '+n+' odd or even?'};}},
+  {id:'g2_arrays',name:'Arrays',icon:'⬛',grade:'2',
+   gen:function(){var r=rnd(2,5),c=rnd(2,5);
+     return{q:r+' rows of '+c+'\nHow many total?',a:String(r*c),type:'number',speak:''+r+' rows with '+c+' in each row. How many altogether?'};}},
+  {id:'g2_add1000',name:'Addition to 1000',icon:'➕',grade:'2',
+   gen:function(){var a=rnd(100,899),b=rnd(1,999-a);return{q:a+' + '+b+' = ?',a:String(a+b),type:'number',speak:'What is '+a+' plus '+b+'?'};}},
+  {id:'g2_sub1000',name:'Subtraction to 1000',icon:'➖',grade:'2',
+   gen:function(){var a=rnd(101,999),b=rnd(1,a-1);return{q:a+' - '+b+' = ?',a:String(a-b),type:'number',speak:'What is '+a+' minus '+b+'?'};}},
+  {id:'g2_time',name:'Time to 5 Minutes',icon:'🕐',grade:'2',
+   gen:function(){var h=rnd(1,12),m=rnd(0,11)*5,ms=(m<10?'0':'')+m;
+     return{q:'Clock shows '+h+':'+ms+'\nWhat time is it?',a:h+':'+ms,type:'word',speak:'The clock shows '+h+' hours and '+ms+' minutes. What time is it?'};}},
+  {id:'g2_money',name:'Money',icon:'💵',grade:'2',
+   gen:function(){var p=rnd(5,95);return{q:'Item costs '+p+'¢\nYou pay $1.00\nChange = ?',a:String(100-p),type:'number',speak:'An item costs '+p+' cents. You pay one dollar. How many cents change?'};}},
+  {id:'g2_measure',name:'Measurement',icon:'📐',grade:'2',
+   gen:function(){var a=rnd(5,30),b=rnd(5,30);var ans=a>b?'first':a<b?'second':'same';
+     return{q:'Object A: '+a+'cm\nObject B: '+b+'cm\nWhich is longer?',a:ans,type:'word',speak:'Object A is '+a+' centimetres. Object B is '+b+' centimetres. Which is longer? Say first, second, or same.'};}},
+  {id:'g2_fractions',name:'Fractions',icon:'🍕',grade:'2',
+   gen:function(){var f=pick([{n:1,d:2,w:'one half'},{n:1,d:3,w:'one third'},{n:1,d:4,w:'one quarter'},{n:3,d:4,w:'three quarters'}]);
+     return{q:'Pizza has '+f.d+' slices.\n'+f.w+' eaten.\nHow many slices?',a:String(f.n),type:'number',speak:'A pizza has '+f.d+' slices. '+f.w+' is eaten. How many slices were eaten?'};}},
+  {id:'g2_geometry',name:'Geometry',icon:'🔷',grade:'2',
+   gen:function(){var s=pick([{n:'triangle',si:3},{n:'quadrilateral',si:4},{n:'pentagon',si:5},{n:'hexagon',si:6}]);
+     return{q:'How many sides does a\n'+s.n+' have?',a:String(s.si),type:'number',speak:'How many sides does a '+s.n+' have?'};}},
+  {id:'g2_graphs',name:'Graphs & Data',icon:'📊',grade:'2',
+   gen:function(){var a=rnd(2,8),b=rnd(2,8),c=rnd(2,8);
+     return{q:'Cats='+a+', Dogs='+b+', Birds='+c+'\nTotal animals?',a:String(a+b+c),type:'number',speak:'A graph shows '+a+' cats, '+b+' dogs, and '+c+' birds. How many animals in total?'};}}
+];
+
+function repeat(ch,n){var s='';for(var i=0;i<n;i++)s+=ch;return s;}
+
+// ═══════════════════════
+//  ANSWER MATCHING
+// ═══════════════════════
+var WORD_MAP={
+  'zero':'0','one':'1','two':'2','three':'3','four':'4','five':'5',
+  'six':'6','seven':'7','eight':'8','nine':'9','ten':'10',
+  'eleven':'11','twelve':'12','thirteen':'13','fourteen':'14','fifteen':'15',
+  'sixteen':'16','seventeen':'17','eighteen':'18','nineteen':'19','twenty':'20',
+  'thirty':'30','forty':'40','fifty':'50','sixty':'60','seventy':'70',
+  'eighty':'80','ninety':'90','hundred':'100','oh':'0','to':'2','for':'4',
+  'ate':'8','won':'1','too':'2','tu':'2','nein':'9','fife':'5','fort':'40',
+  'sex':'6','sick':'6','tree':'3','heaven':'7','late':'8'
 };
 
-function wordsToNumber(text){
-  text = text.toLowerCase().replace(/[^a-z0-9\s]/g,'').trim();
-  // Try direct integer parse first
-  var direct = parseInt(text.replace(/\D/g,''));
-  if(!isNaN(direct) && String(direct)===text.replace(/\D/g,'')) return direct;
-  // Try word map
-  var words = text.split(/\s+/);
+function cleanText(t){
+  return t.toLowerCase()
+    .replace(/[^a-z0-9\s]/g,' ')
+    .replace(/\bthe answer is\b|\banswer is\b|\bi think\b|\bi say\b|\bit is\b|\bits\b|\bequals\b|\bis\b/g,' ')
+    .replace(/\s+/g,' ').trim();
+}
+
+function textToNum(t){
+  t = cleanText(t);
+  // Direct digit
+  var digits = t.replace(/\D/g,'');
+  if(digits && !isNaN(parseInt(digits))) return parseInt(digits);
+  // Word lookup
+  var words = t.split(' ');
   var total = 0, current = 0;
   for(var i=0;i<words.length;i++){
     var w = words[i];
-    if(WORD_NUMS[w]!==undefined){
-      var n = WORD_NUMS[w];
+    if(WORD_MAP[w]!==undefined){
+      var n = parseInt(WORD_MAP[w]);
       if(n===100){ current = current===0?100:current*100; }
-      else if(n>=20){ current += n; }
-      else { current += n; }
-    } else if(!isNaN(parseInt(w))){
-      current += parseInt(w);
-    }
+      else if(n>=20){ current+=n; }
+      else { current+=n; }
+    } else if(!isNaN(parseInt(w))){ current+=parseInt(w); }
   }
-  total += current;
-  return total>0 ? total : NaN;
+  total+=current;
+  return total>0?total:NaN;
 }
 
-function extractAnswer(text, expectedType){
-  text = text.toLowerCase().replace(/[^a-z0-9\s]/g,' ').trim();
-  // Remove filler phrases
-  text = text.replace(/the answer is|i think|it is|it's|is|answer|equals/g,' ').trim();
-  if(expectedType==='number'){
-    var n = wordsToNumber(text);
-    return isNaN(n) ? null : n;
-  }
-  // For word answers — return cleaned text
-  return text.replace(/\s+/g,' ').trim();
-}
-
-function fuzzyMatch(said, expected){
-  said = String(said).toLowerCase().trim();
+function isMatch(said, expected){
+  said = cleanText(said);
   expected = String(expected).toLowerCase().trim();
   if(said===expected) return true;
   // Number match
-  var saidNum = wordsToNumber(said);
-  var expNum = parseInt(expected);
-  if(!isNaN(saidNum) && !isNaN(expNum) && saidNum===expNum) return true;
-  // Word similarity — check if expected is contained in said or vice versa
-  if(said.includes(expected) || expected.includes(said)) return true;
-  // Check first word
-  if(said.split(' ')[0]===expected.split(' ')[0]) return true;
+  var sNum = textToNum(said);
+  var eNum = parseInt(expected);
+  if(!isNaN(sNum) && !isNaN(eNum) && sNum===eNum) return true;
+  // Contains expected word
+  if(said.includes(expected)) return true;
+  if(expected.includes(said) && said.length>2) return true;
+  // First word match
+  if(said.split(' ')[0]===expected.split(' ')[0] && expected.split(' ')[0].length>2) return true;
   return false;
 }
 
-// ── QUESTION GENERATORS (voice-friendly) ──
-var ALL_TOPICS = [
-  // KINDERGARTEN
-  {id:'k_count10', name:'Counting 1–10', icon:'🔢', grade:'K',
-   gen:function(){
-     var n=rnd(1,10);
-     return {q:'Count these dots: '+('●').repeat(n)+'. How many?', a:n, type:'number',
-       speak:'I am going to show you '+n+' dots. How many dots are there? Count them. '+n+' dots.'};
-   }},
-  {id:'k_count20', name:'Counting 11–20', icon:'🔢', grade:'K',
-   gen:function(){
-     var n=rnd(11,20);
-     return {q:'How many? '+('●').repeat(n), a:n, type:'number',
-       speak:'Count these '+n+' objects. How many are there?'};
-   }},
-  {id:'k_count100', name:'Count to 100', icon:'💯', grade:'K',
-   gen:function(){
-     var s=rnd(1,95); var a=s+rnd(1,3);
-     return {q:'What comes next?\n'+s+', ___', a:a, type:'number',
-       speak:'What number comes next? '+s+' comma blank.'};
-   }},
-  {id:'k_bonds5', name:'Number Bonds to 5', icon:'5️⃣', grade:'K',
-   gen:function(){
-     var a=rnd(0,5); var b=5-a;
-     var types=[{q:a+' + ___ = 5',a:b},{q:'___ + '+b+' = 5',a:a},{q:a+' + '+b+' = ___',a:5}];
-     var t=pick(types);
-     return {q:t.q, a:t.a, type:'number', speak:t.q.replace('___','what')+'?'};
-   }},
-  {id:'k_bonds10', name:'Number Bonds to 10', icon:'🔟', grade:'K',
-   gen:function(){
-     var a=rnd(0,10); var b=10-a;
-     var types=[{q:a+' + ___ = 10',a:b},{q:'___ + '+b+' = 10',a:a},{q:a+' + '+b+' = ___',a:10}];
-     var t=pick(types);
-     return {q:t.q, a:t.a, type:'number', speak:t.q.replace('___','what')+'?'};
-   }},
-  {id:'k_add10', name:'Addition to 10', icon:'➕', grade:'K',
-   gen:function(){
-     var a=rnd(0,9); var b=rnd(0,10-a); var ans=a+b;
-     return {q:a+' + '+b+' = ?', a:ans, type:'number',
-       speak:'What is '+a+' plus '+b+'?'};
-   }},
-  {id:'k_sub10', name:'Subtraction to 10', icon:'➖', grade:'K',
-   gen:function(){
-     var a=rnd(1,10); var b=rnd(0,a); var ans=a-b;
-     return {q:a+' - '+b+' = ?', a:ans, type:'number',
-       speak:'What is '+a+' minus '+b+'?'};
-   }},
-  {id:'k_moreorless', name:'More / Less / Equal', icon:'⚖️', grade:'K',
-   gen:function(){
-     var a=rnd(1,10); var b=rnd(1,10);
-     var ans=a>b?'more':a<b?'less':'equal';
-     return {q:'Is '+a+' MORE, LESS or EQUAL to '+b+'?', a:ans, type:'word',
-       speak:'Is '+a+' more, less, or equal to '+b+'? Say more, less, or equal.'};
-   }},
-  {id:'k_ordinal', name:'Ordinal Numbers', icon:'🥇', grade:'K',
-   gen:function(){
-     var ords=['first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth'];
-     var nums=['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th'];
-     var i=rnd(0,9);
-     return {q:'How do we say position '+nums[i]+'?', a:ords[i], type:'word',
-       speak:'How do we say position '+nums[i]+'? For example, position 1st is first.'};
-   }},
-  {id:'k_shapes2d', name:'2D Shapes', icon:'🔷', grade:'K',
-   gen:function(){
-     var shapes=[{n:'circle',s:0},{n:'square',s:4},{n:'triangle',s:3},{n:'rectangle',s:4},{n:'hexagon',s:6}];
-     var s=pick(shapes); var t=rnd(0,1);
-     if(t===0) return {q:'How many sides does a '+s.n+' have?', a:s.s, type:'number',
-       speak:'How many sides does a '+s.n+' have?'};
-     var ss=rnd(3,6);
-     var shape={3:'triangle',4:'square',5:'pentagon',6:'hexagon'}[ss]||'square';
-     return {q:'A shape has '+ss+' sides. What is it?', a:shape, type:'word',
-       speak:'A shape has '+ss+' sides. What shape is it?'};
-   }},
-  {id:'k_shapes3d', name:'3D Shapes', icon:'🎲', grade:'K',
-   gen:function(){
-     var shapes=[{n:'cube',f:6},{n:'cone',f:1},{n:'cylinder',f:2},{n:'sphere',f:0}];
-     var s=pick(shapes);
-     return {q:'A '+s.n+' has how many flat faces?', a:s.f, type:'number',
-       speak:'How many flat faces does a '+s.n+' have?'};
-   }},
-  {id:'k_measure', name:'Measurement', icon:'📏', grade:'K',
-   gen:function(){
-     var qs=[
-       {q:'A pencil or a ruler — which is longer?',a:'ruler',speak:'Which is longer — a pencil or a ruler?'},
-       {q:'A feather or a brick — which is heavier?',a:'brick',speak:'Which is heavier — a feather or a brick?'},
-       {q:'A mouse or an elephant — which is bigger?',a:'elephant',speak:'Which is bigger — a mouse or an elephant?'},
-       {q:'A book or a house — which is taller?',a:'house',speak:'Which is taller — a book or a house?'},
-     ];
-     return pick(qs);
-   }},
-  {id:'k_time', name:'Telling Time', icon:'🕐', grade:'K',
-   gen:function(){
-     var h=rnd(1,12);
-     return {q:'The clock shows '+h+':00.\nWhat time is it?', a:h+" o'clock", type:'word',
-       speak:'The clock shows '+h+' oclock. What time is it? Say the time.'};
-   }},
-  {id:'k_coins', name:'Coins', icon:'🪙', grade:'K',
-   gen:function(){
-     var coins=[{n:'penny',v:1},{n:'nickel',v:5},{n:'dime',v:10},{n:'quarter',v:25}];
-     var c=pick(coins); var t=rnd(0,1);
-     if(t===0) return {q:'How many cents is a '+c.n+' worth?', a:c.v, type:'number',
-       speak:'How many cents is a '+c.n+' worth?'};
-     return {q:'A coin worth '+c.v+' cents is called a ___', a:c.n, type:'word',
-       speak:'A coin worth '+c.v+' cents is called what?'};
-   }},
-  {id:'k_sorting', name:'Sorting & Data', icon:'📊', grade:'K',
-   gen:function(){
-     var qs=[
-       {q:'3 cats, 2 dogs, 5 birds. How many animals in total?',a:10,type:'number',speak:'There are 3 cats, 2 dogs, and 5 birds. How many animals in total?'},
-       {q:'4 red, 3 blue, 2 green. How many are NOT red?',a:5,type:'number',speak:'There are 4 red, 3 blue, and 2 green objects. How many are NOT red?'},
-       {q:'How many vowels in A, B, C, D, E?',a:2,type:'number',speak:'How many vowels are in the letters A, B, C, D, E?'},
-     ];
-     return pick(qs);
-   }},
-
-  // GRADE 2
-  {id:'g2_add20', name:'Addition to 20', icon:'➕', grade:'2',
-   gen:function(){
-     var a=rnd(1,19); var b=rnd(1,20-a); var ans=a+b;
-     return {q:a+' + '+b+' = ?', a:ans, type:'number', speak:'What is '+a+' plus '+b+'?'};
-   }},
-  {id:'g2_sub20', name:'Subtraction to 20', icon:'➖', grade:'2',
-   gen:function(){
-     var a=rnd(1,20); var b=rnd(0,a); var ans=a-b;
-     return {q:a+' - '+b+' = ?', a:ans, type:'number', speak:'What is '+a+' minus '+b+'?'};
-   }},
-  {id:'g2_add100', name:'Addition to 100', icon:'➕', grade:'2',
-   gen:function(){
-     var a=rnd(10,89); var b=rnd(1,99-a); var ans=a+b;
-     return {q:a+' + '+b+' = ?', a:ans, type:'number', speak:'What is '+a+' plus '+b+'?'};
-   }},
-  {id:'g2_sub100', name:'Subtraction to 100', icon:'➖', grade:'2',
-   gen:function(){
-     var a=rnd(11,99); var b=rnd(1,a); var ans=a-b;
-     return {q:a+' - '+b+' = ?', a:ans, type:'number', speak:'What is '+a+' minus '+b+'?'};
-   }},
-  {id:'g2_place', name:'Place Value', icon:'🔢', grade:'2',
-   gen:function(){
-     var n=rnd(10,999);
-     var h=Math.floor(n/100),t=Math.floor((n%100)/10),o=n%10;
-     var d=pick(['hundreds','tens','ones']);
-     var ans=d==='hundreds'?h:d==='tens'?t:o;
-     return {q:'In '+n+', what is the '+d+' digit?', a:ans, type:'number',
-       speak:'In the number '+n+', what is the '+d+' digit?'};
-   }},
-  {id:'g2_skip', name:'Skip Counting', icon:'🦘', grade:'2',
-   gen:function(){
-     var steps=[2,5,10,100]; var step=pick(steps);
-     var start=rnd(0,8)*step;
-     var seq=[start,start+step,start+step*2,'___',start+step*4];
-     var ans=start+step*3;
-     return {q:'Skip count by '+step+'s:\n'+seq.join(', '), a:ans, type:'number',
-       speak:'Skip counting by '+step+'s: '+seq.slice(0,3).join(', ')+' blank '+seq[4]+'. What is the missing number?'};
-   }},
-  {id:'g2_word', name:'Word Problems', icon:'📖', grade:'2',
-   gen:function(){
-     var ts=[
-       function(){var a=rnd(5,20),b=rnd(1,15);return {q:a+' birds on a tree. '+b+' more fly in. How many birds?',a:a+b,speak:a+' birds sat on a tree. '+b+' more flew in. How many birds altogether?'};},
-       function(){var a=rnd(10,25),b=rnd(1,a-1);return {q:a+' apples. '+b+' eaten. How many left?',a:a-b,speak:'There were '+a+' apples and '+b+' were eaten. How many are left?'};},
-       function(){var a=rnd(5,15),b=rnd(5,15);return {q:a+' boys and '+b+' girls in class. How many children?',a:a+b,speak:a+' boys and '+b+' girls are in class. How many children altogether?'};},
-     ];
-     var t=pick(ts)(); return {q:t.q,a:t.a,type:'number',speak:t.speak};
-   }},
-  {id:'g2_oddeven', name:'Odd & Even', icon:'🎭', grade:'2',
-   gen:function(){
-     var n=rnd(1,20); var ans=n%2===0?'even':'odd';
-     return {q:'Is '+n+' odd or even?', a:ans, type:'word',
-       speak:'Is '+n+' odd or even? Say odd or even.'};
-   }},
-  {id:'g2_arrays', name:'Arrays', icon:'⬛', grade:'2',
-   gen:function(){
-     var r=rnd(2,5),c=rnd(2,5),ans=r*c;
-     return {q:r+' rows of '+c+'. How many total?', a:ans, type:'number',
-       speak:'There are '+r+' rows with '+c+' in each row. How many objects altogether?'};
-   }},
-  {id:'g2_add1000', name:'Addition to 1000', icon:'➕', grade:'2',
-   gen:function(){
-     var a=rnd(100,899); var b=rnd(1,999-a); var ans=a+b;
-     return {q:a+' + '+b+' = ?', a:ans, type:'number', speak:'What is '+a+' plus '+b+'?'};
-   }},
-  {id:'g2_sub1000', name:'Subtraction to 1000', icon:'➖', grade:'2',
-   gen:function(){
-     var a=rnd(101,999); var b=rnd(1,a-1); var ans=a-b;
-     return {q:a+' - '+b+' = ?', a:ans, type:'number', speak:'What is '+a+' minus '+b+'?'};
-   }},
-  {id:'g2_measure', name:'Measurement', icon:'📐', grade:'2',
-   gen:function(){
-     var a=rnd(5,30),b=rnd(5,30);
-     var ans=a>b?'first':a<b?'second':'same';
-     return {q:'Object A: '+a+'cm. Object B: '+b+'cm.\nWhich is longer?', a:ans, type:'word',
-       speak:'Object A is '+a+' centimetres. Object B is '+b+' centimetres. Which is longer? Say first, second, or same.'};
-   }},
-  {id:'g2_time', name:'Time to 5 Minutes', icon:'🕐', grade:'2',
-   gen:function(){
-     var h=rnd(1,12),m=rnd(0,11)*5;
-     var mStr=(m<10?'0':'')+m;
-     return {q:'Clock shows '+h+':'+mStr+'.\nWhat time is it?', a:h+':'+mStr, type:'word',
-       speak:'The clock shows '+h+' '+mStr+'. What time is it? Say the hours and minutes.'};
-   }},
-  {id:'g2_money', name:'Money', icon:'💵', grade:'2',
-   gen:function(){
-     var price=rnd(5,95),paid=100,change=paid-price;
-     return {q:'Item costs '+price+'¢. You pay $1.00.\nChange = ___¢', a:change, type:'number',
-       speak:'An item costs '+price+' cents. You pay one dollar. How many cents change do you get?'};
-   }},
-  {id:'g2_graphs', name:'Graphs & Data', icon:'📊', grade:'2',
-   gen:function(){
-     var a=rnd(2,8),b=rnd(2,8),c=rnd(2,8);
-     var qs=[
-       {q:'Bar graph: Cats='+a+', Dogs='+b+', Birds='+c+'.\nHow many animals in total?',a:a+b+c,speak:'A bar graph shows cats equals '+a+', dogs equals '+b+', birds equals '+c+'. How many animals in total?'},
-       {q:'Bar graph: Red='+a+', Blue='+b+'.\nHow many MORE red than blue?',a:Math.abs(a-b),speak:'A bar graph shows red equals '+a+' and blue equals '+b+'. How many more red than blue?'},
-     ];
-     var q=pick(qs); return {q:q.q,a:q.a,type:'number',speak:q.speak};
-   }},
-  {id:'g2_geometry', name:'Geometry', icon:'🔷', grade:'2',
-   gen:function(){
-     var shapes=[{n:'triangle',s:3},{n:'quadrilateral',s:4},{n:'pentagon',s:5},{n:'hexagon',s:6}];
-     var s=pick(shapes); var t=rnd(0,1);
-     if(t===0) return {q:'How many sides does a '+s.n+' have?',a:s.s,type:'number',speak:'How many sides does a '+s.n+' have?'};
-     return {q:'A shape has '+s.s+' sides. What is it?',a:s.n,type:'word',speak:'A shape has '+s.s+' sides. What shape is it?'};
-   }},
-  {id:'g2_fractions', name:'Fractions', icon:'🍕', grade:'2',
-   gen:function(){
-     var fracs=[{n:1,d:2,w:'one half'},{n:1,d:3,w:'one third'},{n:1,d:4,w:'one quarter'},{n:3,d:4,w:'three quarters'}];
-     var f=pick(fracs);
-     return {q:'A pizza has '+f.d+' slices.\n'+f.w+' is eaten. How many slices?',a:f.n,type:'number',
-       speak:'A pizza has '+f.d+' slices. '+f.w+' is eaten. How many slices were eaten?'};
-   }},
-];
-
-// ═══════════════════════════════════════
+// ═══════════════════════
 //  STATE
-// ═══════════════════════════════════════
-var playerName = '';
-var playerGrade = 'K'; // 'K' or '2'
-var currentTopicId = '';
-var currentTopicIdx = 0;
-var questions = [], qIdx = 0, score = 0, correct = 0;
-var recognition = null;
-var isListening = false;
-var retryCount = 0;
-var sessionActive = false;
-var currentQ = null;
-var speakTimeout = null;
-var micAnimInterval = null;
+// ═══════════════════════
+var playerName='', playerGrade='K', speakOn=true;
+var currentTopicId='', currentTopicIdx=0;
+var questions=[], qIdx=0, score=0, correctCount=0;
+var currentQ=null, sessionActive=false;
+var recognition=null, micState='idle'; // idle | listening | processing | disabled
 
-// Save/Load
 function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
-function loadSave(){try{var r=lsGet('voice_math');return r?JSON.parse(r):{topics:{}};}catch(e){return{topics:{}};}}
-function saveTopic(topicId,stars){
-  var s=loadSave();
-  if(!s.topics[topicId]||stars>s.topics[topicId].stars) s.topics[topicId]={stars:stars,badge:stars>=1};
-  lsSet('voice_math',JSON.stringify(s));
-}
+function loadSave(){try{var r=lsGet('vm2');return r?JSON.parse(r):{t:{}};}catch(e){return{t:{}};}}
+function saveTopic(id,stars){var s=loadSave();s.t[id]={stars:stars,badge:stars>=1};lsSet('vm2',JSON.stringify(s));}
 
-// ═══════════════════════════════════════
+// ═══════════════════════
 //  SCREENS
-// ═══════════════════════════════════════
+// ═══════════════════════
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
-  document.getElementById(id).classList.add('active');
+  var sc=el(id); if(sc) sc.classList.add('active');
 }
 
-// ═══════════════════════════════════════
-//  NAME ENTRY
-// ═══════════════════════════════════════
-
-
-function goToNameEntry(){
-  showScreen('screen-name');
-  var inp = document.getElementById('name-input');
-  if(inp){ inp.value=''; inp.focus(); }
-  document.getElementById('name-confirm-btn').style.display='none';
-  document.getElementById('name-status').textContent='';
-  setTimeout(function(){
-    speak("Welcome to Voice Math! Please type your name and tap Let us go!");
-  }, 500);
-}
-
-function onNameInput(val){
-  var btn = document.getElementById('name-confirm-btn');
-  var status = document.getElementById('name-status');
-  if(val.trim().length >= 2){
-    btn.style.display = 'block';
-    status.textContent = 'Hi ' + val.trim() + '! Ready?';
-    status.style.color = '#4ade80';
-  } else {
-    btn.style.display = 'none';
-    status.textContent = '';
+// ═══════════════════════
+//  NAME SETUP
+// ═══════════════════════
+var selAge=null;
+function buildAgeGrid(){
+  var g=el('age-grid'); if(!g) return;
+  g.innerHTML='';
+  for(var a=4;a<=11;a++){
+    var b=document.createElement('button');
+    b.className='age-btn'; b.textContent=a; b.dataset.age=a;
+    b.onclick=function(btn){return function(){
+      document.querySelectorAll('.age-btn').forEach(function(x){x.className='age-btn';});
+      btn.className='age-btn sel';
+      selAge=parseInt(btn.dataset.age);
+    };}(b);
+    g.appendChild(b);
   }
 }
 
 function confirmName(){
-  var inp = document.getElementById('name-input');
-  var typed = inp ? inp.value.trim() : '';
-  if(!typed || typed.length < 1) return;
-  playerName = typed;
-  // Determine grade from KK profile or name match
-  var kk = null;
-  try{var r=lsGet('kk_profile'); kk=r?JSON.parse(r):null;}catch(e){}
-  if(kk&&kk.name&&kk.name.toLowerCase()===playerName.toLowerCase()){
-    playerGrade = (kk.isEasy||kk.age<=6)?'K':'2';
-  } else {
-    playerGrade = playerName.toLowerCase()==='anu'?'K':'2';
-  }
-  document.getElementById('topic-welcome').textContent =
-    'Hello '+playerName+'! 👋 Choose a topic!';
+  var n=(el('name-input')||{}).value||'';
+  n=n.trim();
+  if(!n){alert('Please type your name!');return;}
+  if(!selAge){alert('Please pick your age!');return;}
+  playerName=n;
+  playerGrade=selAge<=6?'K':'2';
+  // Also try kk_profile
+  try{var kk=JSON.parse(lsGet('kk_profile')||'{}');
+    if(kk&&kk.name&&kk.name.toLowerCase()===n.toLowerCase()) playerGrade=(kk.isEasy||kk.age<=6)?'K':'2';}catch(e){}
+  setText('topic-welcome','Hi '+playerName+'! Choose a topic! 🎓');
   buildTopicList();
-  speak("Hello "+playerName+"! Let us do some maths! Choose your topic.");
+  speak('Hello '+playerName+'! Let us do some maths! Choose your topic.');
   showScreen('screen-topics');
 }
 
-// ═══════════════════════════════════════
-//  TOPIC LIST
-// ═══════════════════════════════════════
-function getGradeTopics(){
-  return ALL_TOPICS.filter(function(t){
-    return playerGrade==='K'?t.grade==='K':t.grade==='2';
-  });
-}
+// ═══════════════════════
+//  TOPICS
+// ═══════════════════════
+function gradeTopics(){return TOPICS.filter(function(t){return t.grade===playerGrade;});}
 
 function buildTopicList(){
-  var topics = getGradeTopics();
-  var save = loadSave();
-  var list = document.getElementById('topic-list');
-  list.innerHTML = '';
-  topics.forEach(function(topic, i){
-    var ts = save.topics[topic.id]||{stars:0,badge:false};
-    var prevBadge = i===0||(save.topics[topics[i-1].id]&&save.topics[topics[i-1].id].badge);
-    var unlocked = prevBadge;
-    var div = document.createElement('div');
-    div.className = 'topic-row'+(unlocked?'':' locked');
-    var stars = ts.stars>0?'⭐'.repeat(ts.stars):'';
-    div.innerHTML = '<div class="tr-icon">'+topic.icon+'</div>'
+  var topics=gradeTopics(), save=loadSave();
+  var list=el('topic-list'); if(!list) return;
+  list.innerHTML='';
+  topics.forEach(function(topic,i){
+    var ts=save.t[topic.id]||{stars:0,badge:false};
+    var unlocked=i===0||(save.t[topics[i-1].id]&&save.t[topics[i-1].id].badge);
+    var div=document.createElement('div');
+    div.className='topic-row'+(unlocked?'':' locked');
+    div.innerHTML='<div class="tr-icon">'+topic.icon+'</div>'
       +'<div class="tr-name">'+topic.name+'</div>'
-      +'<div class="tr-stars">'+(unlocked?stars:'🔒')+'</div>';
-    if(unlocked) div.onclick = function(t,idx){return function(){startVoiceSession(t,idx);};}(topic,i);
+      +'<div class="tr-badge">'+(unlocked?(ts.badge?'✅':ts.stars>0?'⭐'.repeat(ts.stars):'▶'):'🔒')+'</div>';
+    if(unlocked) div.onclick=function(t,idx){return function(){startSession(t,idx);};}(topic,i);
     list.appendChild(div);
   });
 }
 
-// ═══════════════════════════════════════
+// ═══════════════════════
 //  SESSION
-// ═══════════════════════════════════════
-function startVoiceSession(topic, topicIdx){
-  currentTopicId = topic.id;
-  currentTopicIdx = topicIdx;
-  questions = [];
-  for(var i=0;i<10;i++) questions.push(topic.gen());
-  qIdx=0; score=0; correct=0; sessionActive=true;
-
-  document.getElementById('s-qnum').textContent='1/10';
-  document.getElementById('s-score').textContent='0';
-  document.getElementById('s-correct').textContent='0';
-  document.getElementById('s-progress').style.width='0%';
-
+// ═══════════════════════
+function startSession(topic,topicIdx){
+  currentTopicId=topic.id; currentTopicIdx=topicIdx;
+  questions=[]; for(var i=0;i<10;i++) questions.push(topic.gen());
+  qIdx=0; score=0; correctCount=0; sessionActive=true;
+  setText('s-qnum','1/10'); setText('s-score','0'); setText('s-correct','0');
+  setStyle('s-prog','width','0%');
   showScreen('screen-session');
-
-  // Intro then first question
-  speak("Great! We are doing "+topic.name+". I will ask you 10 questions. Say your answer clearly after each question. Let us begin!");
-  setTimeout(askQuestion, 3500);
+  setMicState('disabled');
+  speak('Great! We are doing '+topic.name+'. I will read each question. Tap the big button and say your answer clearly!');
+  setTimeout(loadQ, 3500);
 }
 
-function askQuestion(){
-  if(qIdx>=questions.length){ endSession(); return; }
-  currentQ = questions[qIdx];
-  retryCount = 0;
+function loadQ(){
+  if(qIdx>=questions.length){endSession();return;}
+  currentQ=questions[qIdx];
+  setText('s-qnum',(qIdx+1)+'/10');
+  setStyle('s-prog','width',(qIdx/10*100)+'%');
+  setText('q-topic', (gradeTopics()[currentTopicIdx]||{}).name||'');
+  setText('q-text', currentQ.q);
+  setText('q-hint','Tap 🎙️ after hearing the question!');
+  setClass('q-card','q-card');
+  setClass('feedback','feedback');
+  setText('transcript-interim','');
+  setText('transcript-final','');
+  setText('status-text','Reading question...');
+  setMicState('disabled');
 
-  // Update UI
-  document.getElementById('q-card').className='q-card';
-  document.getElementById('q-topic-label').textContent=getGradeTopics()[currentTopicIdx]&&getGradeTopics()[currentTopicIdx].name||'';
-  document.getElementById('q-number').textContent=currentQ.q;
-  document.getElementById('q-sub').textContent='Say your answer out loud!';
-  document.getElementById('q-progress').textContent='Q '+(qIdx+1)+'/10';
-  document.getElementById('s-qnum').textContent=(qIdx+1)+'/10';
-  document.getElementById('s-progress').style.width=(qIdx/10*100)+'%';
-  document.getElementById('feedback-banner').className='feedback-banner';
-  document.getElementById('heard-text').textContent='';
-  setMicStatus('idle','Preparing...');
-
-  // Speak the question then show tap button
+  // Speak question then enable mic
   speak(currentQ.speak||currentQ.q);
-  var speakTime = Math.max(2000, (currentQ.speak||currentQ.q).split(' ').length*350);
-  speakTimeout = setTimeout(function(){
-    showTapButton();
-  }, speakTime+600);
+  var ms = Math.max(2500, (currentQ.speak||currentQ.q).split(' ').length*400);
+  setTimeout(function(){
+    if(!sessionActive) return;
+    setMicState('ready');
+    setText('status-text','TAP the button and say your answer!');
+    setText('q-hint','🎙️ Tap the button then answer!');
+    // Auto-speak reminder
+    speak('Tap the button and say your answer now.');
+  }, ms+500);
+}
+
+// ═══════════════════════
+//  MIC STATE MACHINE
+// ═══════════════════════
+function setMicState(state){
+  micState=state;
+  var btn=el('mic-btn');
+  if(!btn) return;
+  btn.className='mic-btn '+state;
+  var texts={ready:'TAP TO ANSWER',listening:'LISTENING...',processing:'THINKING...',disabled:'WAIT...'};
+  setText('mic-btn-text', texts[state]||'');
+}
+
+function onMicTap(){
+  if(micState==='ready') startListening();
 }
 
 function startListening(){
   if(!sessionActive) return;
-  // iOS Safari REQUIRES a direct user tap to start mic each time
-  // Show the tap button and wait for user gesture
-  showTapButton();
-}
-
-function showTapButton(){
-  if(!sessionActive) return;
-  var btn = document.getElementById('tap-to-answer-btn');
-  if(btn) btn.style.display='block';
-  // Hide mic dots while waiting for tap
-  var dots = document.getElementById('mic-dots');
-  if(dots) dots.style.opacity='0.3';
-  setMicStatus('idle','👇 Tap the button to answer!');
-  document.getElementById('q-card').className='q-card listening-state';
-  document.getElementById('heard-text').textContent='';
-}
-
-function userTapToListen(){
-  var btn = document.getElementById('tap-to-answer-btn');
-  if(btn) btn.style.display='none';
-  var dots = document.getElementById('mic-dots');
-  if(dots) dots.style.opacity='1';
-  setMicStatus('listening','🎙️ Listening...');
-  actuallyStartListening();
-}
-
-function actuallyStartListening(){
-  if(!sessionActive) return;
-  if(!window.SpeechRecognition && !window.webkitSpeechRecognition){
-    setMicStatus('error','Voice not supported on this browser.');
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){
+    setText('status-text','Voice not supported on this browser.');
     return;
   }
-  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  // Clean up any existing recognition
+  if(recognition){
+    try{recognition.onresult=null;recognition.onerror=null;recognition.onend=null;recognition.abort();}catch(e){}
+    recognition=null;
+  }
+
+  // CRITICAL for Safari: must stop speech synthesis BEFORE starting mic
+  // AND wait for it to actually stop (small delay)
+  if(window.speechSynthesis && window.speechSynthesis.speaking){
+    window.speechSynthesis.cancel();
+    setTimeout(function(){doStartListening(SR);}, 400);
+  } else {
+    doStartListening(SR);
+  }
+}
+
+function doStartListening(SR){
+  if(!sessionActive) return;
+
   recognition = new SR();
-  recognition.lang='en-US';
-  recognition.continuous=false;
-  recognition.interimResults=true;
-  recognition.maxAlternatives=5;
+  recognition.lang = 'en-US';
+  recognition.continuous = false;
+  // KEY FIX: interimResults=false is MORE reliable on Safari
+  // Safari often fires interim but never fires final when interimResults=true
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 5;
+
+  var hasResult = false;
 
   recognition.onstart = function(){
-    isListening=true;
-    document.getElementById('q-card').className='q-card listening-state';
-    setMicStatus('listening','🎙️ Listening...');
-    startMicAnimation();
+    setMicState('listening');
+    setClass('q-card','q-card listening');
+    setText('status-text','🎙️ Listening... say your answer clearly!');
+    setText('transcript-interim','Say your answer now...');
+    setText('transcript-final','');
   };
 
   recognition.onresult = function(e){
+    hasResult = true;
+    // With interimResults=false, all results are final
     var heard = '';
-    var isFinal = false;
-    for(var i=e.resultIndex;i<e.results.length;i++){
-      if(e.results[i].isFinal){
-        heard = e.results[i][0].transcript;
-        isFinal = true;
-      } else {
-        // Show interim transcript
-        var interim = e.results[i][0].transcript;
-        document.getElementById('heard-text').textContent = '👂 "' + interim + '"';
-      }
+    for(var i=0;i<e.results.length;i++){
+      heard += e.results[i][0].transcript;
     }
-    if(isFinal && heard){
-      stopMicAnimation();
-      // Remove mic help box if showing
-      var hb = document.getElementById('mic-help-box');
-      if(hb) hb.remove();
-      document.getElementById('heard-text').textContent = 'I heard: "' + heard + '"';
-      processAnswer(heard);
+    heard = heard.trim();
+    if(heard){
+      setText('transcript-final','"'+heard+'"');
+      setText('transcript-interim','');
+      setMicState('processing');
+      setText('status-text','Got it! Checking your answer...');
+      checkAnswer(heard);
     }
   };
 
+  recognition.onspeechend = function(){
+    // Speech detected and ended — recognition will fire onresult shortly
+    setText('transcript-interim','Processing...');
+  };
+
   recognition.onerror = function(e){
-    stopMicAnimation();
-    isListening=false;
+    hasResult = true; // prevent onend from showing "try again" falsely
     console.log('Speech error:', e.error);
+    setMicState('ready');
+    setClass('q-card','q-card');
+    setText('transcript-interim','');
     if(e.error==='no-speech'){
-      setMicStatus('idle','No answer heard!');
-      showTapButton();
+      setText('status-text','Nothing heard. Tap and try again!');
+      setText('transcript-final','Speak clearly after tapping the button');
     } else if(e.error==='not-allowed'){
-      setMicStatus('error','Microphone blocked! Allow mic in browser settings.');
-      showMicHelp('not-allowed');
+      setText('status-text','Mic blocked. Allow microphone in Safari settings.');
+      setText('transcript-final','Go to Settings → Safari → Microphone → Allow');
     } else if(e.error==='audio-capture'){
-      setMicStatus('error','No microphone found on this device.');
-      showMicHelp('audio-capture');
-    } else if(e.error==='network'){
-      setMicStatus('idle','Network issue. Tap to try again.');
-      showTapButton();
-    } else if(e.error==='aborted'){
-      showTapButton();
+      setText('status-text','No microphone found.');
     } else {
-      setMicStatus('idle','Could not hear. Tap to try again!');
-      showTapButton();
+      setText('status-text','Tap the button and try again!');
+      setText('transcript-final','Error: '+e.error+' — please tap again');
     }
   };
 
   recognition.onend = function(){
-    isListening=false;
-    stopMicAnimation();
+    if(!hasResult){
+      // Recognition ended without any result or error
+      // This is common on Safari — just reset and let user try again
+      setMicState('ready');
+      setClass('q-card','q-card');
+      setText('status-text','Tap the button and speak your answer!');
+      setText('transcript-interim','');
+    }
   };
 
-  try{ recognition.start(); }
-  catch(e){ setMicStatus('error','Could not start microphone.'); }
+  try{
+    recognition.start();
+  } catch(e){
+    console.log('Recognition start error:', e.message);
+    setMicState('ready');
+    setText('status-text','Tap again to try!');
+  }
 }
 
-function processAnswer(heard){
+// ═══════════════════════
+//  ANSWER CHECK
+// ═══════════════════════
+function checkAnswer(heard){
   if(!currentQ||!sessionActive) return;
-  var extracted;
-  if(currentQ.type==='number'){
-    extracted = extractAnswer(heard,'number');
-    if(extracted===null){
-      // Didn't get a number — try once more
-      if(retryCount<1){
-        retryCount++;
-        setMicStatus('idle','Could not understand. Say the number again!');
-        speak("Sorry, I did not catch that. Please say just the number.");
-        setTimeout(startListening,2200);
-        return;
-      }
-      extracted = -999; // Force wrong
-    }
-  } else {
-    extracted = extractAnswer(heard,'word');
-  }
-
-  var isCorrect = fuzzyMatch(String(extracted),String(currentQ.a));
-  showAnswerFeedback(isCorrect, heard, extracted);
+  var correct=isMatch(heard, currentQ.a);
+  showFeedback(correct, heard);
 }
 
-function showAnswerFeedback(isCorrect, heard, extracted){
-  document.getElementById('q-card').className='q-card '+(isCorrect?'correct-state':'wrong-state');
-  var btn=document.getElementById('tap-to-answer-btn');
-  if(btn) btn.style.display='none';
-  var banner=document.getElementById('feedback-banner');
-  var correctMsgs=['🌟 Correct! Well done!','✅ That is right!','🎉 Brilliant!','⭐ Perfect!','🏆 Excellent!'];
-  var wrongMsgs=['❌ Not quite.','💪 Good try!','🙏 Almost!'];
+function showFeedback(correct, heard){
+  var msgs_ok=['🌟 Correct!','✅ Right!','🎉 Brilliant!','⭐ Perfect!','🏆 Yes!'];
+  var msgs_no=['Not quite!','Good try!','Almost there!'];
+  setText('fb-icon', correct?'✅':'❌');
+  setText('fb-msg', correct?pick(msgs_ok):pick(msgs_no));
+  setText('fb-answer', correct?'Answer: '+currentQ.a:'The answer is: '+currentQ.a);
+  setClass('fb-msg', 'fb-msg '+(correct?'correct':'wrong'));
+  setClass('feedback','feedback '+(correct?'correct':'wrong')+' show');
+  setClass('q-card','q-card '+(correct?'correct':'wrong'));
+  setMicState('disabled');
 
-  if(isCorrect){
-    correct++; score+=10;
-    document.getElementById('fb-icon').textContent='✅';
-    document.getElementById('fb-text').textContent=pick(correctMsgs);
-    document.getElementById('fb-answer').textContent='Answer: '+currentQ.a;
-    banner.className='feedback-banner correct show';
-    speak(pick(['Well done!','Correct!','That is right! '+currentQ.a+'.','Brilliant! The answer is '+currentQ.a+'.']));
-  } else {
-    document.getElementById('fb-icon').textContent='❌';
-    document.getElementById('fb-text').textContent=pick(wrongMsgs);
-    document.getElementById('fb-answer').textContent='The answer is: '+currentQ.a;
-    banner.className='feedback-banner wrong show';
-    speak("The answer is "+currentQ.a+". Keep going, you are doing great!");
-  }
+  if(correct){ correctCount++; score+=10; }
+  setText('s-score',score);
+  setText('s-correct',correctCount);
 
-  document.getElementById('s-score').textContent=score;
-  document.getElementById('s-correct').textContent=correct;
+  var say=correct?
+    pick(['Well done! The answer is '+currentQ.a+'.','Correct! '+currentQ.a+'. Excellent!','Brilliant! That is right!']) :
+    'The answer is '+currentQ.a+'. Keep going, you are doing great!';
+  speak(say);
 
   qIdx++;
   setTimeout(function(){
-    document.getElementById('feedback-banner').className='feedback-banner';
-    askQuestion();
-  }, 2800);
+    setClass('feedback','feedback');
+    setText('transcript-interim',''); setText('transcript-final','');
+    loadQ();
+  }, 3000);
 }
 
-function skipQuestion(){
-  if(recognition) try{recognition.stop();}catch(e){}
-  clearTimeout(speakTimeout);
-  stopMicAnimation();
-  var btn=document.getElementById('tap-to-answer-btn');
-  if(btn) btn.style.display='none';
+function skipQ(){
+  if(recognition) try{recognition.abort();}catch(e){}
+  setMicState('disabled');
+  speak('Skipping. Next question.');
   qIdx++;
-  speak("Skipping. Next question.");
-  setTimeout(askQuestion,1200);
+  setTimeout(loadQ,1200);
 }
 
-function repeatQuestion(){
-  if(recognition) try{recognition.stop();}catch(e){}
-  clearTimeout(speakTimeout);
-  stopMicAnimation();
-  var btn=document.getElementById('tap-to-answer-btn');
-  if(btn) btn.style.display='none';
-  setMicStatus('idle','Repeating question...');
-  var speakTime = Math.max(2000,(currentQ.speak||currentQ.q).split(' ').length*350);
+function repeatQ(){
+  if(recognition) try{recognition.abort();}catch(e){}
+  setMicState('disabled');
+  setText('status-text','Repeating question...');
   speak(currentQ.speak||currentQ.q);
-  speakTimeout = setTimeout(startListening, speakTime+800);
+  var ms=Math.max(2500,(currentQ.speak||currentQ.q).split(' ').length*400);
+  setTimeout(function(){
+    if(!sessionActive) return;
+    setMicState('ready');
+    setText('status-text','TAP the button and say your answer!');
+    speak('Tap the button and say your answer now.');
+  }, ms+500);
 }
 
 function endSession(){
   sessionActive=false;
-  if(recognition) try{recognition.stop();}catch(e){}
-  clearTimeout(speakTimeout);
-  stopMicAnimation();
-
-  var pct=Math.round(correct/questions.length*100);
+  if(recognition) try{recognition.abort();}catch(e){}
+  var pct=Math.round(correctCount/questions.length*100);
   var stars=pct>=80?3:pct>=60?2:1;
   saveTopic(currentTopicId,stars);
-
-  document.getElementById('res-icon').textContent=stars===3?'🏆':stars===2?'⭐':'👏';
-  document.getElementById('res-stars').textContent='⭐'.repeat(stars);
-  document.getElementById('res-title').textContent=
-    stars===3?'Outstanding!':stars===2?'Well Done!':'Good Effort, '+playerName+'!';
-  document.getElementById('res-grid').innerHTML=
-    '<div class="res-box"><div class="res-val">'+correct+'</div><div class="res-label">Correct</div></div>'+
+  setText('res-icon',stars===3?'🏆':stars===2?'⭐':'👏');
+  setText('res-stars','⭐'.repeat(stars));
+  setText('res-title',stars===3?'Outstanding!':stars===2?'Well Done, '+playerName+'!':'Good Effort, '+playerName+'!');
+  var rg=el('res-grid');
+  if(rg) rg.innerHTML=
+    '<div class="res-box"><div class="res-val">'+correctCount+'</div><div class="res-label">Correct</div></div>'+
     '<div class="res-box"><div class="res-val">'+questions.length+'</div><div class="res-label">Questions</div></div>'+
     '<div class="res-box"><div class="res-val">'+pct+'%</div><div class="res-label">Score</div></div>';
-
-  var badge=document.getElementById('badge-pop');
-  if(pct>=80){badge.textContent='🏅 '+getGradeTopics()[currentTopicIdx].name+' Badge Earned!';badge.className='badge-pop show';}
-  else badge.className='badge-pop';
-
-  var verses=[
-    '"I can do all things through Christ who strengthens me." — Philippians 4:13',
-    '"Be strong and courageous." — Joshua 1:9',
-    '"The joy of the Lord is your strength." — Nehemiah 8:10',
-    '"With God all things are possible." — Matthew 19:26',
-  ];
-  document.getElementById('res-verse').textContent=pick(verses);
-
-  var endMsg=pct>=80?
-    'Amazing work '+playerName+'! You scored '+pct+' percent. You earned a badge!':
-    'Good effort '+playerName+'! You scored '+pct+' percent. Keep practising!';
-  speak(endMsg);
+  var badge=el('badge-pop');
+  if(pct>=80&&badge){badge.textContent='🏅 '+(gradeTopics()[currentTopicIdx]||{}).name+' Badge Earned!';badge.className='badge-pop show';}
+  else if(badge) badge.className='badge-pop';
+  var verses=['"I can do all things through Christ who strengthens me." — Phil 4:13',
+    '"Be strong and courageous." — Joshua 1:9','"With God all things are possible." — Matt 19:26'];
+  setText('res-verse',pick(verses));
+  speak(pct>=80?'Outstanding '+playerName+'! You scored '+pct+' percent! You earned a badge!':
+    'Well done '+playerName+'! You scored '+pct+' percent. Keep practising!');
   showScreen('screen-result');
 }
 
-function playAgain(){
-  startVoiceSession(getGradeTopics()[currentTopicIdx],currentTopicIdx);
-}
+function playAgain(){startSession(gradeTopics()[currentTopicIdx],currentTopicIdx);}
 
-// ═══════════════════════════════════════
-//  MIC ANIMATION
-// ═══════════════════════════════════════
-function showMicHelp(reason){
-  var existing = document.getElementById('mic-help-box');
-  if(existing) existing.remove();
-  var box = document.createElement('div');
-  box.id = 'mic-help-box';
-  box.style.cssText = 'background:rgba(255,100,0,.15);border:2px solid #ff6600;border-radius:14px;padding:12px 16px;font-size:13px;color:#ffb74d;line-height:1.7;text-align:center;margin-top:8px;width:100%;max-width:380px;';
-  if(reason==='not-allowed'){
-    box.innerHTML = '<strong>🔒 Microphone is blocked</strong><br>'
-      + '• Click the 🔒 or 🎤 icon in the browser address bar<br>'
-      + '• Select <strong>Allow microphone</strong><br>'
-      + '• Then tap <strong>Repeat</strong> to try again';
-  } else {
-    box.innerHTML = '<strong>🎤 Microphone not found</strong><br>'
-      + 'Make sure a microphone is connected and try again.';
-  }
-  var sessionEl = document.getElementById('screen-session');
-  var actionRow = sessionEl ? sessionEl.querySelector('.action-row') : null;
-  if(actionRow) actionRow.parentNode.insertBefore(box, actionRow);
-}
-
-function setMicStatus(state, text){
-  var icon=document.getElementById('mic-icon');
-  var status=document.getElementById('mic-status');
-  if(status) status.textContent=text||'';
-  if(icon){
-    icon.className='mic-icon'+(state==='listening'?' active':'');
-    icon.textContent=state==='listening'?'🎙️':state==='error'?'🚫':'🎤';
-  }
-}
-
-function startMicAnimation(){
-  var dots=['md0','md1','md2','md3','md4'];
-  var heights=[8,14,22,14,8];
-  micAnimInterval=setInterval(function(){
-    dots.forEach(function(id,i){
-      var d=document.getElementById(id);
-      if(d) d.style.height=Math.max(4,Math.min(32,heights[i]+rnd(-8,8)))+'px';
-    });
-  },120);
-}
-
-function stopMicAnimation(){
-  clearInterval(micAnimInterval);
-  var dots=['md0','md1','md2','md3','md4'];
-  var heights=[8,14,22,14,8];
-  dots.forEach(function(id,i){
-    var d=document.getElementById(id);
-    if(d) d.style.height=heights[i]+'px';
-  });
-}
-
-// ═══════════════════════════════════════
+// ═══════════════════════
 //  SPEECH
-// ═══════════════════════════════════════
-var selectedVoice=null;
+// ═══════════════════════
+var voice=null;
 function initVoices(){
   if(!window.speechSynthesis) return;
   function set(){
-    var voices=window.speechSynthesis.getVoices();
-    selectedVoice=voices.find(function(v){
-      return v.name.match(/samantha|karen|victoria|moira|google uk english female|google us english/i);
-    })||voices.find(function(v){return v.lang&&v.lang.startsWith('en');})||voices[0]||null;
+    var vs=window.speechSynthesis.getVoices();
+    voice=vs.find(function(v){return v.name.match(/samantha|karen|victoria|moira|google uk english female|google us english/i);})||
+          vs.find(function(v){return v.lang&&v.lang.startsWith('en');})||vs[0]||null;
   }
-  set(); if(window.speechSynthesis.onvoiceschanged!==undefined) window.speechSynthesis.onvoiceschanged=set;
-  setTimeout(set,500);
+  set();
+  if(window.speechSynthesis.onvoiceschanged!==undefined) window.speechSynthesis.onvoiceschanged=set;
+  setTimeout(set,500); setTimeout(set,1500);
 }
 
 function speak(text){
-  if(!window.speechSynthesis||!text) return;
+  if(!speakOn||!window.speechSynthesis||!text) return;
   try{
     window.speechSynthesis.cancel();
     var u=new SpeechSynthesisUtterance(text);
-    u.rate=0.88; u.pitch=1.05; u.volume=1;
-    if(selectedVoice) u.voice=selectedVoice;
+    u.rate=0.88; u.pitch=1.0; u.volume=1;
+    if(voice) u.voice=voice;
     window.speechSynthesis.speak(u);
   }catch(e){}
 }
 
-// ═══════════════════════════════════════
-//  MUSIC
-// ═══════════════════════════════════════
-var audioCtx=null,musicPlaying=false,musicNodes=[],musicSched=null,nextNote=0,noteIdx=0;
-var MEL=[523,659,784,659,523,440,523,0,587,698,784,698,587,523,440,0];
-var BAS=[261,329,392,329,261,220,261,0,293,349,392,349,293,261,220,0];
-var ND=0.24,LA=0.32;
-function initMusic(){if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();}
-function playTone(f,st,dur,gv,tp){
-  if(!f||!audioCtx) return;
-  var o=audioCtx.createOscillator(),gn=audioCtx.createGain(),m=audioCtx.createGain();
-  o.type=tp||'triangle';o.frequency.setValueAtTime(f,st);
-  gn.gain.setValueAtTime(0,st);gn.gain.linearRampToValueAtTime(gv,st+.02);
-  gn.gain.setValueAtTime(gv,st+dur*.75);gn.gain.linearRampToValueAtTime(0,st+dur);
-  m.gain.value=.08;o.connect(gn);gn.connect(m);m.connect(audioCtx.destination);
-  o.start(st);o.stop(st+dur+.04);musicNodes.push(o);
+function toggleSpeak(){
+  speakOn=!speakOn;
+  setText('vol-icon', speakOn?'🔊':'🔇');
 }
-function schedNotes(){
-  while(nextNote<audioCtx.currentTime+LA){
-    var i=noteIdx%MEL.length;
-    playTone(MEL[i],nextNote,ND*.85,.45,'triangle');
-    playTone(BAS[i],nextNote,ND,.2,'sine');
-    nextNote+=ND;noteIdx++;
-  }
-}
-function startMusic(){
-  initMusic();initVoices();
-  if(audioCtx.state==='suspended') audioCtx.resume();
-  nextNote=audioCtx.currentTime+.05;noteIdx=0;musicPlaying=true;
-  musicSched=setInterval(schedNotes,50);
-  document.getElementById('music-btn').textContent='🎵';
-}
-function stopMusic(){
-  musicPlaying=false; if(musicSched){clearInterval(musicSched);musicSched=null;}
-  musicNodes.forEach(function(n){try{n.stop();}catch(e){}});musicNodes=[];
-  document.getElementById('music-btn').textContent='🔇';
-}
-function toggleMusic(){musicPlaying?stopMusic():startMusic();}
-function autoStart(){if(!musicPlaying) startMusic();}
-document.addEventListener('touchstart',autoStart,{once:true});
-document.addEventListener('click',autoStart,{once:true});
 
-window.addEventListener('load',function(){initVoices();});
+// ═══════════════════════
+//  BOOT
+// ═══════════════════════
+buildAgeGrid();
+initVoices();
+// Try load kk_profile
+try{
+  var kk=JSON.parse(lsGet('kk_profile')||'{}');
+  if(kk&&kk.name){
+    var ni=el('name-input'); if(ni) ni.value=kk.name;
+    selAge=kk.age||7;
+    document.querySelectorAll('.age-btn').forEach(function(b){
+      if(parseInt(b.dataset.age)===selAge){b.className='age-btn sel';}
+    });
+  }
+}catch(e){}
 </script>
 </body>
 </html>
