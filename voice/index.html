@@ -386,9 +386,8 @@ function isMatch(said, expected){
 //  STATE
 // ═══════════════════════
 var playerName='', playerGrade='K', speakOn=true;
-// Detect Chrome — Chrome supports continuous mic without tap
-var isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-console.log('isChrome:', isChrome);
+// Always require tap — most reliable across all browsers
+var isChrome = false; // tap mode for all browsers
 var currentTopicId='', currentTopicIdx=0;
 var questions=[], qIdx=0, score=0, correctCount=0;
 var currentQ=null, sessionActive=false;
