@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+<title>Kingdom Times Tables 👑</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient(160deg,#0d0d1a 0%,#1a1000 60%,#0d0d1a 100%);color:#fff;display:flex;flex-direction:column;align-items:center;overflow-x:hidden}
+
+.nav{width:100%;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(0,0,0,.4);border-bottom:2px solid rgba(255,180,0,.2);position:sticky;top:0;z-index:300}
+.nav-title{font-family:'Fredoka One',cursive;font-size:17px;color:#ffd200;line-height:1.2}
+.nav-btn{background:rgba(255,180,0,.12);border:1px solid rgba(255,180,0,.3);border-radius:20px;padding:6px 12px;font-size:12px;font-weight:800;color:#ffd200;cursor:pointer;text-decoration:none;font-family:'Nunito',sans-serif}
+
+.screen{width:100%;max-width:440px;display:none;flex-direction:column;align-items:center;padding:16px 14px 60px;gap:12px}
+.screen.active{display:flex}
+
+/* BUTTONS */
+.btn{font-family:'Fredoka One',cursive;font-size:18px;padding:13px 28px;border:none;border-radius:50px;cursor:pointer;transition:transform .1s;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.btn:active{transform:scale(.96)}
+.btn-gold{background:linear-gradient(135deg,#f7971e,#ffd200);color:#1a0800}
+.btn-dark{background:rgba(255,255,255,.08);border:2px solid rgba(255,180,0,.2);color:#ffd200;font-size:14px;padding:10px 20px}
+.btn-green{background:linear-gradient(135deg,#4caf50,#2e7d32);color:#fff}
+.btn-red{background:linear-gradient(135deg,#f44336,#b71c1c);color:#fff}
+.btn-sm{font-size:14px;padding:9px 20px}
+.action-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+
+/* WARRIOR */
+.warrior-card{width:100%;background:rgba(255,180,0,.07);border:2px solid rgba(255,180,0,.3);border-radius:20px;padding:16px 18px;display:flex;align-items:center;gap:14px}
+.w-avatar{font-size:48px;flex-shrink:0}
+.w-name{font-family:'Fredoka One',cursive;font-size:22px;color:#ffd200}
+.w-title{font-size:12px;color:#aaa;margin-top:2px}
+.w-belt{font-size:13px;font-weight:800;color:#f7971e;margin-top:4px}
+.xp-track{width:100%;background:rgba(255,255,255,.08);border-radius:20px;height:7px;margin-top:8px;overflow:hidden}
+.xp-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#f7971e,#ffd200);transition:width .5s}
+.xp-label{font-size:10px;color:#666;margin-top:3px}
+
+/* TABLE SELECT */
+.tables-grid{width:100%;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.table-btn{background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.1);border-radius:14px;padding:12px 4px;text-align:center;cursor:pointer;transition:all .15s}
+.table-btn:hover,.table-btn:active{border-color:#ffd200;background:rgba(255,210,0,.1)}
+.table-btn.locked{opacity:.35;cursor:not-allowed}
+.table-btn.mastered{border-color:#4caf50;background:rgba(76,175,80,.1)}
+.table-btn.current{border-color:#ffd200;background:rgba(255,210,0,.12);box-shadow:0 0 12px rgba(255,210,0,.2)}
+.tb-num{font-family:'Fredoka One',cursive;font-size:20px;color:#ffd200}
+.tb-x{font-size:10px;color:#aaa}
+.tb-stars{font-size:12px;min-height:16px}
+.tb-sessions{font-size:9px;color:#666;margin-top:2px}
+
+/* PROGRESS WALL */
+.wall-wrap{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,180,0,.15);border-radius:16px;padding:12px}
+.wall-title{font-family:'Fredoka One',cursive;font-size:14px;color:#ffd200;margin-bottom:8px;text-align:center}
+.wall-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:2px}
+.wc{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);color:#333;transition:all .3s}
+.wc.mastered{background:linear-gradient(135deg,#f7971e,#ffd200);color:#1a0800;border-color:#ffd200}
+.wc.seen{background:rgba(255,210,0,.12);border-color:rgba(255,210,0,.25);color:#888}
+
+/* SESSION */
+.round-pill{background:linear-gradient(135deg,#7c3aed,#a855f7);border-radius:50px;padding:7px 20px;font-family:'Fredoka One',cursive;font-size:15px;color:#fff;text-align:center}
+.q-counter{font-size:13px;color:#aaa;text-align:center}
+.prog-wrap{width:100%}
+.prog-track{width:100%;background:rgba(255,255,255,.08);border-radius:20px;height:9px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,#f7971e,#ffd200);transition:width .4s;border-radius:20px}
+.score-row{display:flex;justify-content:space-between;font-family:'Fredoka One',cursive;font-size:16px;padding:0 4px;margin-top:4px}
+
+/* QUESTION CARD */
+.q-card{width:100%;background:rgba(255,255,255,.07);border:3px solid rgba(255,180,0,.3);border-radius:22px;padding:20px 16px;text-align:center;transition:border-color .25s,background .25s}
+.q-card.correct{border-color:#4ade80;background:rgba(74,222,128,.08)}
+.q-card.wrong{border-color:#f87171;background:rgba(248,113,113,.07)}
+.q-tag{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.q-table-label{font-family:'Fredoka One',cursive;font-size:14px;color:#f7971e;margin-bottom:6px}
+
+/* LEARN CARD CONTENT */
+.learn-equation{font-family:'Fredoka One',cursive;font-size:44px;color:#ffd200;margin:10px 0;letter-spacing:2px}
+.learn-repeated{font-size:16px;color:#e0c080;margin:6px 0;line-height:1.6;font-weight:700}
+.learn-story{font-size:14px;color:#aaa;font-style:italic;margin-top:8px;line-height:1.6;padding:0 8px}
+.learn-tip{background:rgba(255,210,0,.08);border-left:3px solid #ffd200;border-radius:0 10px 10px 0;padding:8px 12px;font-size:13px;color:#ffd200;margin-top:10px;text-align:left}
+
+/* FLASHCARD */
+.flashcard{width:100%;min-height:160px;background:rgba(255,255,255,.07);border:3px solid rgba(255,180,0,.3);border-radius:22px;padding:22px 16px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:all .2s}
+.flashcard:active{transform:scale(.97)}
+.fc-q{font-family:'Fredoka One',cursive;font-size:44px;color:#fff}
+.fc-tap{font-size:13px;color:#888}
+.fc-ans{font-family:'Fredoka One',cursive;font-size:56px;color:#4ade80;display:none}
+.fc-ans.show{display:block;animation:pop .35s ease}
+.fc-family{font-size:12px;color:#888;margin-top:4px;display:none;line-height:1.6}
+.fc-family.show{display:block}
+@keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+
+/* NUMPAD */
+.np-display{font-family:'Fredoka One',cursive;font-size:44px;color:#fff;background:rgba(255,255,255,.08);border:3px solid rgba(255,180,0,.4);border-radius:14px;padding:12px 20px;text-align:center;width:100%;max-width:340px;min-height:70px;letter-spacing:4px;transition:border-color .25s,color .25s}
+.np-display.correct{border-color:#4ade80;color:#4ade80}
+.np-display.wrong{border-color:#f87171;color:#f87171}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:280px;margin-top:6px}
+.np-key{background:rgba(255,255,255,.09);border:2px solid rgba(255,180,0,.15);border-radius:12px;padding:16px 8px;font-family:'Fredoka One',cursive;font-size:24px;color:#fff;cursor:pointer;text-align:center;border:none;transition:background .1s}
+.np-key:active{background:rgba(255,210,0,.25);transform:scale(.93)}
+.np-key.k-del{background:rgba(255,120,0,.12);color:#ffb74d;font-size:18px}
+.np-key.k-enter{background:linear-gradient(135deg,#4caf50,#2e7d32);color:#fff;font-size:15px;font-family:'Fredoka One',cursive}
+
+/* FEEDBACK */
+.feedback{width:100%;border-radius:16px;padding:14px 16px;text-align:center;display:none}
+.feedback.show{display:block;animation:pop .35s ease}
+.feedback.correct{background:rgba(74,222,128,.1);border:2px solid #4ade80}
+.feedback.wrong{background:rgba(248,113,113,.08);border:2px solid #f87171}
+.fb-icon{font-size:30px}
+.fb-msg{font-family:'Fredoka One',cursive;font-size:20px;margin-top:3px}
+.fb-msg.c{color:#4ade80}.fb-msg.w{color:#f87171}
+.fb-detail{font-size:13px;color:#aaa;margin-top:3px}
+
+/* BREAK */
+.break-card{width:100%;background:rgba(255,255,255,.06);border:2px solid rgba(255,180,0,.25);border-radius:22px;padding:26px 18px;text-align:center}
+.break-icon{font-size:60px;display:block;margin-bottom:8px}
+.break-title{font-family:'Fredoka One',cursive;font-size:26px;color:#ffd200;margin-bottom:6px}
+.break-sub{font-size:14px;color:#aaa;line-height:1.6;margin-bottom:14px}
+.stat-row{display:flex;justify-content:center;gap:14px;margin:10px 0;flex-wrap:wrap}
+.stat-box{background:rgba(255,255,255,.06);border-radius:12px;padding:10px 16px;text-align:center}
+.stat-val{font-family:'Fredoka One',cursive;font-size:28px;color:#ffd200}
+.stat-lbl{font-size:10px;color:#888;text-transform:uppercase;margin-top:2px}
+.verse-box{background:rgba(255,210,0,.07);border-left:4px solid #ffd200;border-radius:0 10px 10px 0;padding:10px 14px;font-size:13px;color:#ffd200;font-style:italic;margin-top:12px;text-align:left;line-height:1.6}
+
+/* RESULT */
+.result-card{width:100%;background:rgba(255,255,255,.06);border:2px solid rgba(255,180,0,.25);border-radius:22px;padding:26px 18px;text-align:center}
+.res-icon{font-size:64px;display:block;animation:pop .6s ease}
+.res-stars{font-size:36px;letter-spacing:8px;margin:8px 0}
+.res-title{font-family:'Fredoka One',cursive;font-size:28px;color:#ffd200;margin-bottom:6px}
+.res-stats{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:12px 0}
+.badge-earn{background:linear-gradient(135deg,#f7971e,#ffd200);border-radius:14px;padding:12px 16px;font-family:'Fredoka One',cursive;font-size:15px;color:#1a0800;margin-top:8px;display:none}
+.badge-earn.show{display:block;animation:pop .5s ease}
+.progress-note{font-size:13px;color:#888;margin-top:8px;font-style:italic}
+
+/* SECTION */
+.sec-title{font-family:'Fredoka One',cursive;font-size:20px;color:#ffd200;text-align:center}
+.sec-sub{font-size:12px;color:#777;text-align:center;margin-top:2px}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a class="nav-btn" href="index.html">← Math Hub</a>
+  <div class="nav-title">👑 Kingdom Times Tables</div>
+  <button class="nav-btn" id="music-btn" onclick="toggleMusic()">🎵</button>
+</div>
+
+<!-- ══ WELCOME ══ -->
+<div class="screen active" id="screen-welcome">
+  <div style="font-size:64px;text-align:center;margin-top:8px">⚔️</div>
+  <div style="font-family:'Fredoka One',cursive;font-size:28px;color:#ffd200;text-align:center">Kingdom Times Tables</div>
+  <div style="font-size:14px;color:#aaa;text-align:center;line-height:1.6">Learn every times table.<br>Earn belts. Become a Grand Master!</div>
+  <div class="warrior-card" id="welcome-warrior">
+    <div class="w-avatar" id="ww-av">🧒</div>
+    <div style="flex:1">
+      <div class="w-name" id="ww-name">Dominion</div>
+      <div class="w-title" id="ww-title">Kingdom Recruit</div>
+      <div class="w-belt" id="ww-belt">🤍 White Belt</div>
+      <div class="xp-track"><div class="xp-fill" id="ww-xp" style="width:0%"></div></div>
+      <div class="xp-label" id="ww-xp-lbl">0 XP</div>
+    </div>
+  </div>
+  <button class="btn btn-gold" onclick="goToDashboard()" style="width:100%;max-width:320px;font-size:22px;padding:18px">⚔️ Start Training!</button>
+</div>
+
+<!-- ══ DASHBOARD ══ -->
+<div class="screen" id="screen-dashboard">
+  <div class="warrior-card">
+    <div class="w-avatar" id="d-av">🧒</div>
+    <div style="flex:1">
+      <div class="w-name" id="d-name">Dominion</div>
+      <div class="w-title" id="d-title">Kingdom Recruit</div>
+      <div class="w-belt" id="d-belt">🤍 White Belt</div>
+      <div class="xp-track" style="margin-top:6px"><div class="xp-fill" id="d-xp" style="width:0%"></div></div>
+      <div class="xp-label" id="d-xp-lbl">0 XP</div>
+    </div>
+  </div>
+
+  <div class="sec-title">📚 Choose Your Table</div>
+  <div class="sec-sub">Master each table to unlock the next one!</div>
+  <div class="tables-grid" id="tables-grid"></div>
+
+  <div class="wall-wrap">
+    <div class="wall-title">🏆 Mastery Wall — All 100 Facts</div>
+    <div class="wall-grid" id="wall-grid"></div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:8px;font-size:11px;color:#666">
+      <span>🟡 Mastered</span><span>🔲 Seen</span><span>⬛ Not yet</span>
+    </div>
+  </div>
+
+  <button class="btn btn-dark btn-sm" onclick="showScreen('screen-welcome')">🏠 Home</button>
+</div>
+
+<!-- ══ SESSION ══ -->
+<div class="screen" id="screen-session">
+  <div class="round-pill" id="round-pill">Round 1 — Learn</div>
+  <div class="q-counter" id="q-counter">Fact 1 of 10</div>
+  <div class="prog-wrap">
+    <div class="prog-track"><div class="prog-fill" id="s-prog" style="width:0%"></div></div>
+    <div class="score-row">
+      <span style="color:#4ade80">✅ <span id="s-ok">0</span></span>
+      <span style="color:#f7971e">⭐ <span id="s-xp">0</span> XP</span>
+      <span style="color:#f87171">❌ <span id="s-bad">0</span></span>
+    </div>
+  </div>
+
+  <!-- LEARN MODE -->
+  <div id="mode-learn" style="width:100%;display:none">
+    <div class="q-card" id="learn-card">
+      <div class="q-tag">Round 1 — Learn it</div>
+      <div class="q-table-label" id="learn-table-label">× 3 Table</div>
+      <div class="learn-equation" id="learn-eq">3 × 4 = 12</div>
+      <div class="learn-repeated" id="learn-repeated">3 + 3 + 3 + 3 = 12</div>
+      <div class="learn-story" id="learn-story"></div>
+      <div class="learn-tip" id="learn-tip"></div>
+    </div>
+    <div class="action-row" style="margin-top:10px">
+      <button class="btn btn-gold" onclick="learnNext()">Got it! →</button>
+    </div>
+  </div>
+
+  <!-- PRACTISE MODE (flashcard) -->
+  <div id="mode-practise" style="width:100%;display:none">
+    <div class="flashcard" id="fc-card" onclick="revealFC()">
+      <div class="q-tag">Round 2 — Practise</div>
+      <div class="fc-q" id="fc-q">?</div>
+      <div class="fc-tap" id="fc-tap">Tap to reveal</div>
+      <div class="fc-ans" id="fc-ans">?</div>
+      <div class="fc-family" id="fc-family"></div>
+    </div>
+    <div class="action-row" id="fc-btns" style="display:none">
+      <button class="btn btn-green btn-sm" onclick="fcMark(1)">✅ I knew it!</button>
+      <button class="btn btn-red btn-sm" onclick="fcMark(0)">❌ Not yet</button>
+    </div>
+  </div>
+
+  <!-- DRILL MODE (numpad) -->
+  <div id="mode-drill" style="width:100%;display:none;flex-direction:column;align-items:center;gap:8px">
+    <div class="q-card" id="drill-card">
+      <div class="q-tag">Round 3 — Drill</div>
+      <div class="learn-equation" id="drill-eq">? × ? = ?</div>
+      <div style="font-size:13px;color:#888" id="drill-sub">Type your answer and tap ✓</div>
+    </div>
+    <div class="np-display" id="np-disp">___</div>
+    <div class="numpad" id="numpad"></div>
+  </div>
+
+  <!-- FEEDBACK -->
+  <div class="feedback" id="feedback">
+    <div class="fb-icon" id="fb-icon">✅</div>
+    <div class="fb-msg" id="fb-msg">Correct!</div>
+    <div class="fb-detail" id="fb-detail"></div>
+  </div>
+
+  <div class="action-row">
+    <button class="btn btn-dark btn-sm" onclick="exitSession()">✕ Exit</button>
+  </div>
+</div>
+
+<!-- ══ BREAK ══ -->
+<div class="screen" id="screen-break">
+  <div class="break-card">
+    <span class="break-icon" id="b-icon">⭐</span>
+    <div class="break-title" id="b-title">Round 1 Done!</div>
+    <div class="break-sub" id="b-sub">Take a breath — you are doing great!</div>
+    <div class="stat-row" id="b-stats"></div>
+    <div class="verse-box" id="b-verse"></div>
+  </div>
+  <button class="btn btn-gold" id="b-next" onclick="nextRound()" style="width:100%;max-width:320px">Continue →</button>
+  <button class="btn btn-dark btn-sm" onclick="exitSession()">Dashboard</button>
+</div>
+
+<!-- ══ RESULT ══ -->
+<div class="screen" id="screen-result">
+  <div class="result-card">
+    <span class="res-icon" id="r-icon">🏆</span>
+    <div class="res-stars" id="r-stars">⭐⭐⭐</div>
+    <div class="res-title" id="r-title">Outstanding!</div>
+    <div class="res-stats" id="r-stats"></div>
+    <div class="badge-earn" id="badge-earn">🥋 Belt Earned!</div>
+    <div class="progress-note" id="r-note"></div>
+    <div class="verse-box" id="r-verse"></div>
+  </div>
+  <div class="action-row" style="margin-top:12px">
+    <button class="btn btn-gold" onclick="playAgain()">▶ Again</button>
+    <button class="btn btn-green btn-sm" onclick="exitSession()">📊 Dashboard</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function el(id){return document.getElementById(id);}
+function txt(id,v){var e=el(id);if(e)e.textContent=v;}
+function cls(id,v){var e=el(id);if(e)e.className=v;}
+function html(id,v){var e=el(id);if(e)e.innerHTML=v;}
+function show(id){var e=el(id);if(e)e.style.display='block';}
+function hide(id){var e=el(id);if(e)e.style.display='none';}
+function showFlex(id){var e=el(id);if(e)e.style.display='flex';}
+
+// ═══════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════
+// 9 belts — one per table (×2 through ×10)
+var BELTS = [
+  {id:'b2', emoji:'🤍', name:'White Belt',  table:2,  title:'Kingdom Recruit',   avatar:'🧒',  xp:0},
+  {id:'b3', emoji:'💛', name:'Yellow Belt', table:3,  title:'Junior Warrior',    avatar:'🗡️',  xp:150},
+  {id:'b4', emoji:'🧡', name:'Orange Belt', table:4,  title:'Young Champion',    avatar:'⚔️',  xp:300},
+  {id:'b5', emoji:'💚', name:'Green Belt',  table:5,  title:'Rising Knight',     avatar:'🛡️',  xp:500},
+  {id:'b6', emoji:'🩵', name:'Blue Belt',   table:6,  title:'Brave Soldier',     avatar:'🏹',  xp:700},
+  {id:'b7', emoji:'🟣', name:'Purple Belt', table:7,  title:'Kingdom Champion',  avatar:'👑',  xp:950},
+  {id:'b8', emoji:'🔴', name:'Red Belt',    table:8,  title:'Mighty Warrior',    avatar:'⚡',  xp:1200},
+  {id:'b9', emoji:'🟤', name:'Brown Belt',  table:9,  title:'Math Conqueror',    avatar:'🔱',  xp:1500},
+  {id:'b10',emoji:'🖤', name:'Black Belt',  table:10, title:'Grand Master',      avatar:'🏆',  xp:1800},
+];
+
+// Table-specific learning content
+var TABLE_CONTENT = {
+  2:{
+    trick:'The ×2 table is just DOUBLING! Any number doubled.',
+    story:'Think of socks — they always come in PAIRS. 3 pairs = 3 × 2 = 6 socks!',
+    pattern:'All answers are EVEN numbers: 2, 4, 6, 8, 10...'
+  },
+  3:{
+    trick:'Count up by 3s: 3, 6, 9, 12, 15, 18, 21, 24, 27, 30.',
+    story:'A tricycle has 3 wheels. 4 tricycles have 4 × 3 = 12 wheels!',
+    pattern:'Digit sum of answers always adds to 3, 6, or 9.'
+  },
+  4:{
+    trick:'The ×4 table is just ×2 DOUBLED again! 4 × 6 = double of 2 × 6 = double 12 = 24.',
+    story:'Cars have 4 wheels. 5 cars have 5 × 4 = 20 wheels!',
+    pattern:'Count by 4s: 4, 8, 12, 16, 20, 24, 28, 32, 36, 40.'
+  },
+  5:{
+    trick:'All answers end in 0 or 5. Count by 5s on your hands!',
+    story:'A hand has 5 fingers. 6 hands have 6 × 5 = 30 fingers!',
+    pattern:'Even numbers × 5 end in 0. Odd numbers × 5 end in 5.'
+  },
+  6:{
+    trick:'6 × any EVEN number ends in that number! 6×2=12, 6×4=24, 6×6=36.',
+    story:'An egg box holds 6 eggs. 7 boxes hold 7 × 6 = 42 eggs!',
+    pattern:'Count by 6s: 6, 12, 18, 24, 30, 36, 42, 48, 54, 60.'
+  },
+  7:{
+    trick:'7 is the trickiest! Learn these: 7×7=49, 7×8=56, 7×9=63.',
+    story:'A week has 7 days. 8 weeks have 8 × 7 = 56 days!',
+    pattern:'Remember: 5×7=35, 6×7=42, 7×7=49, 8×7=56, 9×7=63.'
+  },
+  8:{
+    trick:'Double, double, double! 8 × 6: double 6=12, double 12=24, double 24=48.',
+    story:'A spider has 8 legs. 6 spiders have 6 × 8 = 48 legs!',
+    pattern:'Count by 8s: 8, 16, 24, 32, 40, 48, 56, 64, 72, 80.'
+  },
+  9:{
+    trick:'9 × any number: fingers trick! Put down the nth finger, read left=tens, right=ones.',
+    story:'A cat has 9 lives. 7 cats have 7 × 9 = 63 lives!',
+    pattern:'Tens go UP (0,1,2...), ones go DOWN (9,8,7...). They always add to 9!'
+  },
+  10:{
+    trick:'Just add a ZERO! 10 × 7 = 70. Any number × 10 — add a zero!',
+    story:'There are 10 fingers on two hands. 10 people have 10 × 10 = 100 fingers!',
+    pattern:'All answers end in 0. So easy!'
+  }
+};
+
+var VERSES = [
+  {text:'I can do all things through Christ who strengthens me.', ref:'Philippians 4 verse 13'},
+  {text:'Be strong and courageous.', ref:'Joshua 1 verse 9'},
+  {text:'With God all things are possible.', ref:'Matthew 19 verse 26'},
+  {text:'Whatever you do, work at it with all your heart.', ref:'Colossians 3 verse 23'},
+  {text:'Study to show yourself approved.', ref:'Second Timothy 2 verse 15'},
+];
+
+// Speech synthesis
+var ttVoice=null;
+function ttInitVoice(){
+  if(!window.speechSynthesis) return;
+  function set(){
+    var vs=window.speechSynthesis.getVoices();
+    ttVoice=vs.find(function(v){return v.name.match(/samantha|karen|victoria|moira|google uk english female|google us english/i);})||
+            vs.find(function(v){return v.lang&&v.lang.startsWith('en');})||vs[0]||null;
+  }
+  set();
+  if(window.speechSynthesis.onvoiceschanged!==undefined) window.speechSynthesis.onvoiceschanged=set;
+  setTimeout(set,500);
+}
+
+function ttSpeak(text){
+  if(!window.speechSynthesis||!text) return;
+  try{
+    window.speechSynthesis.cancel();
+    var u=new SpeechSynthesisUtterance(text);
+    u.rate=0.88; u.pitch=1.0; u.volume=1;
+    if(ttVoice) u.voice=ttVoice;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+function speakVerse(verse, name){
+  var v = typeof verse==='object' ? verse : {text:verse, ref:''};
+  var msg = v.text + '. ' + v.ref + '. ' +
+    (name ? 'Keep it up, ' + name + '! You are doing amazing!' : 'Keep going! You are doing great!');
+  ttSpeak(msg);
+}
+
+function speakBeltEarned(beltName, title, name){
+  var msg = 'Congratulations ' + (name||'Champion') + '! You have earned the ' + beltName +
+    '! You are now a ' + title + '! ' +
+    'With God all things are possible. Keep going!';
+  ttSpeak(msg);
+}
+
+function speakResult(score, name){
+  var msg = score>=90 ?
+    'Outstanding ' + (name||'Champion') + '! You scored ' + score + ' percent! Incredible work!' :
+    score>=80 ?
+    'Well done ' + (name||'Champion') + '! You scored ' + score + ' percent! Keep practising!' :
+    'Good effort ' + (name||'Champion') + '! You scored ' + score + ' percent. You are getting stronger!';
+  ttSpeak(msg);
+}
+var OK_MSGS = ['🌟 Correct!','✅ Right!','🎉 Yes!','⭐ Perfect!','🏆 Brilliant!','💪 Superb!'];
+var NO_MSGS = ['Not quite!','Good try!','Almost!','Keep going!'];
+
+// ═══════════════════════════════════════
+//  SAVE / LOAD
+// ═══════════════════════════════════════
+var SK='kk_tt2';
+function newSave(){return {name:'Dominion',xp:0,beltIdx:0,sessions:{},mastered:{},seen:{}};}
+function loadSave(){try{var r=localStorage.getItem(SK);return r?JSON.parse(r):newSave();}catch(e){return newSave();}}
+function doSave(s){try{localStorage.setItem(SK,JSON.stringify(s));}catch(e){}}
+
+// ═══════════════════════════════════════
+//  SCREENS
+// ═══════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  var sc=el(id);if(sc)sc.classList.add('active');
+}
+
+// ═══════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════
+function initWelcome(){
+  var s=loadSave();
+  // Try to get name from KK profile
+  try{var kk=JSON.parse(localStorage.getItem('kk_profile')||'{}');
+    if(kk&&kk.name&&kk.name!=='Friend') s.name=kk.name;}catch(e){}
+  var belt=BELTS[s.beltIdx]||BELTS[0];
+  txt('ww-name',s.name);
+  txt('ww-title',belt.title);
+  txt('ww-belt',belt.emoji+' '+belt.name);
+  txt('ww-av',belt.avatar);
+  var nextXP=BELTS[Math.min(s.beltIdx+1,BELTS.length-1)].xp||9999;
+  var pct=Math.min(100,Math.round((s.xp-(belt.xp||0))/(nextXP-(belt.xp||0))*100));
+  var xpEl=el('ww-xp');if(xpEl)xpEl.style.width=Math.max(0,pct)+'%';
+  txt('ww-xp-lbl',s.xp+' XP total');
+}
+
+function goToDashboard(){buildDashboard();showScreen('screen-dashboard');}
+
+// ═══════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════
+function buildDashboard(){
+  var s=loadSave();
+  var belt=BELTS[s.beltIdx]||BELTS[0];
+  txt('d-name',s.name);txt('d-title',belt.title);
+  txt('d-belt',belt.emoji+' '+belt.name);txt('d-av',belt.avatar);
+  var nextXP=BELTS[Math.min(s.beltIdx+1,BELTS.length-1)].xp||9999;
+  var pct=Math.min(100,Math.round((s.xp-(belt.xp||0))/(nextXP-(belt.xp||0))*100));
+  var xpEl=el('d-xp');if(xpEl)xpEl.style.width=Math.max(0,pct)+'%';
+  txt('d-xp-lbl',s.xp+' XP — '+Math.max(0,nextXP-s.xp)+' to next belt');
+
+  // Tables grid
+  var grid=el('tables-grid');if(!grid)return;
+  grid.innerHTML='';
+  BELTS.forEach(function(b,i){
+    var t=b.table;
+    var sessions=(s.sessions[t]||[]);
+    var avgScore=sessions.length>0?Math.round(sessions.reduce(function(a,x){return a+x;},0)/sessions.length):0;
+    var isMastered=i<s.beltIdx;
+    var isCurrent=i===s.beltIdx;
+    var isLocked=i>s.beltIdx;
+    var div=document.createElement('div');
+    div.className='table-btn'+(isMastered?' mastered':isCurrent?' current':' locked');
+    var stars=isMastered?'⭐⭐⭐':sessions.length>0?'⭐'.repeat(Math.min(3,Math.floor(avgScore/30))):'';
+    div.innerHTML='<div class="tb-x">×</div>'
+      +'<div class="tb-num">'+t+'</div>'
+      +'<div class="tb-stars">'+(isLocked?'🔒':stars||'▶')+'</div>'
+      +'<div class="tb-sessions">'+(isMastered?'Done!':sessions.length+'/2')+'</div>';
+    if(!isLocked) div.onclick=function(belt,idx){return function(){startSession(belt,idx);};}(b,i);
+    grid.appendChild(div);
+  });
+
+  // Mastery wall
+  var wall=el('wall-grid');if(!wall)return;
+  wall.innerHTML='';
+  for(var a=2;a<=10;a++){
+    for(var b=2;b<=10;b++){
+      var key=a+'x'+b;
+      var div=document.createElement('div');
+      div.className='wc'+(s.mastered[key]?' mastered':s.seen[key]?' seen':'');
+      div.textContent=a+'×'+b;
+      wall.appendChild(div);
+    }
+  }
+}
+
+// ═══════════════════════════════════════
+//  SESSION STATE
+// ═══════════════════════════════════════
+var CUR_BELT=null, CUR_BELT_IDX=0;
+var ROUND=1, ROUND_OK=0, ROUND_BAD=0, SESSION_XP=0;
+var QUESTIONS=[], QIDX=0;
+var LEARN_ITEMS=[], LEARN_IDX=0;
+var FC_REVEALED=false;
+var NP_ANS='';
+var SESSION_SCORES=[];
+
+function startSession(belt,idx){
+  CUR_BELT=belt; CUR_BELT_IDX=idx;
+  ROUND=1; ROUND_OK=0; ROUND_BAD=0; SESSION_XP=0; SESSION_SCORES=[];
+  QUESTIONS=genQuestions(belt.table);
+  showScreen('screen-session');
+  startRound1();
+}
+
+function genQuestions(table){
+  var qs=[];
+  // All 10 facts for this table (table×1 through table×10)
+  for(var i=1;i<=10;i++) qs.push({a:table,b:i,ans:table*i});
+  // Shuffle
+  return qs.sort(function(){return Math.random()-.5;});
+}
+
+function setRoundUI(round){
+  var labels=['','Round 1 — Learn It!','Round 2 — Practise!','Round 3 — Drill!'];
+  txt('round-pill',labels[round]);
+  txt('s-ok','0'); txt('s-bad','0'); txt('s-xp','0');
+  el('s-prog').style.width='0%';
+  cls('feedback','feedback');
+}
+
+// ═══════════════════════════════════════
+//  ROUND 1 — LEARN
+// ═══════════════════════════════════════
+function startRound1(){
+  setRoundUI(1);
+  LEARN_ITEMS=QUESTIONS.slice(); LEARN_IDX=0;
+  hide('mode-practise'); hide('mode-drill'); cls('feedback','feedback');
+  show('mode-learn');
+  showLearnItem();
+}
+
+function showLearnItem(){
+  if(LEARN_IDX>=LEARN_ITEMS.length){finishLearn();return;}
+  var q=LEARN_ITEMS[LEARN_IDX];
+  var pct=Math.round(LEARN_IDX/LEARN_ITEMS.length*100);
+  el('s-prog').style.width=pct+'%';
+  txt('q-counter','Fact '+(LEARN_IDX+1)+' of '+LEARN_ITEMS.length);
+
+  txt('learn-table-label','The ×'+q.a+' Table  —  Fact '+LEARN_IDX+1);
+  txt('learn-eq',q.a+' × '+q.b+' = '+q.ans);
+
+  // Repeated addition — show clearly
+  var parts=[];
+  var showCount=Math.min(q.b,6);
+  for(var i=0;i<showCount;i++) parts.push(String(q.a));
+  var addStr=parts.join(' + ')+(q.b>6?' + ...':'');
+  txt('learn-repeated',addStr+' = '+q.ans);
+
+  // Story
+  var tc=TABLE_CONTENT[q.a]||{story:'',trick:'',pattern:''};
+  txt('learn-story',tc.story);
+
+  // Tip rotates between trick and pattern
+  txt('learn-tip', LEARN_IDX%2===0 ? '💡 '+tc.trick : '🔍 '+tc.pattern);
+
+  // Mark as seen
+  var s=loadSave();
+  s.seen[q.a+'x'+q.b]=true; s.seen[q.b+'x'+q.a]=true;
+  doSave(s);
+}
+
+function learnNext(){
+  LEARN_IDX++;
+  if(LEARN_IDX>=LEARN_ITEMS.length){finishLearn();return;}
+  showLearnItem();
+}
+
+function finishLearn(){
+  SESSION_XP+=30;
+  txt('s-xp',SESSION_XP);
+  showBreak(1);
+}
+
+// ═══════════════════════════════════════
+//  ROUND 2 — PRACTISE (flashcard)
+// ═══════════════════════════════════════
+function startRound2(){
+  setRoundUI(2); QIDX=0; ROUND_OK=0; ROUND_BAD=0;
+  hide('mode-learn'); hide('mode-drill'); cls('feedback','feedback');
+  show('mode-practise');
+  QUESTIONS=QUESTIONS.sort(function(){return Math.random()-.5;});
+  showFC();
+}
+
+function showFC(){
+  if(QIDX>=QUESTIONS.length){finishRound2();return;}
+  var q=QUESTIONS[QIDX];
+  FC_REVEALED=false;
+  txt('q-counter','Card '+(QIDX+1)+' of '+QUESTIONS.length);
+  el('s-prog').style.width=Math.round(QIDX/QUESTIONS.length*100)+'%';
+  txt('fc-q',q.a+' × '+q.b+' = ?');
+  txt('fc-tap','Tap to reveal the answer');
+  el('fc-ans').className='fc-ans'; txt('fc-ans',q.ans);
+  el('fc-family').className='fc-family';
+  txt('fc-family',
+    q.a+'×'+q.b+'='+q.ans+' | '+q.b+'×'+q.a+'='+q.ans+'\n'+
+    q.ans+'÷'+q.a+'='+q.b+' | '+q.ans+'÷'+q.b+'='+q.a);
+  el('fc-btns').style.display='none';
+  el('fc-card').className='flashcard';
+}
+
+function revealFC(){
+  if(FC_REVEALED) return;
+  FC_REVEALED=true;
+  el('fc-ans').className='fc-ans show';
+  el('fc-family').className='fc-family show';
+  txt('fc-tap','Did you know it?');
+  el('fc-btns').style.display='flex';
+}
+
+function fcMark(knew){
+  if(knew){ROUND_OK++;SESSION_XP+=8;}else{ROUND_BAD++;}
+  txt('s-ok',ROUND_OK); txt('s-bad',ROUND_BAD); txt('s-xp',SESSION_XP);
+  QIDX++;
+  showFC();
+}
+
+function finishRound2(){
+  var pct=Math.round(ROUND_OK/(ROUND_OK+ROUND_BAD||1)*100);
+  SESSION_SCORES.push(pct);
+  showBreak(2);
+}
+
+// ═══════════════════════════════════════
+//  ROUND 3 — DRILL (numpad)
+// ═══════════════════════════════════════
+function startRound3(){
+  setRoundUI(3); QIDX=0; ROUND_OK=0; ROUND_BAD=0; NP_ANS='';
+  hide('mode-learn'); hide('mode-practise'); cls('feedback','feedback');
+  showFlex('mode-drill');
+  buildNumpad();
+  QUESTIONS=QUESTIONS.sort(function(){return Math.random()-.5;});
+  loadDrillQ();
+}
+
+function buildNumpad(){
+  var pad=el('numpad'); if(!pad) return;
+  pad.innerHTML='';
+  [1,2,3,4,5,6,7,8,9,'⌫',0,'✓'].forEach(function(val){
+    var btn=document.createElement('button');
+    btn.className='np-key'+(val==='⌫'?' k-del':val==='✓'?' k-enter':'');
+    btn.textContent=val;
+    btn.onclick=function(v){return function(){
+      if(v==='⌫'){NP_ANS=NP_ANS.slice(0,-1);txt('np-disp',NP_ANS||'___');el('np-disp').className='np-display';}
+      else if(v==='✓'){checkDrill();}
+      else if(NP_ANS.length<4){NP_ANS+=String(v);txt('np-disp',NP_ANS);}
+    };}(val);
+    pad.appendChild(btn);
+  });
+}
+
+function loadDrillQ(){
+  if(QIDX>=QUESTIONS.length){finishDrill();return;}
+  var q=QUESTIONS[QIDX];
+  NP_ANS='';
+  txt('np-disp','___');
+  el('np-disp').className='np-display';
+  txt('q-counter','Question '+(QIDX+1)+' of '+QUESTIONS.length);
+  el('s-prog').style.width=Math.round(QIDX/QUESTIONS.length*100)+'%';
+  // Randomise order of a and b
+  var flip=rnd(0,1);
+  txt('drill-eq',(flip?q.b:q.a)+' × '+(flip?q.a:q.b)+' = ?');
+  txt('drill-sub','Type your answer and tap ✓');
+  cls('drill-card','q-card');
+  cls('feedback','feedback');
+}
+
+function checkDrill(){
+  if(!NP_ANS) return;
+  var q=QUESTIONS[QIDX];
+  var correct=parseInt(NP_ANS)===q.ans;
+  el('np-disp').className='np-display '+(correct?'correct':'wrong');
+  cls('drill-card','q-card '+(correct?'correct':'wrong'));
+
+  if(correct){
+    ROUND_OK++;SESSION_XP+=10;
+    txt('fb-icon','✅');txt('fb-msg',pick(OK_MSGS));
+    txt('fb-detail',q.a+' × '+q.b+' = '+q.ans+' ✓');
+    cls('fb-msg','fb-msg c');
+    cls('feedback','feedback correct show');
+    ttSpeak(pick(OK_MSGS).replace(/[🌟✅🎉⭐🏆💪]/g,''));
+    // Mark mastered
+    var s=loadSave();
+    s.mastered[q.a+'x'+q.b]=true; s.mastered[q.b+'x'+q.a]=true;
+    doSave(s);
+  } else {
+    ROUND_BAD++;
+    txt('fb-icon','❌');txt('fb-msg',pick(NO_MSGS));
+    txt('fb-detail','The answer is '+q.ans+'. Remember: '+q.a+' × '+q.b+' = '+q.ans);
+    cls('fb-msg','fb-msg w');
+    cls('feedback','feedback wrong show');
+    ttSpeak('Not quite. The answer is ' + q.ans + '. ' + q.a + ' times ' + q.b + ' equals ' + q.ans + '.');
+  }
+  txt('s-ok',ROUND_OK); txt('s-bad',ROUND_BAD); txt('s-xp',SESSION_XP);
+  QIDX++;
+  setTimeout(function(){
+    cls('feedback','feedback');
+    loadDrillQ();
+  }, 1600);
+}
+
+function finishDrill(){
+  var pct=Math.round(ROUND_OK/(ROUND_OK+ROUND_BAD||1)*100);
+  SESSION_SCORES.push(pct);
+  showResult();
+}
+
+// ═══════════════════════════════════════
+//  BREAK
+// ═══════════════════════════════════════
+function showBreak(afterRound){
+  var icons=['','⭐','🌟','🏆'];
+  txt('b-icon',icons[afterRound]);
+  var titles=['','Round 1 Complete!','Round 2 Complete!',''];
+  txt('b-title',titles[afterRound]);
+  var subs=[
+    '',
+    'You have seen all 10 facts! Now let\'s practise them from memory.',
+    'Great work! Final round — type the answers to prove mastery!',
+    ''
+  ];
+  txt('b-sub',subs[afterRound]);
+  var statsHtml='';
+  if(afterRound===1){
+    statsHtml='<div class="stat-box"><div class="stat-val">10</div><div class="stat-lbl">Facts seen</div></div>'
+      +'<div class="stat-box"><div class="stat-val">'+SESSION_XP+'</div><div class="stat-lbl">XP earned</div></div>';
+  } else {
+    var sc=SESSION_SCORES[SESSION_SCORES.length-1]||0;
+    statsHtml='<div class="stat-box"><div class="stat-val">'+ROUND_OK+'</div><div class="stat-lbl">Correct</div></div>'
+      +'<div class="stat-box"><div class="stat-val">'+sc+'%</div><div class="stat-lbl">Score</div></div>'
+      +'<div class="stat-box"><div class="stat-val">'+SESSION_XP+'</div><div class="stat-lbl">XP</div></div>';
+  }
+  html('b-stats',statsHtml);
+  var bv=pick(VERSES); txt('b-verse',bv.text+' — '+bv.ref); setTimeout(function(){speakVerse(bv,loadSave().name);},500);
+  txt('b-next',afterRound===1?'Start Practise →':'Start Drill →');
+  el('b-next').dataset.after=afterRound;
+  showScreen('screen-break');
+}
+
+function nextRound(){
+  var after=parseInt(el('b-next').dataset.after||'1');
+  showScreen('screen-session');
+  if(after===1) startRound2();
+  else startRound3();
+}
+
+// ═══════════════════════════════════════
+//  RESULT
+// ═══════════════════════════════════════
+function showResult(){
+  var s=loadSave();
+  var r2=SESSION_SCORES[0]||0;
+  var r3=SESSION_SCORES[1]||0;
+  var avg=Math.round((r2+r3)/2);
+
+  // Record session
+  var t=CUR_BELT.table;
+  if(!s.sessions[t]) s.sessions[t]=[];
+  s.sessions[t].push(avg);
+  if(s.sessions[t].length>5) s.sessions[t]=s.sessions[t].slice(-5);
+
+  // Add XP
+  s.xp=(s.xp||0)+SESSION_XP;
+  doSave(s);
+
+  // Check belt: 3 sessions averaging ≥80%
+  var beltEarned=false;
+  var recent=s.sessions[t].slice(-2);
+  if(recent.length>=2 && s.beltIdx===CUR_BELT_IDX){
+    var avg3=Math.round(recent.reduce(function(a,x){return a+x;},0)/recent.length); // avg of last 2
+    if(avg3>=80){
+      s.beltIdx=Math.min(CUR_BELT_IDX+1,BELTS.length-1);
+      beltEarned=true;
+      doSave(s);
+    }
+  }
+
+  var stars=avg>=90?3:avg>=70?2:1;
+  txt('r-icon',stars===3?'🏆':stars===2?'⭐':'👏');
+  txt('r-stars','⭐'.repeat(stars));
+  txt('r-title',stars===3?'Outstanding!':stars===2?'Well Done!':'Keep Practising!');
+
+  var sessions=s.sessions[t]||[];
+  html('r-stats',
+    '<div class="stat-box"><div class="stat-val">'+avg+'%</div><div class="stat-lbl">This session</div></div>'
+    +'<div class="stat-box"><div class="stat-val">'+SESSION_XP+'</div><div class="stat-lbl">XP earned</div></div>'
+    +'<div class="stat-box"><div class="stat-val">'+sessions.length+'</div><div class="stat-lbl">Sessions done</div></div>');
+
+  var be=el('badge-earn');
+  if(beltEarned&&be){
+    var nb=BELTS[s.beltIdx];
+    txt('badge-earn', nb.emoji+' '+nb.name+' Earned! You are now: '+nb.title+'!');
+    be.className='badge-earn show';
+  } else if(be){
+    be.className='badge-earn';
+    var sessLeft=Math.max(0,2-sessions.length);
+    if(sessLeft>0){
+      txt('r-note','Complete '+sessLeft+' more session'+(sessLeft>1?'s':'')+' at 80%+ to earn the '+CUR_BELT.name+'!');
+    } else {
+      var curAvg=Math.round(sessions.slice(-2).reduce(function(a,x){return a+x;},0)/Math.min(2,sessions.length));
+      txt('r-note','Your average over last 3 sessions: '+curAvg+'%. Need 80% to earn belt!');
+    }
+  }
+  var rv=pick(VERSES); txt('r-verse',rv.text+' — '+rv.ref);
+  showScreen('screen-result');
+  // Speak result + scripture after brief pause
+  var save2=loadSave();
+  setTimeout(function(){
+    if(beltEarned){
+      var nb2=BELTS[save2.beltIdx];
+      speakBeltEarned(nb2.name, nb2.title, save2.name);
+      setTimeout(function(){ speakVerse(rv, save2.name); }, 4000);
+    } else {
+      speakResult(avg, save2.name);
+      setTimeout(function(){ speakVerse(rv, save2.name); }, 3000);
+    }
+  }, 600);
+}
+
+function playAgain(){startSession(CUR_BELT,CUR_BELT_IDX);}
+function exitSession(){buildDashboard();showScreen('screen-dashboard');}
+
+// ═══════════════════════════════════════
+//  MUSIC
+// ═══════════════════════════════════════
+var actx=null,mPlay=false,mNodes=[],mSched=null,mNext=0,mIdx=0;
+var MEL=[392,0,523,0,659,0,784,659,587,0,698,0,784,0,659,0,
+         523,587,659,523,440,523,587,0,392,440,494,523,587,523,0,0];
+var BAS=[196,0,261,0,329,0,392,329,293,0,349,0,392,0,329,0,
+         261,293,329,261,220,261,293,0,196,220,247,261,293,261,0,0];
+var ND=0.24,LA=0.32;
+function im(){if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();}
+function pt(f,st,d,g,tp){
+  if(!f||!actx)return;
+  var o=actx.createOscillator(),gn=actx.createGain(),m=actx.createGain();
+  o.type=tp||'triangle';o.frequency.setValueAtTime(f,st);
+  gn.gain.setValueAtTime(0,st);gn.gain.linearRampToValueAtTime(g,st+.02);
+  gn.gain.setValueAtTime(g,st+d*.75);gn.gain.linearRampToValueAtTime(0,st+d);
+  m.gain.value=.09;o.connect(gn);gn.connect(m);m.connect(actx.destination);
+  o.start(st);o.stop(st+d+.04);mNodes.push(o);
+}
+function sched(){while(mNext<actx.currentTime+LA){var i=mIdx%MEL.length;pt(MEL[i],mNext,ND*.85,.45,'triangle');pt(BAS[i],mNext,ND,.2,'sine');mNext+=ND;mIdx++;}}
+function startMusic(){im();if(actx.state==='suspended')actx.resume();mNext=actx.currentTime+.05;mIdx=0;mPlay=true;mSched=setInterval(sched,50);txt('music-btn','🎵');}
+function stopMusic(){mPlay=false;if(mSched){clearInterval(mSched);mSched=null;}mNodes.forEach(function(n){try{n.stop();}catch(e){}});mNodes=[];txt('music-btn','🔇');}
+function toggleMusic(){mPlay?stopMusic():startMusic();}
+function autoStart(){if(!mPlay)startMusic();}
+document.addEventListener('touchstart',autoStart,{once:true});
+document.addEventListener('click',autoStart,{once:true});
+
+window.addEventListener('load',function(){ initWelcome(); ttInitVoice(); });
+</script>
+</body>
+</html>
