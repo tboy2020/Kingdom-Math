@@ -407,10 +407,27 @@ function isMatch(said, expected){
 //  STATE
 // ═══════════════════════
 var playerName='', playerGrade='K', speakOn=true;
-// Always require tap — most reliable across all browsers
-var isChrome = false; // tap mode for all browsers
+var isChrome = false;
+var missedQuestions = [];
+var isRetry = false; // track missed questions to insert similar ones
+
+function getSimilarQuestion(q){
+  // Generate a question with the same answer but different numbers
+  var target = parseInt(q.a);
+  if(isNaN(target)) return null;
+  var topic = getGradeTopics()[currentTopicIdx];
+  if(!topic) return null;
+  // Try up to 5 times to get a question with same answer
+  for(var i=0;i<5;i++){
+    var newQ = topic.gen();
+    if(parseInt(newQ.a) === target && newQ.q !== q.q) return newQ;
+  }
+  // Fallback: just return a new question
+  return topic.gen();
+}
 var currentTopicId='', currentTopicIdx=0;
 var questions=[], qIdx=0, score=0, correctCount=0;
+  missedQuestions=[]; isRetry=false;
 var currentQ=null, sessionActive=false;
 var recognition=null, micState='idle'; // idle | listening | processing | disabled
 
@@ -686,6 +703,7 @@ function doStartListening(SR){
 function checkAnswer(heard){
   if(!currentQ||!sessionActive) return;
   var correct=isMatch(heard, currentQ.a);
+  if(!correct) missedQuestions.push(currentQ);
   showFeedback(correct, heard);
 }
 
@@ -704,17 +722,46 @@ function showFeedback(correct, heard){
   setText('s-score',score);
   setText('s-correct',correctCount);
 
-  var say=correct?
-    pick(['Well done! The answer is '+currentQ.a+'.','Correct! '+currentQ.a+'. Excellent!','Brilliant! That is right!']) :
-    'The answer is '+currentQ.a+'. Keep going, you are doing great!';
-  speak(say);
+  var say, speakDelay;
 
-  qIdx++;
-  setTimeout(function(){
-    setClass('feedback','feedback');
-    setText('transcript-interim',''); setText('transcript-final','');
-    loadQ();
-  }, 3000);
+  if(correct){
+    say = pick(['Well done! The answer is '+currentQ.a+'.','Correct! '+currentQ.a+'. Excellent!','Brilliant! That is right!']);
+    speak(say);
+    speakDelay = Math.max(3000, say.split(' ').length * 380 + 1000);
+    qIdx++;
+    setTimeout(function(){
+      setClass('feedback','feedback');
+      setText('transcript-interim',''); setText('transcript-final','');
+      isRetry=false;
+      loadQ();
+    }, speakDelay);
+  } else if(!isRetry){
+    // First wrong — give one more chance
+    isRetry=true;
+    say = 'Not quite! You have one more chance. ' + currentQ.speak;
+    speak(say);
+    speakDelay = Math.max(3000, say.split(' ').length * 380 + 1000);
+    setTimeout(function(){
+      setClass('feedback','feedback');
+      setText('transcript-interim',''); setText('transcript-final','');
+      // Don't increment qIdx — same question again
+      setMicState('ready');
+      setText('status-text','ONE MORE CHANCE — tap and answer!');
+      setText('q-hint','💪 One more chance — you can do it!');
+    }, speakDelay);
+  } else {
+    // Second wrong — move on
+    isRetry=false;
+    say = 'The answer is '+currentQ.a+'. '+currentQ.a+'. Try to remember!';
+    speak(say);
+    speakDelay = Math.max(3500, say.split(' ').length * 380 + 1000);
+    qIdx++;
+    setTimeout(function(){
+      setClass('feedback','feedback');
+      setText('transcript-interim',''); setText('transcript-final','');
+      loadQ();
+    }, speakDelay);
+  }
 }
 
 function skipQ(){
