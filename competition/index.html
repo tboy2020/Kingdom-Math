@@ -204,6 +204,17 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
     <div class="q-progress" id="q-prog">Q 1 of 2</div>
   </div>
 
+  <!-- BACKUP OPTIONS — A/B/C buttons -->
+  <div id="backup-opts" style="width:100%;display:none;flex-direction:column;gap:8px">
+    <div style="font-size:11px;color:#888;text-align:center;text-transform:uppercase;letter-spacing:1px">Or tap an option:</div>
+    <div style="display:flex;gap:8px;width:100%">
+      <button id="bopt-0" onclick="selectBackupOpt(0)" style="flex:1;background:rgba(255,255,255,.08);border:2px solid rgba(255,210,0,.25);border-radius:14px;padding:12px 6px;font-family:'Fredoka One',cursive;font-size:18px;color:#fff;cursor:pointer"></button>
+      <button id="bopt-1" onclick="selectBackupOpt(1)" style="flex:1;background:rgba(255,255,255,.08);border:2px solid rgba(255,210,0,.25);border-radius:14px;padding:12px 6px;font-family:'Fredoka One',cursive;font-size:18px;color:#fff;cursor:pointer"></button>
+      <button id="bopt-2" onclick="selectBackupOpt(2)" style="flex:1;background:rgba(255,255,255,.08);border:2px solid rgba(255,210,0,.25);border-radius:14px;padding:12px 6px;font-family:'Fredoka One',cursive;font-size:18px;color:#fff;cursor:pointer"></button>
+    </div>
+  </div>
+  <button onclick="toggleBackupOpts()" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:6px 16px;font-size:12px;color:#888;cursor:pointer;font-family:'Nunito',sans-serif" id="backup-toggle">📱 Show options</button>
+
   <div class="mic-area">
     <div class="mic-big ready" id="mic-big" onclick="onMicTap()">🎙️</div>
     <div class="mic-label" id="mic-label">TAP to answer</div>
@@ -308,10 +319,10 @@ var speakOn=true;
 // Break state
 var breakTimerInterval=null;
 var BREAK_DURATION=420; // 7 minutes in seconds
-var PLAYER_TIME=150; // 2.5 minutes per player (declared early for use in startGame)
+var PLAYER_TIME=150; // 2.5 minutes per player
 var breakTimeLeft=BREAK_DURATION;
-var roundCount=0; // track full rounds for auto-break
-var autoBreakAfterRound=true;
+// Turn guard - prevents double-firing of nextPlayer/showTurnAnnounce
+var turnTransitioning=false;
 
 // ══════════════════════════════════
 //  SCREENS
@@ -398,6 +409,7 @@ function startGame(){
   currentPlayerIdx=0;
   currentTurnQ=0;
   isRetry=false;
+  turnTransitioning=false;
   gameActive=true;
   showTurnAnnounce();
 }
@@ -408,11 +420,15 @@ function startGame(){
 function showTurnAnnounce(){
   if(!gameActive) return;
   var p=players[currentPlayerIdx];
-
-  // Check if this player still has time
+  // If somehow this player has no time, just go to next
   if(p.timeLeft<=0){
-    nextPlayer();
-    return;
+    // Don't call nextPlayer recursively - just find next
+    var found=false;
+    for(var i=1;i<=players.length;i++){
+      var ni=(currentPlayerIdx+i)%players.length;
+      if(players[ni].timeLeft>0){currentPlayerIdx=ni;p=players[ni];found=true;break;}
+    }
+    if(!found){endGame();return;}
   }
 
   showScreen('screen-turn');
@@ -484,12 +500,17 @@ function formatTime(secs){
 // ══════════════════════════════════
 function loadQuestion(){
   if(!gameActive) return;
+  if(turnTransitioning) return; // guard
   var p=players[currentPlayerIdx];
   if(p.timeLeft<=0){nextPlayer();return;}
   if(p.qIdx>=p.qBank.length){nextPlayer();return;}
 
   currentQ=p.qBank[p.qIdx];
   isRetry=false;
+  backupOptsVisible=false;
+  var bWrap=el('backup-opts'); if(bWrap) bWrap.style.display='none';
+  var bToggle=el('backup-toggle'); if(bToggle) bToggle.textContent='📱 Show options';
+  buildBackupOpts(currentQ);
 
   // Update UI
   txt('q-tag',p.name+' · '+p.grade+' · Q'+(currentTurnQ+1)+' of '+Q_PER_TURN);
@@ -556,6 +577,66 @@ function stopTimer(){if(timerInterval){clearInterval(timerInterval);timerInterva
 // ══════════════════════════════════
 //  MIC
 // ══════════════════════════════════
+// ── BACKUP OPTIONS ──
+var currentBackupOpts=[];
+var backupOptsVisible=false;
+
+function toggleBackupOpts(){
+  backupOptsVisible=!backupOptsVisible;
+  var wrap=el('backup-opts');
+  var btn=el('backup-toggle');
+  if(wrap) wrap.style.display=backupOptsVisible?'flex':'none';
+  if(btn) btn.textContent=backupOptsVisible?'🎙️ Use voice instead':'📱 Show options';
+}
+
+function buildBackupOpts(q){
+  // Generate 3 options with correct answer included
+  var correct=q.a;
+  var opts=[correct];
+  if(!isNaN(parseInt(correct))){
+    var n=parseInt(correct);
+    var attempts=0;
+    while(opts.length<3&&attempts<20){
+      attempts++;
+      var diff=Math.max(1,Math.floor(n/3));
+      var wrong=n+(Math.random()>.5?1:-1)*Math.floor(Math.random()*diff+1);
+      wrong=Math.max(0,wrong);
+      if(String(wrong)!==correct&&opts.indexOf(String(wrong))<0) opts.push(String(wrong));
+    }
+  } else {
+    var wordAlts={'even':['odd','skip'],'odd':['even','skip'],
+      'more':['less','equal'],'less':['more','equal'],'equal':['more','less'],
+      'first':['second','third'],'second':['first','third'],'third':['first','second'],
+      'same':['first','second']};
+    var alts=wordAlts[correct]||['option 2','option 3'];
+    opts.push(alts[0]||'B');opts.push(alts[1]||'C');
+  }
+  // Shuffle
+  opts=opts.sort(function(){return Math.random()-.5;});
+  currentBackupOpts=opts;
+  var labels=['A','B','C'];
+  opts.forEach(function(opt,i){
+    var btn=el('bopt-'+i);
+    if(btn){btn.textContent=labels[i]+'. '+opt;btn.style.borderColor='rgba(255,210,0,.25)';btn.style.color='#fff';}
+  });
+}
+
+function selectBackupOpt(idx){
+  if(!currentQ||!gameActive) return;
+  var chosen=currentBackupOpts[idx];
+  var correct=(chosen===currentQ.a||
+    (!isNaN(parseInt(chosen))&&parseInt(chosen)===parseInt(currentQ.a)));
+  // Highlight selected
+  for(var i=0;i<3;i++){
+    var b=el('bopt-'+i);
+    if(!b) continue;
+    if(i===idx) b.style.borderColor=correct?'#4ade80':'#f87171';
+    else if(currentBackupOpts[i]===currentQ.a) b.style.borderColor='#4ade80';
+  }
+  txt('heard-text','"'+chosen+'" (tapped)');
+  checkAnswer(chosen);
+}
+
 function setMicState(state){
   micState=state;
   var mic=el('mic-big');
@@ -763,28 +844,29 @@ function showFeedback(correct,heard){
 function nextPlayer(){
   stopTimer();
   if(!gameActive) return;
+  if(turnTransitioning) return; // guard against double calls
+  turnTransitioning = true;
 
-  // Check if all players are out of time
   var allDone = players.every(function(p){ return p.timeLeft <= 0; });
-  if(allDone){ endGame(); return; }
+  if(allDone){ turnTransitioning=false; endGame(); return; }
 
-  // Simple sequential cycling — find next player with time remaining
-  var attempts = 0;
-  do {
-    currentPlayerIdx = (currentPlayerIdx + 1) % players.length;
-    attempts++;
-  } while(players[currentPlayerIdx].timeLeft <= 0 && attempts < players.length);
+  // Cycle to next player with time remaining
+  var start = currentPlayerIdx;
+  var found = false;
+  for(var i=1; i<=players.length; i++){
+    var next = (start + i) % players.length;
+    if(players[next].timeLeft > 0){ currentPlayerIdx=next; found=true; break; }
+  }
+  if(!found){ turnTransitioning=false; endGame(); return; }
 
-  if(players[currentPlayerIdx].timeLeft <= 0){ endGame(); return; }
-
-  // Reset turn question counter for new player's turn
   currentTurnQ = 0;
+  isRetry = false;
 
-  // Small gap between turns so feedback speech fully finishes
   setTimeout(function(){
+    turnTransitioning = false;
     if(!gameActive) return;
     showTurnAnnounce();
-  }, 600);
+  }, 800);
 }
 
 function skipQuestion(){
@@ -865,6 +947,7 @@ function endBreak(){
   }
 
   gameActive = true;
+  turnTransitioning = false;
   var p = players[currentPlayerIdx];
   speak('Welcome back! ' + p.name + ', it is your turn. Get ready!');
   var delay = p.name.split(' ').length * 400 + 2500;
