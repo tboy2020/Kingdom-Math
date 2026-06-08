@@ -115,7 +115,7 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
 </head>
 <body>
 <div class="nav">
-  <a class="nav-btn" href="../index.html">← Math</a>
+  <a class="nav-btn" href="../index.html">← Math Hub</a>
   <div class="nav-title">🎙️ Voice Math Tutor</div>
   <span id="vol-icon" style="font-size:20px;cursor:pointer" onclick="toggleSpeak()">🔊</span>
 </div>
@@ -129,10 +129,9 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
     1. Type your name and pick your age<br>
     2. Choose a topic<br>
     3. App reads the question aloud<br>
-    4. Answer out loud — no tapping needed!<br>
+    4. Tap the big 🎙️ button and say your answer<br>
     5. App marks it right or wrong automatically!<br><br>
-    <strong>⚠️ Use Chrome on iPad for hands-free voice.</strong><br>
-    Safari requires tapping — Chrome does not.
+    <strong>Works on:</strong> iPad, iPhone, Chrome, Edge, Safari
   </div>
   <button class="btn btn-gold" onclick="showScreen('screen-name')" style="width:100%;max-width:320px;font-size:22px;padding:18px">Let's Start! 🎙️</button>
 </div>
@@ -332,11 +331,43 @@ var WORD_MAP={
   'six':'6','seven':'7','eight':'8','nine':'9','ten':'10',
   'eleven':'11','twelve':'12','thirteen':'13','fourteen':'14','fifteen':'15',
   'sixteen':'16','seventeen':'17','eighteen':'18','nineteen':'19','twenty':'20',
-  'thirty':'30','forty':'40','fifty':'50','sixty':'60','seventy':'70',
-  'eighty':'80','ninety':'90','hundred':'100','oh':'0','to':'2','for':'4',
-  'ate':'8','won':'1','too':'2','tu':'2','nein':'9','fife':'5','fort':'40',
-  'sex':'6','sick':'6','tree':'3','heaven':'7','late':'8'
+  'twenty one':'21','twenty two':'22','twenty three':'23','twenty four':'24',
+  'twenty five':'25','twenty six':'26','twenty seven':'27','twenty eight':'28',
+  'twenty nine':'29','thirty':'30','forty':'40','fifty':'50','sixty':'60',
+  'seventy':'70','eighty':'80','ninety':'90','hundred':'100',
+  'oh':'0','to':'2','for':'4','ate':'8','won':'1','too':'2','tu':'2',
+  'nein':'9','fife':'5','fort':'40','sex':'6','sick':'6','tree':'3',
+  'heaven':'7','late':'8','nil':'0','nought':'0','naught':'0',
+  'a':'1','an':'1'
 };
+
+// Enhanced matching — also checks if heard contains the answer
+function enhancedMatch(heard, expected){
+  heard = String(heard).toLowerCase().trim();
+  expected = String(expected).toLowerCase().trim();
+
+  // Direct match
+  if(heard === expected) return true;
+
+  // Number match via word-to-number conversion
+  var heardNum = textToNum(heard);
+  var expNum = parseInt(expected);
+  if(!isNaN(heardNum) && !isNaN(expNum) && heardNum === expNum) return true;
+
+  // Word answers — check containment
+  if(heard.includes(expected) && expected.length > 2) return true;
+  if(expected.includes(heard) && heard.length > 2) return true;
+
+  // First word match for word answers
+  var heardFirst = heard.split(' ')[0];
+  var expFirst = expected.split(' ')[0];
+  if(heardFirst === expFirst && heardFirst.length > 2) return true;
+
+  // Fuzzy: remove spaces and compare
+  if(heard.replace(/\s/g,'') === expected.replace(/\s/g,'')) return true;
+
+  return false;
+}
 
 function cleanText(t){
   return t.toLowerCase()
@@ -367,19 +398,9 @@ function textToNum(t){
 }
 
 function isMatch(said, expected){
-  said = cleanText(said);
-  expected = String(expected).toLowerCase().trim();
-  if(said===expected) return true;
-  // Number match
-  var sNum = textToNum(said);
-  var eNum = parseInt(expected);
-  if(!isNaN(sNum) && !isNaN(eNum) && sNum===eNum) return true;
-  // Contains expected word
-  if(said.includes(expected)) return true;
-  if(expected.includes(said) && said.length>2) return true;
-  // First word match
-  if(said.split(' ')[0]===expected.split(' ')[0] && expected.split(' ')[0].length>2) return true;
-  return false;
+  var cleaned = cleanText(said);
+  // Try both the cleaned text and raw text for best chance of matching
+  return enhancedMatch(cleaned, expected) || enhancedMatch(said, expected);
 }
 
 // ═══════════════════════
@@ -521,19 +542,28 @@ function setMicState(state){
   micState=state;
   var icon=el('mic-icon-display');
   var txtEl=el('mic-btn-text');
-  var icons={ready:'🎙️',listening:'🔴',processing:'⚡',disabled:'⏳'};
+  var btn=el('mic-btn');
+  // Always show mic emoji — no red dot
+  var icons={ready:'🎙️',listening:'🎙️',processing:'🎙️',disabled:'🎙️'};
   var texts={
-    ready: isChrome?'Listening automatically...':'Tap to answer',
-    listening:'🎙️ Listening now...',
-    processing:'Checking...',
-    disabled:'Wait...'
+    ready:'TAP to answer',
+    listening:'🟡 Listening... speak now!',
+    processing:'Checking your answer...',
+    disabled:'Please wait...'
   };
   if(icon) icon.textContent=icons[state]||'🎙️';
-  if(txtEl) txtEl.textContent=texts[state]||'';
-  // Animate listening state
+  if(txtEl){
+    txtEl.textContent=texts[state]||'';
+    txtEl.style.color=state==='listening'?'#ffd200':state==='processing'?'#a5b4fc':'#4ade80';
+  }
   if(icon){
     icon.style.transform=state==='listening'?'scale(1.2)':'scale(1)';
-    icon.style.filter=state==='listening'?'drop-shadow(0 0 12px #4ade80)':'none';
+    icon.style.filter=state==='listening'?'drop-shadow(0 0 16px #ffd200)':
+                      state==='ready'?'drop-shadow(0 0 8px #4ade80)':'none';
+  }
+  // Button background
+  if(btn){
+    btn.style.cursor=state==='ready'?'pointer':'default';
   }
 }
 
@@ -734,8 +764,16 @@ function endSession(){
   var verses=['"I can do all things through Christ who strengthens me." — Phil 4:13',
     '"Be strong and courageous." — Joshua 1:9','"With God all things are possible." — Matt 19:26'];
   setText('res-verse',pick(verses));
-  speak(pct>=80?'Outstanding '+playerName+'! You scored '+pct+' percent! You earned a badge!':
-    'Well done '+playerName+'! You scored '+pct+' percent. Keep practising!');
+  var resultMsg = pct>=80?
+    'Outstanding '+playerName+'! You scored '+pct+' percent! You earned a badge!' :
+    'Well done '+playerName+'! You scored '+pct+' percent. Keep practising!';
+  speak(resultMsg);
+  // Read scripture verse after result message
+  var verseObj = pick(VERSES);
+  var verseText = typeof verseObj==='object' ? verseObj.text+'. '+verseObj.ref : verseObj;
+  setTimeout(function(){
+    speak(verseText+'. Keep going '+playerName+'! You are doing great!');
+  }, (resultMsg.split(' ').length * 350) + 1000);
   showScreen('screen-result');
 }
 
