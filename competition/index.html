@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+<title>Math Competition 🏆</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient(160deg,#0a0a1a 0%,#1a0500 50%,#0a0a1a 100%);color:#fff;display:flex;flex-direction:column;align-items:center;overflow-x:hidden}
+.nav{width:100%;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(0,0,0,.5);border-bottom:2px solid rgba(255,210,0,.2);position:sticky;top:0;z-index:300}
+.nav-title{font-family:'Fredoka One',cursive;font-size:17px;color:#ffd200}
+.nav-btn{background:rgba(255,210,0,.1);border:1px solid rgba(255,210,0,.3);border-radius:20px;padding:6px 12px;font-size:12px;font-weight:800;color:#ffd200;cursor:pointer;text-decoration:none;font-family:'Nunito',sans-serif}
+.screen{width:100%;max-width:460px;display:none;flex-direction:column;align-items:center;padding:16px 14px 60px;gap:14px}
+.screen.active{display:flex}
+.btn{font-family:'Fredoka One',cursive;font-size:18px;padding:13px 28px;border:none;border-radius:50px;cursor:pointer;transition:transform .1s;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.btn:active{transform:scale(.96)}
+.btn-gold{background:linear-gradient(135deg,#f7971e,#ffd200);color:#1a0800}
+.btn-dark{background:rgba(255,255,255,.08);border:2px solid rgba(255,210,0,.2);color:#ffd200;font-size:14px;padding:10px 20px}
+.btn-green{background:linear-gradient(135deg,#4caf50,#2e7d32);color:#fff}
+.btn-red{background:rgba(248,113,113,.2);border:2px solid #f87171;color:#f87171;font-size:14px;padding:9px 18px}
+.btn-sm{font-size:14px;padding:9px 20px}
+.action-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+
+/* WELCOME */
+.welcome-icon{font-size:72px;text-align:center;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+/* PLAYER SETUP */
+.setup-card{width:100%;background:rgba(255,255,255,.06);border:2px solid rgba(255,210,0,.25);border-radius:20px;padding:18px 16px}
+.setup-card-title{font-family:'Fredoka One',cursive;font-size:18px;color:#ffd200;margin-bottom:12px;text-align:center}
+.player-row{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.player-num{font-family:'Fredoka One',cursive;font-size:22px;color:#ffd200;width:32px;text-align:center;flex-shrink:0}
+.player-input{flex:1;background:rgba(255,255,255,.08);border:2px solid rgba(255,210,0,.25);border-radius:12px;padding:10px 14px;font-family:'Fredoka One',cursive;font-size:18px;color:#fff;outline:none}
+.player-input:focus{border-color:#ffd200}
+.player-input::placeholder{color:#444;font-size:14px}
+.age-select{background:rgba(255,255,255,.08);border:2px solid rgba(255,210,0,.25);border-radius:12px;padding:10px 8px;font-family:'Fredoka One',cursive;font-size:16px;color:#ffd200;outline:none;width:72px;flex-shrink:0}
+.player-count-row{display:flex;gap:10px;justify-content:center;margin-bottom:16px}
+.pc-btn{background:rgba(255,255,255,.06);border:2px solid rgba(255,210,0,.2);border-radius:12px;padding:10px 18px;font-family:'Fredoka One',cursive;font-size:18px;color:#aaa;cursor:pointer;transition:all .15s}
+.pc-btn.sel{background:rgba(255,210,0,.2);border-color:#ffd200;color:#ffd200}
+
+/* SCOREBOARD */
+.scoreboard{width:100%;background:rgba(0,0,0,.3);border:2px solid rgba(255,210,0,.25);border-radius:20px;padding:12px 14px}
+.sb-title{font-family:'Fredoka One',cursive;font-size:14px;color:#ffd200;text-align:center;margin-bottom:10px;letter-spacing:1px;text-transform:uppercase}
+.sb-rows{display:flex;flex-direction:column;gap:6px}
+.sb-row{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border-radius:12px;padding:8px 12px;transition:all .3s;border:2px solid transparent}
+.sb-row.active-player{border-color:#ffd200;background:rgba(255,210,0,.08);box-shadow:0 0 12px rgba(255,210,0,.2)}
+.sb-avatar{font-size:24px;flex-shrink:0}
+.sb-name{font-family:'Fredoka One',cursive;font-size:16px;color:#fff;flex:1}
+.sb-grade{font-size:11px;color:#888;margin-left:auto;flex-shrink:0}
+.sb-score{font-family:'Fredoka One',cursive;font-size:24px;color:#ffd200;flex-shrink:0;min-width:40px;text-align:right}
+.sb-streak{font-size:14px;flex-shrink:0}
+.sb-timer{font-family:'Fredoka One',cursive;font-size:13px;color:#ff9800;flex-shrink:0}
+
+/* TIMER BAR */
+.timer-wrap{width:100%}
+.timer-label{display:flex;justify-content:space-between;font-size:12px;color:#aaa;margin-bottom:4px}
+.timer-track{width:100%;background:rgba(255,255,255,.08);border-radius:20px;height:12px;overflow:hidden}
+.timer-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#4ade80,#ffd200);transition:width .1s linear}
+.timer-fill.low{background:linear-gradient(90deg,#f87171,#ff9800)}
+
+/* TURN ANNOUNCE */
+.turn-card{width:100%;background:rgba(255,255,255,.07);border:3px solid rgba(255,210,0,.4);border-radius:24px;padding:28px 18px;text-align:center}
+.turn-avatar{font-size:72px;margin-bottom:8px;animation:float 1s ease-in-out infinite}
+.turn-name{font-family:'Fredoka One',cursive;font-size:34px;color:#ffd200;margin-bottom:4px}
+.turn-sub{font-size:15px;color:#aaa}
+.countdown{font-family:'Fredoka One',cursive;font-size:80px;color:#ffd200;animation:countAnim .8s ease-in-out}
+@keyframes countAnim{0%{transform:scale(1.5);opacity:0}100%{transform:scale(1);opacity:1}}
+
+/* QUESTION */
+.q-card{width:100%;background:rgba(255,255,255,.08);border:3px solid rgba(255,210,0,.3);border-radius:22px;padding:20px 16px;text-align:center;transition:all .3s}
+.q-card.listening{border-color:#4ade80;background:rgba(74,222,128,.07)}
+.q-card.correct{border-color:#4ade80;background:rgba(74,222,128,.1)}
+.q-card.wrong{border-color:#f87171;background:rgba(248,113,113,.08)}
+.q-tag{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.q-text{font-family:'Fredoka One',cursive;font-size:38px;color:#fff;margin:8px 0;line-height:1.3}
+.q-progress{font-size:12px;color:#aaa;margin-top:4px}
+
+/* MIC */
+.mic-area{display:flex;flex-direction:column;align-items:center;gap:8px}
+.mic-big{font-size:56px;cursor:pointer;transition:all .25s}
+.mic-big.ready{filter:drop-shadow(0 0 10px #4ade80);animation:micReady 1.5s ease-in-out infinite}
+.mic-big.listening{filter:drop-shadow(0 0 16px #ffd200);animation:micListen .7s ease-in-out infinite}
+@keyframes micReady{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes micListen{0%,100%{transform:scale(1.1)}50%{transform:scale(1.2)}}
+.mic-label{font-family:'Fredoka One',cursive;font-size:16px;color:#4ade80;text-align:center;min-height:24px}
+.heard-text{font-size:14px;color:#ffd200;font-style:italic;min-height:20px;text-align:center}
+
+/* FEEDBACK FLASH */
+.feedback-flash{width:100%;border-radius:16px;padding:14px;text-align:center;display:none}
+.feedback-flash.show{display:block;animation:fbpop .35s ease}
+@keyframes fbpop{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
+.feedback-flash.correct{background:rgba(74,222,128,.12);border:2px solid #4ade80}
+.feedback-flash.wrong{background:rgba(248,113,113,.1);border:2px solid #f87171}
+.ff-icon{font-size:28px}
+.ff-msg{font-family:'Fredoka One',cursive;font-size:18px;margin-top:3px}
+.ff-msg.c{color:#4ade80}.ff-msg.w{color:#f87171}
+.ff-detail{font-size:12px;color:#aaa;margin-top:3px}
+
+/* PODIUM */
+.podium-wrap{width:100%;display:flex;flex-direction:column;gap:12px}
+.podium-card{width:100%;border-radius:20px;padding:18px 16px;text-align:center}
+.podium-card.first{background:linear-gradient(135deg,#b8860b,#ffd200);border:3px solid #ffd200}
+.podium-card.second{background:linear-gradient(135deg,#555,#aaa);border:3px solid #aaa}
+.podium-card.third{background:linear-gradient(135deg,#6b3a2a,#cd7f32);border:3px solid #cd7f32}
+.podium-card.tied{background:linear-gradient(135deg,#1a0a00,#3d2000);border:3px solid #ffd200}
+.podium-pos{font-size:40px;margin-bottom:4px}
+.podium-name{font-family:'Fredoka One',cursive;font-size:26px;color:#1a0800}
+.podium-score{font-family:'Fredoka One',cursive;font-size:20px;color:#1a0800;opacity:.8}
+.podium-msg{font-size:13px;color:#1a0800;margin-top:6px;opacity:.9;line-height:1.5}
+.podium-card.tied .podium-name{color:#ffd200}
+.podium-card.tied .podium-score{color:#ffd200}
+.podium-card.tied .podium-msg{color:#aaa}
+.verse-box{width:100%;background:rgba(255,210,0,.07);border-left:4px solid #ffd200;border-radius:0 12px 12px 0;padding:12px 14px;font-size:13px;color:#ffd200;font-style:italic;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="nav">
+  <a class="nav-btn" href="../index.html">← Math Hub</a>
+  <div class="nav-title">🏆 Math Competition</div>
+  <button class="nav-btn" id="vol-btn" onclick="toggleSpeak()">🔊</button>
+</div>
+
+<!-- WELCOME -->
+<div class="screen active" id="screen-welcome">
+  <div class="welcome-icon">🏆</div>
+  <div style="font-family:'Fredoka One',cursive;font-size:30px;color:#ffd200;text-align:center">Math Competition!</div>
+  <div style="font-size:14px;color:#aaa;text-align:center;line-height:1.7">Voice-powered math battle!<br>Each player answers at their own grade level.<br>2 questions per turn. Most points wins!</div>
+  <button class="btn btn-gold" onclick="showScreen('screen-setup')" style="width:100%;max-width:320px;font-size:22px;padding:18px">⚔️ Set Up Game!</button>
+</div>
+
+<!-- SETUP -->
+<div class="screen" id="screen-setup">
+  <div style="font-family:'Fredoka One',cursive;font-size:22px;color:#ffd200;text-align:center">How many players?</div>
+  <div class="player-count-row" id="pc-row"></div>
+  <div class="setup-card">
+    <div class="setup-card-title">Enter Player Names & Ages</div>
+    <div id="player-inputs"></div>
+  </div>
+  <button class="btn btn-gold" onclick="startGame()" style="width:100%;max-width:320px">⚔️ Start Competition!</button>
+  <button class="btn btn-dark btn-sm" onclick="showScreen('screen-welcome')">← Back</button>
+</div>
+
+<!-- TURN ANNOUNCE -->
+<div class="screen" id="screen-turn">
+  <div class="turn-card">
+    <div class="turn-avatar" id="turn-avatar">🏆</div>
+    <div class="turn-name" id="turn-name">Dominion</div>
+    <div class="turn-sub" id="turn-sub">Get ready!</div>
+    <div class="countdown" id="countdown" style="display:none">3</div>
+  </div>
+  <div class="scoreboard">
+    <div class="sb-title">📊 Scoreboard</div>
+    <div class="sb-rows" id="sb-rows-turn"></div>
+  </div>
+</div>
+
+<!-- QUESTION -->
+<div class="screen" id="screen-question">
+  <div class="scoreboard">
+    <div class="sb-title">📊 Live Scores</div>
+    <div class="sb-rows" id="sb-rows-game"></div>
+  </div>
+
+  <div class="timer-wrap">
+    <div class="timer-label">
+      <span id="timer-player-label">Dominion's time</span>
+      <span id="timer-text">2:00</span>
+    </div>
+    <div class="timer-track"><div class="timer-fill" id="timer-fill" style="width:100%"></div></div>
+  </div>
+
+  <div class="q-card" id="q-card">
+    <div class="q-tag" id="q-tag">Question</div>
+    <div class="q-text" id="q-text">Loading...</div>
+    <div class="q-progress" id="q-prog">Q 1 of 2</div>
+  </div>
+
+  <div class="mic-area">
+    <div class="mic-big ready" id="mic-big" onclick="onMicTap()">🎙️</div>
+    <div class="mic-label" id="mic-label">TAP to answer</div>
+    <div class="heard-text" id="heard-text"></div>
+  </div>
+
+  <div class="feedback-flash" id="feedback-flash">
+    <div class="ff-icon" id="ff-icon">✅</div>
+    <div class="ff-msg" id="ff-msg">Correct!</div>
+    <div class="ff-detail" id="ff-detail"></div>
+  </div>
+
+  <div class="action-row">
+    <button class="btn btn-dark btn-sm" onclick="skipQuestion()">⏭ Skip</button>
+    <button class="btn btn-red" onclick="confirmEndGame()">🛑 End Game</button>
+  </div>
+</div>
+
+<!-- RESULTS / PODIUM -->
+<div class="screen" id="screen-results">
+  <div style="font-family:'Fredoka One',cursive;font-size:28px;color:#ffd200;text-align:center">🏆 Final Results!</div>
+  <div class="podium-wrap" id="podium"></div>
+  <div class="verse-box" id="result-verse"></div>
+  <div class="action-row" style="margin-top:8px">
+    <button class="btn btn-gold" onclick="showScreen('screen-setup')">🔄 Play Again</button>
+    <button class="btn btn-dark btn-sm" onclick="showScreen('screen-welcome')">🏠 Home</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function el(id){return document.getElementById(id);}
+function txt(id,v){var e=el(id);if(e)e.textContent=v;}
+function cls(id,v){var e=el(id);if(e)e.className=v;}
+function html(id,v){var e=el(id);if(e)e.innerHTML=v;}
+
+// ══════════════════════════════════
+//  QUESTION GENERATORS
+// ══════════════════════════════════
+var K_QUESTIONS=[
+  function(){var a=rnd(0,9),b=rnd(0,10-a);return{q:a+' + '+b+' = ?',a:String(a+b),speak:'What is '+a+' plus '+b+'?'};},
+  function(){var a=rnd(1,10),b=rnd(0,a);return{q:a+' - '+b+' = ?',a:String(a-b),speak:'What is '+a+' minus '+b+'?'};},
+  function(){var a=rnd(0,10),b=10-a;return{q:a+' + ___ = 10',a:String(b),speak:''+a+' plus what equals 10?'};},
+  function(){var n=rnd(1,10);return{q:'Count: '+('●').repeat(n)+'\nHow many?',a:String(n),speak:'How many dots are there?'};},
+  function(){var a=rnd(0,5),b=5-a;return{q:a+' + ___ = 5',a:String(b),speak:''+a+' plus what equals 5?'};},
+  function(){var n=rnd(1,20);return{q:'Is '+n+' ODD or EVEN?',a:n%2===0?'even':'odd',speak:'Is '+n+' odd or even?'};},
+  function(){var h=rnd(1,12);return{q:'Clock: '+h+':00 = ?',a:h+" o'clock",speak:'The clock shows '+h+' oclock. What time is it?'};},
+  function(){var c=pick([{n:'penny',v:'1'},{n:'nickel',v:'5'},{n:'dime',v:'10'},{n:'quarter',v:'25'}]);return{q:c.n+' = ___¢',a:c.v,speak:'How many cents is a '+c.n+'?'};},
+  function(){var s=pick([{n:'circle',si:'0'},{n:'square',si:'4'},{n:'triangle',si:'3'},{n:'hexagon',si:'6'}]);return{q:'Sides on a '+s.n+'?',a:s.si,speak:'How many sides does a '+s.n+' have?'};},
+  function(){var a=rnd(1,10),b=rnd(1,10);var ans=a>b?'more':a<b?'less':'equal';return{q:a+' vs '+b+': more/less/equal?',a:ans,speak:'Is '+a+' more, less, or equal to '+b+'?'};},
+  function(){var o=['first','second','third','fourth','fifth'];var i=rnd(0,4);return{q:'How do we say '+(i+1)+(i===0?'st':i===1?'nd':i===2?'rd':'th')+'?',a:o[i],speak:'How do we say position '+(i+1)+'?'};},
+  function(){var s=rnd(1,95);return{q:'What comes next?\n'+s+', ___',a:String(s+1),speak:'What number comes after '+s+'?'};},
+  function(){var a=rnd(2,6),b=rnd(2,6),c=rnd(2,6);return{q:'Cats:'+a+' Dogs:'+b+' Birds:'+c+'\nTotal?',a:String(a+b+c),speak:''+a+' cats, '+b+' dogs, '+c+' birds. How many animals?'};},
+  function(){var a=rnd(2,8),b=rnd(2,8);return{q:a+' + '+b+' = ?',a:String(a+b),speak:'What is '+a+' plus '+b+'?'};},  // repeat topic 13
+  function(){var a=rnd(1,8),b=rnd(0,a);return{q:a+' - '+b+' = ?',a:String(a-b),speak:'What is '+a+' minus '+b+'?'};}   // repeat topic 14
+];
+
+var G2_QUESTIONS=[
+  function(){var a=rnd(1,19),b=rnd(1,20-a);return{q:a+' + '+b+' = ?',a:String(a+b),speak:'What is '+a+' plus '+b+'?'};},
+  function(){var a=rnd(2,20),b=rnd(1,a);return{q:a+' - '+b+' = ?',a:String(a-b),speak:'What is '+a+' minus '+b+'?'};},
+  function(){var a=rnd(10,89),b=rnd(1,99-a);return{q:a+' + '+b+' = ?',a:String(a+b),speak:'What is '+a+' plus '+b+'?'};},
+  function(){var a=rnd(11,99),b=rnd(1,a);return{q:a+' - '+b+' = ?',a:String(a-b),speak:'What is '+a+' minus '+b+'?'};},
+  function(){var n=rnd(10,999),d=pick(['tens','ones']);var ans=d==='tens'?Math.floor((n%100)/10):n%10;return{q:'In '+n+',\nthe '+d+' digit?',a:String(ans),speak:'In the number '+n+', what is the '+d+' digit?'};},
+  function(){var step=pick([2,5,10]),start=rnd(0,8)*step;return{q:start+', '+(start+step)+', '+(start+step*2)+', ___',a:String(start+step*3),speak:'Skip count by '+step+'s: '+start+', '+(start+step)+', '+(start+step*2)+'. What comes next?'};},
+  function(){var a=rnd(5,20),b=rnd(1,15);return{q:a+' + '+b+' birds =?',a:String(a+b),speak:''+a+' birds on a tree, '+b+' more fly in. How many now?'};},
+  function(){var n=rnd(1,50);return{q:'Is '+n+' ODD or EVEN?',a:n%2===0?'even':'odd',speak:'Is '+n+' odd or even?'};},
+  function(){var r=rnd(2,5),c=rnd(2,5);return{q:r+' rows × '+c+' = ?',a:String(r*c),speak:''+r+' rows with '+c+' in each. How many altogether?'};},
+  function(){var a=rnd(100,899),b=rnd(1,999-a);return{q:a+' + '+b+' = ?',a:String(a+b),speak:'What is '+a+' plus '+b+'?'};},
+  function(){var a=rnd(101,999),b=rnd(1,a-1);return{q:a+' - '+b+' = ?',a:String(a-b),speak:'What is '+a+' minus '+b+'?'};},
+  function(){var a=rnd(5,30),b=rnd(5,30);return{q:'A:'+a+'cm B:'+b+'cm\nLonger?',a:a>b?'first':a<b?'second':'same',speak:'Object A is '+a+' centimetres. Object B is '+b+' centimetres. Which is longer?'};},
+  function(){var h=rnd(1,12),m=rnd(0,11)*5,ms=(m<10?'0':'')+m;return{q:'Clock: '+h+':'+ms,a:h+':'+ms,speak:'The clock shows '+h+' hours '+ms+' minutes. What time is it?'};},
+  function(){var p=rnd(5,95);return{q:'Cost: '+p+'¢\nPay $1.00\nChange?',a:String(100-p),speak:'Item costs '+p+' cents. You pay one dollar. How much change?'};},
+  function(){var a=rnd(2,8),b=rnd(2,8),c=rnd(2,8);return{q:'Cats:'+a+' Dogs:'+b+' Birds:'+c+'\nTotal?',a:String(a+b+c),speak:'A graph shows '+a+' cats, '+b+' dogs, '+c+' birds. How many in total?'};},
+  function(){var s=pick([{n:'triangle',si:'3'},{n:'quadrilateral',si:'4'},{n:'pentagon',si:'5'},{n:'hexagon',si:'6'}]);return{q:'Sides on a\n'+s.n+'?',a:s.si,speak:'How many sides does a '+s.n+' have?'};},
+  function(){var f=pick([{n:1,d:2,w:'one half'},{n:1,d:4,w:'one quarter'},{n:3,d:4,w:'three quarters'}]);return{q:'Pizza: '+f.d+' slices\n'+f.w+' eaten = ?',a:String(f.n),speak:'A pizza has '+f.d+' slices. '+f.w+' is eaten. How many slices?'};}
+];
+
+var VERSES=[
+  {t:'I can do all things through Christ who strengthens me.',r:'Philippians 4:13'},
+  {t:'Be strong and courageous.',r:'Joshua 1:9'},
+  {t:'With God all things are possible.',r:'Matthew 19:26'},
+  {t:'Whatever you do, work at it with all your heart.',r:'Colossians 3:23'},
+];
+var AVATARS=['🏆','⭐','🥇','🎯','🦁','🦅','⚡','🔥'];
+var GRADE_LABELS=['K','K','K','K','K','K','K','2','2','2','2','2'];
+
+// ══════════════════════════════════
+//  STATE
+// ══════════════════════════════════
+var players=[], numPlayers=2;
+var currentPlayerIdx=0, currentTurnQ=0, Q_PER_TURN=2;
+var timerInterval=null, timeLeft=120;
+var currentQ=null, isRetry=false, missedQ=null;
+var recognition=null, micState='idle';
+var gameActive=false;
+var speakOn=true;
+
+// ══════════════════════════════════
+//  SCREENS
+// ══════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  var sc=el(id);if(sc)sc.classList.add('active');
+}
+
+// ══════════════════════════════════
+//  SETUP
+// ══════════════════════════════════
+function buildSetup(){
+  // Player count buttons
+  var pcRow=el('pc-row');if(!pcRow)return;
+  pcRow.innerHTML='';
+  [2,3,4,5,6].forEach(function(n){
+    var btn=document.createElement('button');
+    btn.className='pc-btn'+(n===numPlayers?' sel':'');
+    btn.textContent=n;
+    btn.onclick=function(count){return function(){
+      numPlayers=count;
+      document.querySelectorAll('.pc-btn').forEach(function(b){b.classList.remove('sel');});
+      btn.classList.add('sel');
+      buildPlayerInputs();
+    };}(n);
+    pcRow.appendChild(btn);
+  });
+  buildPlayerInputs();
+}
+
+function buildPlayerInputs(){
+  var wrap=el('player-inputs');if(!wrap)return;
+  wrap.innerHTML='';
+  // Load kk_profile for defaults
+  var kkProfiles=[];
+  try{var kk=JSON.parse(localStorage.getItem('kk_profile')||'{}');
+    if(kk&&kk.name) kkProfiles.push(kk);}catch(e){}
+
+  for(var i=0;i<numPlayers;i++){
+    var row=document.createElement('div');
+    row.className='player-row';
+    var defaultName=i===0&&kkProfiles[0]?kkProfiles[0].name:
+                    i===1?'Anu':
+                    'Player '+(i+1);
+    var defaultAge=i===0&&kkProfiles[0]?kkProfiles[0].age:
+                   i===1?5:7;
+    row.innerHTML='<div class="player-num">'+(i+1)+'</div>'
+      +'<input class="player-input" id="pname-'+i+'" type="text" placeholder="Name..." maxlength="12" value="'+defaultName+'"/>'
+      +'<select class="age-select" id="page-'+i+'">'
+      +[4,5,6,7,8,9,10,11].map(function(a){
+        return '<option value="'+a+'"'+(a===defaultAge?' selected':'')+'>'+a+'</option>';
+       }).join('')
+      +'</select>';
+    wrap.appendChild(row);
+  }
+}
+
+// ══════════════════════════════════
+//  GAME START
+// ══════════════════════════════════
+function startGame(){
+  players=[];
+  for(var i=0;i<numPlayers;i++){
+    var nameEl=el('pname-'+i), ageEl=el('page-'+i);
+    var name=(nameEl?nameEl.value.trim():'Player '+(i+1))||'Player '+(i+1);
+    var age=parseInt(ageEl?ageEl.value:7)||7;
+    players.push({
+      name:name, age:age,
+      grade:age<=6?'K':'2',
+      score:0, streak:0,
+      timeLeft:120, // 2 mins each
+      qBank:[], qIdx:0,
+      avatar:AVATARS[i%AVATARS.length]
+    });
+  }
+  // Build question banks for each player
+  players.forEach(function(p){
+    var bank=p.grade==='K'?K_QUESTIONS:G2_QUESTIONS;
+    // Generate 30 questions (plenty for 2 mins)
+    for(var i=0;i<30;i++) p.qBank.push(bank[i%bank.length]());
+  });
+
+  currentPlayerIdx=0;
+  currentTurnQ=0;
+  isRetry=false;
+  gameActive=true;
+  showTurnAnnounce();
+}
+
+// ══════════════════════════════════
+//  TURN ANNOUNCE
+// ══════════════════════════════════
+function showTurnAnnounce(){
+  if(!gameActive) return;
+  var p=players[currentPlayerIdx];
+
+  // Check if this player still has time
+  if(p.timeLeft<=0){
+    nextPlayer();
+    return;
+  }
+
+  showScreen('screen-turn');
+  txt('turn-avatar',p.avatar);
+  txt('turn-name',p.name+'\'s Turn!');
+  txt('turn-sub',p.grade==='K'?'Kindergarten questions':'2nd Grade questions');
+  el('countdown').style.display='none';
+
+  renderScoreboard('sb-rows-turn');
+
+  // Announce name
+  var announcement=p.name+'\'s turn! Get ready!';
+  speak(announcement);
+
+  // Countdown after announcement
+  var annDelay=announcement.split(' ').length*350+500;
+  setTimeout(function(){
+    runCountdown(3, function(){
+      currentTurnQ=0;
+      showScreen('screen-question');
+      loadQuestion();
+    });
+  }, annDelay);
+}
+
+function runCountdown(n, done){
+  var cdEl=el('countdown');
+  if(cdEl) cdEl.style.display='block';
+  if(n<=0){
+    if(cdEl) cdEl.style.display='none';
+    speak('Go!');
+    setTimeout(done, 600);
+    return;
+  }
+  txt('countdown',String(n));
+  speak(String(n));
+  setTimeout(function(){runCountdown(n-1,done);},1000);
+}
+
+// ══════════════════════════════════
+//  SCOREBOARD
+// ══════════════════════════════════
+function renderScoreboard(containerId){
+  var c=el(containerId);if(!c)return;
+  c.innerHTML='';
+  // Sort by score for display but keep order
+  players.forEach(function(p,i){
+    var div=document.createElement('div');
+    div.className='sb-row'+(i===currentPlayerIdx?' active-player':'');
+    var timeStr=formatTime(p.timeLeft);
+    var streakStr=p.streak>=3?'🔥':p.streak>=2?'✨':'';
+    div.innerHTML='<div class="sb-avatar">'+p.avatar+'</div>'
+      +'<div><div class="sb-name">'+p.name+'</div></div>'
+      +'<div class="sb-grade">'+p.grade+'</div>'
+      +'<div class="sb-streak">'+streakStr+'</div>'
+      +'<div class="sb-timer">'+timeStr+'</div>'
+      +'<div class="sb-score">'+p.score+'</div>';
+    c.appendChild(div);
+  });
+}
+
+function formatTime(secs){
+  var m=Math.floor(secs/60),s=secs%60;
+  return m+':'+(s<10?'0':'')+s;
+}
+
+// ══════════════════════════════════
+//  QUESTION
+// ══════════════════════════════════
+function loadQuestion(){
+  if(!gameActive) return;
+  var p=players[currentPlayerIdx];
+  if(p.timeLeft<=0){nextPlayer();return;}
+  if(p.qIdx>=p.qBank.length){nextPlayer();return;}
+
+  currentQ=p.qBank[p.qIdx];
+  isRetry=false;
+
+  // Update UI
+  txt('q-tag',p.name+' · '+p.grade+' · Q'+(currentTurnQ+1)+' of '+Q_PER_TURN);
+  txt('q-text',currentQ.q);
+  txt('q-prog','Question '+(currentTurnQ+1)+' of '+Q_PER_TURN);
+  cls('q-card','q-card');
+  cls('feedback-flash','feedback-flash');
+  txt('heard-text','');
+  txt('timer-player-label',p.name+'\'s time');
+  setMicState('idle');
+
+  renderScoreboard('sb-rows-game');
+
+  // Update timer display
+  updateTimerBar();
+
+  // Start player timer
+  startPlayerTimer();
+
+  // Speak question
+  speak(currentQ.speak);
+  var qDelay=currentQ.speak.split(' ').length*380+600;
+  setTimeout(function(){
+    if(gameActive && players[currentPlayerIdx].timeLeft>0){
+      setMicState('ready');
+      txt('mic-label','TAP to answer!');
+    }
+  }, qDelay);
+}
+
+// ══════════════════════════════════
+//  TIMER
+// ══════════════════════════════════
+function startPlayerTimer(){
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval=setInterval(function(){
+    var p=players[currentPlayerIdx];
+    if(!p||!gameActive){clearInterval(timerInterval);return;}
+    p.timeLeft=Math.max(0,p.timeLeft-1);
+    updateTimerBar();
+    if(p.timeLeft<=0){
+      clearInterval(timerInterval);
+      speak(p.name+' time is up!');
+      if(recognition)try{recognition.abort();}catch(e){}
+      setTimeout(nextPlayer,1500);
+    }
+  },1000);
+}
+
+function updateTimerBar(){
+  var p=players[currentPlayerIdx];
+  if(!p) return;
+  var pct=Math.round(p.timeLeft/120*100);
+  var fill=el('timer-fill');
+  if(fill){
+    fill.style.width=pct+'%';
+    fill.className='timer-fill'+(pct<25?' low':'');
+  }
+  txt('timer-text',formatTime(p.timeLeft));
+}
+
+function stopTimer(){if(timerInterval){clearInterval(timerInterval);timerInterval=null;}}
+
+// ══════════════════════════════════
+//  MIC
+// ══════════════════════════════════
+function setMicState(state){
+  micState=state;
+  var mic=el('mic-big');
+  if(!mic) return;
+  mic.className='mic-big '+(state==='ready'?'ready':state==='listening'?'listening':'');
+  var labels={idle:'Waiting...',ready:'TAP to answer!',listening:'🟡 Listening...',processing:'Checking...'};
+  txt('mic-label',labels[state]||'');
+}
+
+function onMicTap(){
+  if(micState==='ready') startListening();
+}
+
+function startListening(){
+  if(!gameActive) return;
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){txt('heard-text','Voice not supported');return;}
+  if(recognition){try{recognition.onresult=null;recognition.onerror=null;recognition.onend=null;recognition.abort();}catch(e){}recognition=null;}
+  if(window.speechSynthesis&&window.speechSynthesis.speaking){
+    window.speechSynthesis.cancel();
+    setTimeout(doListen,350);
+  } else {doListen();}
+}
+
+function doListen(){
+  if(!gameActive) return;
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR) return;
+  recognition=new SR();
+  recognition.lang='en-US';
+  recognition.continuous=false;
+  recognition.interimResults=false;
+  recognition.maxAlternatives=5;
+  var hasResult=false;
+  setMicState('listening');
+  recognition.onresult=function(e){
+    hasResult=true;
+    var heard='';
+    for(var i=0;i<e.results.length;i++) heard+=e.results[i][0].transcript;
+    heard=heard.trim();
+    txt('heard-text','"'+heard+'"');
+    setMicState('processing');
+    checkAnswer(heard);
+  };
+  recognition.onerror=function(e){
+    hasResult=true;
+    setMicState('ready');
+    if(e.error==='no-speech'){
+      txt('heard-text','Nothing heard. Tap again!');
+    } else {
+      txt('heard-text','Try again!');
+    }
+  };
+  recognition.onend=function(){
+    if(!hasResult&&gameActive){
+      setMicState('ready');
+      txt('heard-text','Tap and speak!');
+    }
+  };
+  try{recognition.start();}catch(e){setMicState('ready');}
+}
+
+// ══════════════════════════════════
+//  ANSWER CHECKING
+// ══════════════════════════════════
+var WMAP={
+  'zero':'0','one':'1','two':'2','three':'3','four':'4','five':'5',
+  'six':'6','seven':'7','eight':'8','nine':'9','ten':'10',
+  'eleven':'11','twelve':'12','thirteen':'13','fourteen':'14','fifteen':'15',
+  'sixteen':'16','seventeen':'17','eighteen':'18','nineteen':'19','twenty':'20',
+  'thirty':'30','forty':'40','fifty':'50','sixty':'60','seventy':'70',
+  'eighty':'80','ninety':'90','hundred':'100','oh':'0','nil':'0','nought':'0',
+  'odd':'odd','even':'even','more':'more','less':'less','equal':'equal',
+  'first':'first','second':'second','third':'third','same':'same'
+};
+
+function wordToNum(t){
+  t=t.toLowerCase().replace(/[^a-z0-9\s]/g,' ').trim();
+  var direct=parseInt(t.replace(/\D/g,''));
+  if(!isNaN(direct)&&String(direct)===t.replace(/\D/g,'')) return direct;
+  var words=t.split(/\s+/),total=0,current=0;
+  for(var i=0;i<words.length;i++){
+    var w=words[i];
+    if(WMAP[w]!==undefined){
+      var n=parseInt(WMAP[w]);
+      if(n===100){current=current===0?100:current*100;}
+      else if(n>=20){current+=n;}
+      else{current+=n;}
+    } else if(!isNaN(parseInt(w))){current+=parseInt(w);}
+  }
+  total+=current;
+  return total>0?total:NaN;
+}
+
+function isMatch(heard,expected){
+  var h=heard.toLowerCase().replace(/[^a-z0-9\s]/g,' ').trim();
+  // Remove filler
+  h=h.replace(/\bthe answer is\b|\bi think\b|\bit is\b|\bequals\b/g,' ').trim();
+  var e=String(expected).toLowerCase().trim();
+  if(h===e) return true;
+  // Check WMAP
+  if(WMAP[h]!==undefined&&WMAP[h]===e) return true;
+  // Number match
+  var hn=wordToNum(h),en=parseInt(e);
+  if(!isNaN(hn)&&!isNaN(en)&&hn===en) return true;
+  // Contains
+  if(h.includes(e)&&e.length>1) return true;
+  if(e.includes(h)&&h.length>2) return true;
+  return false;
+}
+
+function checkAnswer(heard){
+  if(!currentQ||!gameActive) return;
+  stopTimer();
+  var p=players[currentPlayerIdx];
+  var correct=isMatch(heard,currentQ.a);
+
+  if(correct){
+    p.score++;
+    p.streak++;
+    // Streak bonus: 3 in a row = double points
+    if(p.streak>=3){p.score++;speak('STREAK BONUS!');}
+    showFeedback(true,heard);
+  } else if(!isRetry){
+    // One retry
+    isRetry=true;
+    p.streak=0;
+    var retryMsg='Not quite '+p.name+'! One more chance. '+currentQ.speak;
+    speak(retryMsg);
+    cls('q-card','q-card wrong');
+    txt('heard-text','Try again!');
+    var delay=retryMsg.split(' ').length*380+800;
+    setTimeout(function(){
+      if(!gameActive) return;
+      cls('q-card','q-card');
+      cls('feedback-flash','feedback-flash');
+      setMicState('ready');
+      txt('mic-label','ONE MORE CHANCE — TAP!');
+      startPlayerTimer();
+    }, delay);
+  } else {
+    p.streak=0;
+    showFeedback(false,heard);
+  }
+
+  renderScoreboard('sb-rows-game');
+}
+
+function showFeedback(correct,heard){
+  if(recognition)try{recognition.abort();}catch(e){}
+  var p=players[currentPlayerIdx];
+  var OK=['🌟 Correct!','✅ Right!','🎉 Brilliant!','⭐ Yes!'];
+  var NO=['Not quite!','Good try!','Keep going!'];
+  txt('ff-icon',correct?'✅':'❌');
+  txt('ff-msg',correct?pick(OK):pick(NO));
+  txt('ff-detail',correct?p.name+' gets a point! Score: '+p.score:'The answer was: '+currentQ.a);
+  cls('ff-msg','ff-msg '+(correct?'c':'w'));
+  cls('feedback-flash','feedback-flash '+(correct?'correct':'wrong')+' show');
+  cls('q-card','q-card '+(correct?'correct':'wrong'));
+  setMicState('idle');
+
+  var say=correct?
+    pick(['Well done '+p.name+'! Correct!','Yes! '+p.name+' scores!','Brilliant '+p.name+'!']):
+    'The answer is '+currentQ.a+'. Keep going '+p.name+'!';
+  speak(say);
+
+  var delay=Math.max(2500,say.split(' ').length*380+800);
+  p.qIdx++;
+  currentTurnQ++;
+
+  setTimeout(function(){
+    if(!gameActive) return;
+    cls('feedback-flash','feedback-flash');
+    if(currentTurnQ>=Q_PER_TURN){
+      // Turn complete — next player
+      nextPlayer();
+    } else {
+      loadQuestion();
+    }
+  }, delay);
+}
+
+// ══════════════════════════════════
+//  TURN MANAGEMENT
+// ══════════════════════════════════
+function nextPlayer(){
+  stopTimer();
+  if(!gameActive) return;
+  // Check if all players are out of time
+  var allDone=players.every(function(p){return p.timeLeft<=0;});
+  if(allDone){endGame();return;}
+  // Move to next player who still has time
+  var startIdx=currentPlayerIdx;
+  do {
+    currentPlayerIdx=(currentPlayerIdx+1)%players.length;
+  } while(players[currentPlayerIdx].timeLeft<=0 && currentPlayerIdx!==startIdx);
+
+  if(players[currentPlayerIdx].timeLeft<=0){endGame();return;}
+  showTurnAnnounce();
+}
+
+function skipQuestion(){
+  stopTimer();
+  if(recognition)try{recognition.abort();}catch(e){}
+  var p=players[currentPlayerIdx];
+  p.qIdx++;currentTurnQ++;
+  speak('Skipping!');
+  setTimeout(function(){
+    if(!gameActive) return;
+    if(currentTurnQ>=Q_PER_TURN) nextPlayer();
+    else loadQuestion();
+  },800);
+}
+
+function confirmEndGame(){
+  if(confirm('End the game now and see results?')){endGame();}
+}
+
+// ══════════════════════════════════
+//  END GAME
+// ══════════════════════════════════
+function endGame(){
+  gameActive=false;
+  stopTimer();
+  if(recognition)try{recognition.abort();}catch(e){}
+
+  // Sort players by score
+  var sorted=players.slice().sort(function(a,b){return b.score-a.score;});
+  var topScore=sorted[0].score;
+  var tied=sorted.filter(function(p){return p.score===topScore;}).length>1;
+
+  // Build podium
+  var podiumHtml='';
+  var medals=['🥇','🥈','🥉'];
+  var positions=['first','second','third'];
+  var posNames=['Champion','Runner-up','Third Place'];
+
+  if(tied){
+    // Everyone with top score is champion
+    var champs=sorted.filter(function(p){return p.score===topScore;});
+    var others=sorted.filter(function(p){return p.score!==topScore;});
+    champs.forEach(function(p){
+      podiumHtml+='<div class="podium-card tied">'
+        +'<div class="podium-pos">🏆🏆</div>'
+        +'<div class="podium-name">'+p.avatar+' '+p.name+'</div>'
+        +'<div class="podium-score">'+p.score+' points</div>'
+        +'<div class="podium-msg">It\'s a TIE! You are BOTH Champions! God blessed you both equally today! 🙏</div>'
+        +'</div>';
+    });
+    others.forEach(function(p,i){
+      var enc=['Amazing effort! Every champion starts exactly where you are!',
+        'You did great! Keep practising — your time is coming!',
+        'Well done! God has great plans for you!'];
+      podiumHtml+='<div class="podium-card '+(positions[i+1]||'third')+'">'
+        +'<div class="podium-pos">'+(medals[i+1]||'🎖️')+'</div>'
+        +'<div class="podium-name">'+p.avatar+' '+p.name+'</div>'
+        +'<div class="podium-score">'+p.score+' points</div>'
+        +'<div class="podium-msg">'+(enc[i]||'Well done!')+'</div>'
+        +'</div>';
+    });
+  } else {
+    sorted.forEach(function(p,i){
+      var isWinner=i===0;
+      var encouragements=[
+        'Outstanding! You are a true Math Champion! God made you so smart!',
+        'Brilliant effort! You pushed '+sorted[0].name+' all the way! Keep it up!',
+        'Great job! Every question you answered made you stronger!',
+        'Well done! Champions are made through practice — keep going!',
+        'Amazing participation! You are improving every single day!',
+        'Wonderful! Your hard work will pay off — never give up!'
+      ];
+      podiumHtml+='<div class="podium-card '+(positions[i]||'third')+'">'
+        +'<div class="podium-pos">'+(medals[i]||'🎖️')+'</div>'
+        +'<div class="podium-name">'+p.avatar+' '+p.name+'</div>'
+        +'<div class="podium-score">'+p.score+' point'+(p.score!==1?'s':'')+'</div>'
+        +'<div class="podium-msg">'+(encouragements[i]||'Well done!')+'</div>'
+        +'</div>';
+    });
+  }
+  html('podium',podiumHtml);
+
+  var rv=pick(VERSES);
+  txt('result-verse',rv.t+' — '+rv.r);
+  showScreen('screen-results');
+
+  // Announce results
+  var winMsg='';
+  if(tied){
+    var champNames=sorted.filter(function(p){return p.score===topScore;}).map(function(p){return p.name;}).join(' and ');
+    winMsg='It is a tie! '+champNames+' are BOTH champions with '+topScore+' points each! Amazing!';
+  } else {
+    winMsg='The winner is '+sorted[0].name+' with '+sorted[0].score+' points! Congratulations '+sorted[0].name+'! ';
+    if(sorted.length>1) winMsg+='Well done '+sorted[1].name+'! You did a fantastic job! ';
+    if(sorted.length>2) winMsg+='And '+sorted[2].name+' — great effort! Keep practising!';
+  }
+  speak(winMsg);
+  var verseDelay=winMsg.split(' ').length*380+1000;
+  setTimeout(function(){speak(rv.t+'. '+rv.r+'. God bless you all!');},verseDelay);
+}
+
+// ══════════════════════════════════
+//  SPEECH
+// ══════════════════════════════════
+var voice=null;
+function initVoices(){
+  if(!window.speechSynthesis) return;
+  function set(){
+    var vs=window.speechSynthesis.getVoices();
+    voice=vs.find(function(v){return v.name.match(/samantha|karen|victoria|moira|google uk english female/i);})||
+          vs.find(function(v){return v.lang&&v.lang.startsWith('en');})||vs[0]||null;
+  }
+  set();
+  if(window.speechSynthesis.onvoiceschanged!==undefined) window.speechSynthesis.onvoiceschanged=set;
+  setTimeout(set,500);
+}
+function speak(text){
+  if(!speakOn||!window.speechSynthesis||!text) return;
+  try{window.speechSynthesis.cancel();
+    var u=new SpeechSynthesisUtterance(text);
+    u.rate=0.9;u.pitch=1.0;u.volume=1;
+    if(voice) u.voice=voice;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+function toggleSpeak(){speakOn=!speakOn;txt('vol-btn',speakOn?'🔊':'🔇');}
+
+// ══════════════════════════════════
+//  BOOT
+// ══════════════════════════════════
+window.addEventListener('load',function(){
+  initVoices();
+  buildSetup();
+});
+</script>
+</body>
+</html>
