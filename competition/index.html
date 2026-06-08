@@ -321,8 +321,9 @@ var breakTimerInterval=null;
 var BREAK_DURATION=420; // 7 minutes in seconds
 var PLAYER_TIME=150; // 2.5 minutes per player
 var breakTimeLeft=BREAK_DURATION;
-// Turn guard - prevents double-firing of nextPlayer/showTurnAnnounce
+// Guards against multiple firings
 var turnTransitioning=false;
+var answerProcessed=false; // blocks duplicate answer processing
 
 // ══════════════════════════════════
 //  SCREENS
@@ -410,6 +411,7 @@ function startGame(){
   currentTurnQ=0;
   isRetry=false;
   turnTransitioning=false;
+  answerProcessed=false;
   gameActive=true;
   showTurnAnnounce();
 }
@@ -507,6 +509,7 @@ function loadQuestion(){
 
   currentQ=p.qBank[p.qIdx];
   isRetry=false;
+  answerProcessed=false;
   backupOptsVisible=false;
   var bWrap=el('backup-opts'); if(bWrap) bWrap.style.display='none';
   var bToggle=el('backup-toggle'); if(bToggle) bToggle.textContent='📱 Show options';
@@ -527,17 +530,32 @@ function loadQuestion(){
   // Update timer display
   updateTimerBar();
 
-  // Start player timer
-  startPlayerTimer();
-
-  // Speak question
+  // Speak question (timer starts after options are read) then automatically read the options
   speak(currentQ.speak);
-  var qDelay=currentQ.speak.split(' ').length*380+600;
+  var qWords = currentQ.speak.split(' ').length;
+  var qDelay = Math.ceil(qWords / 2.5 * 1000) + 600;
+
   setTimeout(function(){
-    if(gameActive && players[currentPlayerIdx].timeLeft>0){
+    if(!gameActive || players[currentPlayerIdx].timeLeft<=0) return;
+    // Build options first (may not be built yet)
+    if(currentBackupOpts.length===0) buildBackupOpts(currentQ);
+    // Read options aloud
+    var optsText = 'Your options are: A — ' + currentBackupOpts[0] +
+      ', B — ' + currentBackupOpts[1] +
+      ', C — ' + currentBackupOpts[2] +
+      '. Say the number, or tap an option.';
+    speak(optsText);
+    var optsDelay = Math.ceil(optsText.split(' ').length / 2.5 * 1000) + 400;
+    // Show backup options automatically
+    backupOptsVisible=true;
+    var bWrap=el('backup-opts'); if(bWrap) bWrap.style.display='flex';
+    var bToggle=el('backup-toggle'); if(bToggle) bToggle.textContent='🎙️ Voice only';
+    setTimeout(function(){
+      if(!gameActive || players[currentPlayerIdx].timeLeft<=0) return;
       setMicState('ready');
-      txt('mic-label','TAP to answer!');
-    }
+      txt('mic-label','Say the number or tap A/B/C!');
+      startPlayerTimer();
+    }, optsDelay);
   }, qDelay);
 }
 
@@ -750,6 +768,8 @@ function isMatch(heard,expected){
 
 function checkAnswer(heard){
   if(!currentQ||!gameActive) return;
+  if(answerProcessed) return; // block duplicate calls
+  answerProcessed=true;
   stopTimer(); // pause timer while processing answer
   var p=players[currentPlayerIdx];
   var correct=isMatch(heard,currentQ.a);
@@ -776,12 +796,14 @@ function checkAnswer(heard){
     var speechMs = Math.ceil(retryMsg.split(' ').length / 2.5 * 1000) + 800;
     setTimeout(function(){
       if(!gameActive) return;
+      answerProcessed=false; // allow retry answer
       cls('q-card','q-card listening');
       cls('feedback-flash','feedback-flash');
       setMicState('ready');
       txt('mic-label','ONE MORE CHANCE!');
       txt('heard-text','');
-      startPlayerTimer(); // resume timer for retry
+      buildBackupOpts(currentQ); // rebuild options for retry
+      startPlayerTimer();
     }, speechMs);
 
   } else {
