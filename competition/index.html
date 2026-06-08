@@ -155,6 +155,34 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
   </div>
 </div>
 
+<!-- BREAK -->
+<div class="screen" id="screen-break">
+  <div style="font-size:72px;text-align:center;animation:float 3s ease-in-out infinite">☕</div>
+  <div style="font-family:'Fredoka One',cursive;font-size:28px;color:#ffd200;text-align:center">Break Time! 🙌</div>
+  <div style="font-size:14px;color:#aaa;text-align:center;line-height:1.7">Great work everyone!<br>Take a 7 minute break.<br>Get some water and rest your brain!</div>
+
+  <!-- Break timer -->
+  <div style="width:100%;background:rgba(255,255,255,.06);border:2px solid rgba(255,210,0,.25);border-radius:20px;padding:20px;text-align:center">
+    <div style="font-size:12px;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Break ends in</div>
+    <div style="font-family:'Fredoka One',cursive;font-size:56px;color:#ffd200" id="break-timer-display">7:00</div>
+    <div class="timer-track" style="margin-top:12px"><div class="timer-fill" id="break-timer-fill" style="width:100%"></div></div>
+  </div>
+
+  <!-- Scores during break -->
+  <div class="scoreboard">
+    <div class="sb-title">📊 Scores So Far</div>
+    <div class="sb-rows" id="sb-rows-break"></div>
+  </div>
+
+  <!-- Scripture -->
+  <div class="verse-box" id="break-verse"></div>
+
+  <div class="action-row">
+    <button class="btn btn-gold" onclick="endBreak()" style="width:100%;max-width:320px;font-size:20px">▶ Resume Game!</button>
+    <button class="btn btn-dark btn-sm" onclick="confirmEndGame()">🛑 End Game</button>
+  </div>
+</div>
+
 <!-- QUESTION -->
 <div class="screen" id="screen-question">
   <div class="scoreboard">
@@ -190,6 +218,7 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
 
   <div class="action-row">
     <button class="btn btn-dark btn-sm" onclick="skipQuestion()">⏭ Skip</button>
+    <button class="btn btn-dark btn-sm" onclick="takeBreak()">☕ Break</button>
     <button class="btn btn-red" onclick="confirmEndGame()">🛑 End Game</button>
   </div>
 </div>
@@ -276,6 +305,12 @@ var currentQ=null, isRetry=false, missedQ=null;
 var recognition=null, micState='idle';
 var gameActive=false;
 var speakOn=true;
+// Break state
+var breakTimerInterval=null;
+var BREAK_DURATION=420; // 7 minutes in seconds
+var breakTimeLeft=BREAK_DURATION;
+var roundCount=0; // track full rounds for auto-break
+var autoBreakAfterRound=true;
 
 // ══════════════════════════════════
 //  SCREENS
@@ -711,6 +746,10 @@ function nextPlayer(){
   // Check if all players are out of time
   var allDone=players.every(function(p){return p.timeLeft<=0;});
   if(allDone){endGame();return;}
+
+  // Check if this completes a full round — if so, auto-break
+  var justFinishedIdx=currentPlayerIdx;
+
   // Move to next player who still has time
   var startIdx=currentPlayerIdx;
   do {
@@ -718,6 +757,17 @@ function nextPlayer(){
   } while(players[currentPlayerIdx].timeLeft<=0 && currentPlayerIdx!==startIdx);
 
   if(players[currentPlayerIdx].timeLeft<=0){endGame();return;}
+
+  // Auto-break when we've completed a full round (wrapped back to player 0)
+  if(currentPlayerIdx===0 && justFinishedIdx===players.length-1){
+    roundCount++;
+    speak('Great round everyone! Time for a break!');
+    setTimeout(function(){
+      if(gameActive) takeBreak();
+    },1500);
+    return;
+  }
+
   showTurnAnnounce();
 }
 
@@ -736,6 +786,79 @@ function skipQuestion(){
 
 function confirmEndGame(){
   if(confirm('End the game now and see results?')){endGame();}
+}
+
+// ══════════════════════════════════
+//  BREAK SYSTEM
+// ══════════════════════════════════
+function takeBreak(){
+  if(!gameActive) return;
+  stopTimer();
+  if(recognition) try{recognition.abort();}catch(e){}
+  gameActive=false; // pause game
+  breakTimeLeft=BREAK_DURATION;
+  renderScoreboard('sb-rows-break');
+  var rv=pick(VERSES);
+  txt('break-verse',rv.t+' — '+rv.r);
+  showScreen('screen-break');
+  speak('Break time! Take a breath! Well done everyone! '+rv.t);
+  startBreakTimer();
+}
+
+function startBreakTimer(){
+  if(breakTimerInterval) clearInterval(breakTimerInterval);
+  updateBreakTimerDisplay();
+  breakTimerInterval=setInterval(function(){
+    breakTimeLeft=Math.max(0,breakTimeLeft-1);
+    updateBreakTimerDisplay();
+    if(breakTimeLeft<=0){
+      clearInterval(breakTimerInterval);
+      speak('Break is over! Let us continue! Get ready!');
+    }
+  },1000);
+}
+
+function updateBreakTimerDisplay(){
+  var m=Math.floor(breakTimeLeft/60), s=breakTimeLeft%60;
+  txt('break-timer-display',m+':'+(s<10?'0':'')+s);
+  var pct=Math.round(breakTimeLeft/BREAK_DURATION*100);
+  var fill=el('break-timer-fill');
+  if(fill) fill.style.width=pct+'%';
+}
+
+function endBreak(){
+  if(breakTimerInterval){clearInterval(breakTimerInterval);breakTimerInterval=null;}
+  gameActive=true;
+  showScreen('screen-question');
+  // Resume — announce whose turn it is
+  var p=players[currentPlayerIdx];
+  speak('Welcome back! Continuing with '+p.name+'. Your turn!');
+  var delay=2000;
+  setTimeout(function(){
+    if(currentTurnQ===0) loadQuestion();
+    else {
+      // Was mid-turn — just reload same question
+      setMicState('ready');
+      txt('mic-label','TAP to answer!');
+      startPlayerTimer();
+    }
+  }, delay);
+}
+
+// Auto-break after each full round (all players have had one turn)
+function checkAutoBreak(){
+  // After the last player completes their turn = one full round
+  if((currentPlayerIdx+1)%players.length===0){
+    roundCount++;
+    if(autoBreakAfterRound && roundCount>0){
+      // Offer break automatically
+      setTimeout(function(){
+        if(gameActive) takeBreak();
+      }, 1500);
+      return true;
+    }
+  }
+  return false;
 }
 
 // ══════════════════════════════════
