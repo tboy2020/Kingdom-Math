@@ -2,24 +2,23 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-<title>Voice Math Tutor 🎙️</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+<title>Voice Math — Options Mode 🎙️</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%);display:flex;flex-direction:column;align-items:center;color:#fff;overflow-x:hidden}
-.nav{width:100%;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(0,0,0,.3);border-bottom:1px solid rgba(255,255,255,.1)}
-.nav-title{font-family:'Fredoka One',cursive;font-size:18px;color:#ffd200}
-.nav-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:6px 14px;font-size:13px;font-weight:800;color:#fff;cursor:pointer;text-decoration:none;font-family:'Nunito',sans-serif}
-.screen{width:100%;max-width:460px;display:none;flex-direction:column;align-items:center;padding:20px 16px 60px;gap:14px}
+body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient(160deg,#0d1a2e 0%,#1a1000 60%,#0d1a2e 100%);color:#fff;display:flex;flex-direction:column;align-items:center;overflow-x:hidden}
+.nav{width:100%;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(0,0,0,.4);border-bottom:1px solid rgba(255,210,0,.2);position:sticky;top:0;z-index:300}
+.nav-title{font-family:'Fredoka One',cursive;font-size:16px;color:#ffd200}
+.nav-btn{background:rgba(255,210,0,.1);border:1px solid rgba(255,210,0,.3);border-radius:20px;padding:6px 12px;font-size:12px;font-weight:800;color:#ffd200;cursor:pointer;text-decoration:none;font-family:'Nunito',sans-serif}
+.screen{width:100%;max-width:440px;display:none;flex-direction:column;align-items:center;padding:16px 14px 60px;gap:12px}
 .screen.active{display:flex}
-
-/* WELCOME */
-.big-icon{font-size:72px;text-align:center;animation:float 3s ease-in-out infinite}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-.main-title{font-family:'Fredoka One',cursive;font-size:32px;color:#ffd200;text-align:center}
-.info-box{background:rgba(255,255,255,.07);border:2px solid rgba(255,210,0,.3);border-radius:18px;padding:16px 18px;width:100%;font-size:13px;color:#ccc;line-height:1.8}
-.info-box strong{color:#ffd200}
+.btn{font-family:'Fredoka One',cursive;font-size:18px;padding:13px 28px;border:none;border-radius:50px;cursor:pointer;transition:transform .1s;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.btn:active{transform:scale(.96)}
+.btn-gold{background:linear-gradient(135deg,#f7971e,#ffd200);color:#1a0800}
+.btn-dark{background:rgba(255,255,255,.08);border:2px solid rgba(255,210,0,.2);color:#ffd200;font-size:14px;padding:10px 20px}
+.btn-sm{font-size:14px;padding:9px 20px}
+.action-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 
 /* NAME */
 .setup-card{background:rgba(255,255,255,.07);border:2px solid rgba(255,210,0,.3);border-radius:24px;padding:24px 20px;width:100%;text-align:center}
@@ -33,7 +32,7 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
 /* TOPICS */
 .topic-list{width:100%;display:flex;flex-direction:column;gap:8px;max-height:380px;overflow-y:auto}
 .topic-row{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.1);border-radius:14px;padding:12px 14px;cursor:pointer;transition:all .15s}
-.topic-row:hover,.topic-row:active{border-color:#ffd200;background:rgba(255,210,0,.1)}
+.topic-row:hover{border-color:#ffd200;background:rgba(255,210,0,.08)}
 .topic-row.locked{opacity:.4;cursor:not-allowed}
 .tr-icon{font-size:26px;flex-shrink:0}
 .tr-name{font-family:'Fredoka One',cursive;font-size:16px;color:#fff;flex:1}
@@ -43,97 +42,86 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
 .s-header{width:100%;background:rgba(255,255,255,.07);border-radius:16px;padding:12px 16px;display:flex;justify-content:space-between}
 .sh-box{text-align:center}
 .sh-label{font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:.5px}
-.sh-val{font-family:'Fredoka One',cursive;font-size:24px;color:#ffd200}
-.prog-track{width:100%;background:rgba(255,255,255,.1);border-radius:20px;height:10px;overflow:hidden}
-.prog-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#ffd200,#ff9800);transition:width .4s}
+.sh-val{font-family:'Fredoka One',cursive;font-size:22px;color:#ffd200}
+.prog-track{width:100%;background:rgba(255,255,255,.08);border-radius:20px;height:8px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,#ffd200,#ff9800);transition:width .4s;border-radius:20px}
 
-/* QUESTION CARD */
-.q-card{width:100%;background:rgba(255,255,255,.08);border:3px solid rgba(255,210,0,.3);border-radius:22px;padding:22px 18px;text-align:center;transition:border-color .3s,background .3s}
+/* QUESTION */
+.q-card{width:100%;background:rgba(255,255,255,.08);border:3px solid rgba(255,210,0,.3);border-radius:22px;padding:22px 16px;text-align:center;transition:all .3s}
 .q-card.listening{border-color:#4ade80;background:rgba(74,222,128,.07)}
-.q-card.correct{border-color:#4ade80;background:rgba(74,222,128,.12)}
-.q-card.wrong{border-color:#f87171;background:rgba(248,113,113,.1)}
+.q-card.correct{border-color:#4ade80;background:rgba(74,222,128,.1)}
+.q-card.wrong{border-color:#f87171;background:rgba(248,113,113,.08)}
 .q-topic{font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
-.q-text{font-family:'Fredoka One',cursive;font-size:34px;color:#fff;margin:8px 0;line-height:1.3}
-.q-hint{font-size:13px;color:#aaa;margin-top:6px}
+.q-text{font-family:'Fredoka One',cursive;font-size:36px;color:#fff;margin:8px 0}
+.q-sub{font-size:13px;color:#aaa;margin-top:6px;min-height:18px}
 
-/* MIC BUTTON — the heart of the app */
-.mic-btn{width:140px;height:140px;border-radius:50%;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;transition:all .2s;box-shadow:0 8px 32px rgba(0,0,0,.4);font-family:'Fredoka One',cursive}
-.mic-btn.ready{background:linear-gradient(135deg,#ffd200,#ff9800);animation:readyPulse 2s ease-in-out infinite}
-.mic-btn.listening{background:linear-gradient(135deg,#4ade80,#16a34a);animation:listenPulse .8s ease-in-out infinite;box-shadow:0 0 0 0 rgba(74,222,128,.6)}
-.mic-btn.processing{background:linear-gradient(135deg,#6c63ff,#a855f7)}
-.mic-btn.disabled{background:rgba(255,255,255,.1);cursor:not-allowed}
-.mic-btn-icon{font-size:44px;line-height:1}
-.mic-btn-text{font-size:14px;color:#1a1a1a;letter-spacing:.5px}
-.mic-btn.listening .mic-btn-text{color:#fff}
-.mic-btn.processing .mic-btn-text{color:#fff}
-.mic-btn.disabled .mic-btn-text{color:#666}
-@keyframes readyPulse{0%,100%{transform:scale(1);box-shadow:0 8px 32px rgba(255,210,0,.4)}50%{transform:scale(1.04);box-shadow:0 8px 40px rgba(255,210,0,.7)}}
-@keyframes listenPulse{0%{transform:scale(1);box-shadow:0 0 0 0 rgba(74,222,128,.7)}70%{transform:scale(1.06);box-shadow:0 0 0 20px rgba(74,222,128,0)}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(74,222,128,0)}}
+/* OPTIONS */
+.options-wrap{width:100%;display:flex;flex-direction:column;gap:10px}
+.opt-btn{width:100%;background:rgba(255,255,255,.07);border:3px solid rgba(255,210,0,.25);border-radius:16px;padding:16px 18px;font-family:'Fredoka One',cursive;font-size:22px;color:#fff;cursor:default;display:flex;align-items:center;gap:12px;transition:all .3s}
+.opt-btn.highlight{border-color:#ffd200;background:rgba(255,210,0,.15);box-shadow:0 0 16px rgba(255,210,0,.3)}
+.opt-btn.selected{border-color:#60a5fa;background:rgba(96,165,250,.15)}
+.opt-btn.correct{border-color:#4ade80;background:rgba(74,222,128,.15);color:#4ade80}
+.opt-btn.wrong{border-color:#f87171;background:rgba(248,113,113,.12);color:#f87171}
+.opt-label{background:rgba(255,210,0,.2);border-radius:8px;padding:4px 10px;font-size:16px;color:#ffd200;flex-shrink:0}
 
-/* TRANSCRIPT */
-.transcript-box{width:100%;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.12);border-radius:14px;padding:12px 16px;min-height:52px;text-align:center}
-.transcript-interim{font-size:15px;color:#aaa;font-style:italic;min-height:22px}
-.transcript-final{font-family:'Fredoka One',cursive;font-size:20px;color:#ffd200;min-height:28px}
+/* STATUS */
+.status-card{width:100%;background:rgba(255,255,255,.05);border:2px solid rgba(255,210,0,.15);border-radius:16px;padding:14px 16px;text-align:center}
+.status-phase{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.status-main{font-family:'Fredoka One',cursive;font-size:18px;color:#ffd200;min-height:26px}
+.status-sub{font-size:13px;color:#aaa;margin-top:4px;min-height:18px;font-style:italic}
+
+/* MIC LISTENER VISUAL */
+.mic-listener{display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px}
+.mic-anim{font-size:44px;transition:all .3s}
+.mic-anim.active{animation:micPulse .8s ease-in-out infinite;filter:drop-shadow(0 0 12px #ffd200)}
+@keyframes micPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.transcript-box{width:100%;min-height:44px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px 14px;text-align:center;font-size:14px;color:#ffd200;font-style:italic}
 
 /* FEEDBACK */
 .feedback{width:100%;border-radius:16px;padding:14px;text-align:center;display:none}
 .feedback.show{display:block;animation:fbpop .4s ease}
-.feedback.correct{background:rgba(74,222,128,.15);border:2px solid #4ade80}
-.feedback.wrong{background:rgba(248,113,113,.12);border:2px solid #f87171}
-.fb-icon{font-size:36px}
-.fb-msg{font-family:'Fredoka One',cursive;font-size:22px;margin-top:4px}
-.fb-answer{font-size:14px;color:#aaa;margin-top:4px}
-.fb-msg.correct{color:#4ade80}
-.fb-msg.wrong{color:#f87171}
 @keyframes fbpop{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
+.feedback.correct{background:rgba(74,222,128,.12);border:2px solid #4ade80}
+.feedback.wrong{background:rgba(248,113,113,.1);border:2px solid #f87171}
+.fb-icon{font-size:32px}
+.fb-msg{font-family:'Fredoka One',cursive;font-size:20px;margin-top:4px}
+.fb-msg.c{color:#4ade80}.fb-msg.w{color:#f87171}
+.fb-detail{font-size:13px;color:#aaa;margin-top:4px}
 
 /* RESULT */
-.result-card{width:100%;background:rgba(255,255,255,.07);border:2px solid rgba(255,210,0,.3);border-radius:24px;padding:28px 20px;text-align:center}
-.res-icon{font-size:64px;animation:fbpop .6s ease}
-.res-stars{font-size:36px;letter-spacing:8px;margin:8px 0}
-.res-title{font-family:'Fredoka One',cursive;font-size:28px;color:#ffd200;margin-bottom:8px}
-.res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
-.res-box{background:rgba(255,255,255,.06);border-radius:12px;padding:10px}
-.res-val{font-family:'Fredoka One',cursive;font-size:26px;color:#ffd200}
-.res-label{font-size:10px;color:#888;text-transform:uppercase;margin-top:2px}
-.res-verse{background:rgba(255,210,0,.08);border-left:4px solid #ffd200;border-radius:0 10px 10px 0;padding:10px 14px;font-size:13px;color:#ffd200;font-style:italic;margin-top:12px;text-align:left;line-height:1.6}
-.badge-pop{background:linear-gradient(135deg,#ffd200,#ff9800);border-radius:14px;padding:10px 16px;font-family:'Fredoka One',cursive;font-size:15px;color:#1a1a2e;margin-top:10px;display:none}
-.badge-pop.show{display:block;animation:fbpop .5s ease}
-
-/* BUTTONS */
-.btn{font-family:'Fredoka One',cursive;font-size:18px;padding:13px 28px;border:none;border-radius:50px;cursor:pointer;transition:transform .1s;box-shadow:0 4px 14px rgba(0,0,0,.3)}
-.btn:active{transform:scale(.96)}
-.btn-gold{background:linear-gradient(135deg,#ffd200,#ff9800);color:#1a1a2e}
-.btn-dark{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.2);color:#fff;font-size:14px;padding:10px 22px}
-.btn-green{background:linear-gradient(135deg,#4caf50,#2e7d32);color:#fff}
-.btn-sm{font-size:14px;padding:9px 20px}
-.action-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-
-/* STATUS */
-.status-text{font-family:'Fredoka One',cursive;font-size:16px;color:#4ade80;text-align:center;min-height:24px}
+.result-card{width:100%;background:rgba(255,255,255,.07);border:2px solid rgba(255,210,0,.3);border-radius:24px;padding:26px 18px;text-align:center}
+.res-icon{font-size:60px;display:block;animation:fbpop .6s ease}
+.res-stars{font-size:34px;letter-spacing:8px;margin:8px 0}
+.res-title{font-family:'Fredoka One',cursive;font-size:26px;color:#ffd200;margin-bottom:6px}
+.res-stats{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:12px 0}
+.stat-box{background:rgba(255,255,255,.06);border-radius:12px;padding:10px 16px;text-align:center}
+.stat-val{font-family:'Fredoka One',cursive;font-size:26px;color:#ffd200}
+.stat-lbl{font-size:10px;color:#888;text-transform:uppercase;margin-top:2px}
+.verse-box{background:rgba(255,210,0,.07);border-left:4px solid #ffd200;border-radius:0 10px 10px 0;padding:10px 14px;font-size:13px;color:#ffd200;font-style:italic;margin-top:10px;text-align:left;line-height:1.6}
 </style>
 </head>
 <body>
 <div class="nav">
   <a class="nav-btn" href="../index.html">← Math Hub</a>
-  <div class="nav-title">🎙️ Voice Math Tutor</div>
-  <span id="vol-icon" style="font-size:20px;cursor:pointer" onclick="toggleSpeak()">🔊</span>
+  <div class="nav-title">🎙️ Voice Math — Options Mode</div>
+  <button class="nav-btn" onclick="toggleSpeak()" id="vol-btn">🔊</button>
 </div>
 
 <!-- WELCOME -->
 <div class="screen active" id="screen-welcome">
-  <div class="big-icon">🎙️</div>
-  <div class="main-title">Voice Math Tutor</div>
-  <div class="info-box">
-    <strong>How it works:</strong><br>
-    1. Type your name and pick your age<br>
-    2. Choose a topic<br>
-    3. App reads the question aloud<br>
-    4. Tap the big 🎙️ button and say your answer<br>
-    5. App marks it right or wrong automatically!<br><br>
-    <strong>Works on:</strong> iPad, iPhone, Chrome, Edge, Safari
+  <div style="font-size:64px;text-align:center">🎙️</div>
+  <div style="font-family:'Fredoka One',cursive;font-size:26px;color:#ffd200;text-align:center">Voice Math — Options</div>
+  <div style="background:rgba(255,255,255,.06);border:2px solid rgba(255,210,0,.2);border-radius:18px;padding:16px;font-size:13px;color:#ccc;line-height:1.9;width:100%">
+    <strong style="color:#ffd200">How it works:</strong><br>
+    1. App reads the question aloud<br>
+    2. Three answer options appear — A, B, C<br>
+    3. App reads each option aloud<br>
+    4. Say the <strong style="color:#ffd200">number</strong> you think is right<br>
+    5. App reads back your option and asks:<br>
+    &nbsp;&nbsp;&nbsp;<em>"Is that your final answer?"</em><br>
+    6. Say <strong style="color:#4ade80">Yes</strong> to confirm or <strong style="color:#f87171">No</strong> to try again
   </div>
-  <button class="btn btn-gold" onclick="showScreen('screen-name')" style="width:100%;max-width:320px;font-size:22px;padding:18px">Let's Start! 🎙️</button>
+  <button class="btn btn-gold" onclick="showScreen('screen-name')" style="width:100%;max-width:320px;font-size:20px;padding:16px">Let's Start! 🎙️</button>
 </div>
 
 <!-- NAME -->
@@ -150,7 +138,7 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
 <!-- TOPICS -->
 <div class="screen" id="screen-topics">
   <div style="font-family:'Fredoka One',cursive;font-size:20px;color:#ffd200;text-align:center" id="topic-welcome">Choose a topic!</div>
-  <div style="font-size:13px;color:#aaa;text-align:center;margin-bottom:4px">Complete each topic to unlock the next one 🔓</div>
+  <div style="font-size:13px;color:#aaa;text-align:center">Complete each to unlock the next 🔓</div>
   <div class="topic-list" id="topic-list"></div>
   <button class="btn btn-dark btn-sm" onclick="showScreen('screen-name')">← Change Name</button>
 </div>
@@ -167,26 +155,33 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
   <div class="q-card" id="q-card">
     <div class="q-topic" id="q-topic">Topic</div>
     <div class="q-text" id="q-text">Loading...</div>
-    <div class="q-hint" id="q-hint">Listen carefully!</div>
+    <div class="q-sub" id="q-sub">Listen carefully!</div>
   </div>
 
-  <!-- MIC STATUS DISPLAY — auto in Chrome, tap in Safari -->
-  <div id="mic-btn" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer" onclick="onMicTap()">
-    <div style="font-size:52px;transition:all .3s" id="mic-icon-display">🎙️</div>
-    <div style="font-family:'Fredoka One',cursive;font-size:16px;color:#4ade80;min-height:24px;text-align:center" id="mic-btn-text">Getting ready...</div>
+  <!-- 3 OPTIONS -->
+  <div class="options-wrap" id="options-wrap">
+    <div class="opt-btn" id="opt-0"><span class="opt-label">A</span><span id="opt-text-0">?</span></div>
+    <div class="opt-btn" id="opt-1"><span class="opt-label">B</span><span id="opt-text-1">?</span></div>
+    <div class="opt-btn" id="opt-2"><span class="opt-label">C</span><span id="opt-text-2">?</span></div>
   </div>
 
-  <div class="status-text" id="status-text">App will read the question...</div>
+  <!-- STATUS -->
+  <div class="status-card">
+    <div class="status-phase" id="status-phase">LISTENING</div>
+    <div class="status-main" id="status-main">App is reading the question...</div>
+    <div class="status-sub" id="status-sub"></div>
+  </div>
 
-  <div class="transcript-box">
-    <div class="transcript-interim" id="transcript-interim"></div>
-    <div class="transcript-final" id="transcript-final"></div>
+  <!-- MIC VISUAL -->
+  <div class="mic-listener">
+    <div class="mic-anim" id="mic-anim">🎙️</div>
+    <div class="transcript-box" id="transcript-box">Waiting...</div>
   </div>
 
   <div class="feedback" id="feedback">
     <div class="fb-icon" id="fb-icon">✅</div>
     <div class="fb-msg" id="fb-msg">Correct!</div>
-    <div class="fb-answer" id="fb-answer"></div>
+    <div class="fb-detail" id="fb-detail"></div>
   </div>
 
   <div class="action-row">
@@ -199,12 +194,11 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
 <!-- RESULT -->
 <div class="screen" id="screen-result">
   <div class="result-card">
-    <div class="res-icon" id="res-icon">⭐</div>
-    <div class="res-stars" id="res-stars">⭐⭐⭐</div>
-    <div class="res-title" id="res-title">Well done!</div>
-    <div class="res-grid" id="res-grid"></div>
-    <div class="badge-pop" id="badge-pop">🏅 Badge Earned!</div>
-    <div class="res-verse" id="res-verse"></div>
+    <span class="res-icon" id="r-icon">⭐</span>
+    <div class="res-stars" id="r-stars">⭐⭐⭐</div>
+    <div class="res-title" id="r-title">Well done!</div>
+    <div class="res-stats" id="r-stats"></div>
+    <div class="verse-box" id="r-verse"></div>
   </div>
   <div class="action-row" style="margin-top:14px">
     <button class="btn btn-gold" onclick="playAgain()">▶ Again</button>
@@ -214,666 +208,458 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
 </div>
 
 <script>
-// ═══════════════════════
-//  HELPERS
-// ═══════════════════════
+// ── TOPICS (same as voice-math) ──
 function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
 function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
 function el(id){return document.getElementById(id);}
-function setText(id,v){var e=el(id);if(e)e.textContent=v;}
-function setClass(id,v){var e=el(id);if(e)e.className=v;}
-function setStyle(id,p,v){var e=el(id);if(e)e.style[p]=v;}
+function txt(id,v){var e=el(id);if(e)e.textContent=v;}
+function cls(id,v){var e=el(id);if(e)e.className=v;}
 
-// ═══════════════════════
-//  TOPICS
-// ═══════════════════════
-var TOPICS = [
-  // KINDERGARTEN
-  {id:'k_count10',name:'Counting 1–10',icon:'🔢',grade:'K',
-   gen:function(){var n=rnd(1,10);return{q:'Count the dots: '+repeat('●',n)+'\nHow many?',a:String(n),type:'number',speak:'How many dots? Count them. '+repeat('●',n)};}},
-  {id:'k_bonds10',name:'Number Bonds to 10',icon:'🔟',grade:'K',
-   gen:function(){var a=rnd(0,10),b=10-a;var t=rnd(0,1);
-     if(t===0)return{q:a+' + ___ = 10',a:String(b),type:'number',speak:''+a+' plus what equals 10?'};
-     return{q:'___ + '+b+' = 10',a:String(a),type:'number',speak:'What plus '+b+' equals 10?'};}},
-  {id:'k_add10',name:'Addition to 10',icon:'➕',grade:'K',
-   gen:function(){var a=rnd(0,9),b=rnd(0,10-a);return{q:a+' + '+b+' = ?',a:String(a+b),type:'number',speak:'What is '+a+' plus '+b+'?'};}},
-  {id:'k_sub10',name:'Subtraction to 10',icon:'➖',grade:'K',
-   gen:function(){var a=rnd(1,10),b=rnd(0,a);return{q:a+' - '+b+' = ?',a:String(a-b),type:'number',speak:'What is '+a+' minus '+b+'?'};}},
-  {id:'k_moreorless',name:'More / Less / Equal',icon:'⚖️',grade:'K',
-   gen:function(){var a=rnd(1,10),b=rnd(1,10);var ans=a>b?'more':a<b?'less':'equal';
-     return{q:'Is '+a+' MORE, LESS or EQUAL to '+b+'?',a:ans,type:'word',speak:'Is '+a+' more, less, or equal to '+b+'? Say more, less, or equal.'};}},
-  {id:'k_shapes',name:'2D Shapes',icon:'🔷',grade:'K',
-   gen:function(){var s=[{n:'circle',si:0},{n:'square',si:4},{n:'triangle',si:3},{n:'rectangle',si:4},{n:'hexagon',si:6}];
-     var sh=pick(s);return{q:'How many sides does a '+sh.n+' have?',a:String(sh.si),type:'number',speak:'How many sides does a '+sh.n+' have?'};}},
-  {id:'k_time',name:'Telling Time',icon:'🕐',grade:'K',
-   gen:function(){var h=rnd(1,12);return{q:'The clock shows '+h+':00\nWhat time is it?',a:h+" o'clock",type:'word',speak:'The clock shows '+h+' colon zero zero. What time is it? Say the time.'};}},
-  {id:'k_coins',name:'Coins',icon:'🪙',grade:'K',
-   gen:function(){var c=[{n:'penny',v:'1'},{n:'nickel',v:'5'},{n:'dime',v:'10'},{n:'quarter',v:'25'}];
-     var coin=pick(c);return{q:'How many cents is a '+coin.n+'?',a:coin.v,type:'number',speak:'How many cents is a '+coin.n+' worth?'};}},
-  {id:'k_oddeven',name:'Odd or Even',icon:'🎭',grade:'K',
-   gen:function(){var n=rnd(1,20);var ans=n%2===0?'even':'odd';
-     return{q:'Is '+n+' ODD or EVEN?',a:ans,type:'word',speak:'Is '+n+' odd or even? Say odd or even.'};}},
-  {id:'k_count20',name:'Counting 11–20',icon:'🔢',grade:'K',
-   gen:function(){var n=rnd(11,20);return{q:'Count: '+repeat('●',n)+'\nHow many?',a:String(n),type:'number',speak:'How many dots are there?'};}},
-  {id:'k_bonds5',name:'Number Bonds to 5',icon:'5️⃣',grade:'K',
-   gen:function(){var a=rnd(0,5),b=5-a;return{q:a+' + ___ = 5',a:String(b),type:'number',speak:''+a+' plus what equals 5?'};}},
-  {id:'k_count100',name:'Count to 100',icon:'💯',grade:'K',
-   gen:function(){var s=rnd(1,95);return{q:'What comes next?\n'+s+', ___',a:String(s+1),type:'number',speak:'What number comes next after '+s+'?'};}},
-  {id:'k_measure',name:'Measurement',icon:'📏',grade:'K',
-   gen:function(){var q=pick([{q:'A pencil or ruler — which is LONGER?',a:'ruler',speak:'Which is longer, a pencil or a ruler?'},
-     {q:'A feather or brick — which is HEAVIER?',a:'brick',speak:'Which is heavier, a feather or a brick?'},
-     {q:'A mouse or elephant — which is BIGGER?',a:'elephant',speak:'Which is bigger, a mouse or an elephant?'}]);
-     return{q:q.q,a:q.a,type:'word',speak:q.speak};}},
-  {id:'k_ordinal',name:'Ordinal Numbers',icon:'🥇',grade:'K',
-   gen:function(){var o=['first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth'];
-     var n=['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th'];var i=rnd(0,9);
-     return{q:'How do we say '+n[i]+'?',a:o[i],type:'word',speak:'How do we say position '+n[i]+'?'};}},
-  {id:'k_sorting',name:'Sorting & Data',icon:'📊',grade:'K',
-   gen:function(){var a=rnd(2,6),b=rnd(2,6),c=rnd(2,6);
-     return{q:'Cats:'+a+' Dogs:'+b+' Birds:'+c+'\nHow many in total?',a:String(a+b+c),type:'number',speak:'There are '+a+' cats, '+b+' dogs, and '+c+' birds. How many animals in total?'};}},
-  // GRADE 2
-  {id:'g2_add20',name:'Addition to 20',icon:'➕',grade:'2',
-   gen:function(){var a=rnd(1,19),b=rnd(1,20-a);return{q:a+' + '+b+' = ?',a:String(a+b),type:'number',speak:'What is '+a+' plus '+b+'?'};}},
-  {id:'g2_sub20',name:'Subtraction to 20',icon:'➖',grade:'2',
-   gen:function(){var a=rnd(2,20),b=rnd(1,a);return{q:a+' - '+b+' = ?',a:String(a-b),type:'number',speak:'What is '+a+' minus '+b+'?'};}},
-  {id:'g2_add100',name:'Addition to 100',icon:'➕',grade:'2',
-   gen:function(){var a=rnd(10,89),b=rnd(1,99-a);return{q:a+' + '+b+' = ?',a:String(a+b),type:'number',speak:'What is '+a+' plus '+b+'?'};}},
-  {id:'g2_sub100',name:'Subtraction to 100',icon:'➖',grade:'2',
-   gen:function(){var a=rnd(11,99),b=rnd(1,a);return{q:a+' - '+b+' = ?',a:String(a-b),type:'number',speak:'What is '+a+' minus '+b+'?'};}},
-  {id:'g2_place',name:'Place Value',icon:'🔢',grade:'2',
-   gen:function(){var n=rnd(10,999),d=pick(['tens','ones','hundreds']);
-     var ans=d==='hundreds'?Math.floor(n/100):d==='tens'?Math.floor((n%100)/10):n%10;
-     return{q:'In '+n+', what is the\n'+d+' digit?',a:String(ans),type:'number',speak:'In the number '+n+', what is the '+d+' digit?'};}},
-  {id:'g2_skip',name:'Skip Counting',icon:'🦘',grade:'2',
-   gen:function(){var step=pick([2,5,10,100]),start=rnd(0,8)*step;
-     return{q:'Count by '+step+'s:\n'+start+', '+(start+step)+', '+(start+step*2)+', ___',
-       a:String(start+step*3),type:'number',speak:'Skip counting by '+step+'s: '+start+', '+(start+step)+', '+(start+step*2)+', what comes next?'};}},
-  {id:'g2_word',name:'Word Problems',icon:'📖',grade:'2',
-   gen:function(){var a=rnd(5,20),b=rnd(1,15),t=rnd(0,2);
-     if(t===0)return{q:a+' birds. '+b+' more fly in.\nHow many now?',a:String(a+b),type:'number',speak:''+a+' birds sat on a tree. '+b+' more flew in. How many birds altogether?'};
-     if(t===1)return{q:a+' apples. '+b+' eaten.\nHow many left?',a:String(a-Math.min(b,a-1)),type:'number',speak:'There were '+a+' apples and '+Math.min(b,a-1)+' were eaten. How many are left?'};
-     return{q:a+' boys + '+b+' girls.\nHow many children?',a:String(a+b),type:'number',speak:''+a+' boys and '+b+' girls. How many children altogether?'};}},
-  {id:'g2_oddeven',name:'Odd & Even',icon:'🎭',grade:'2',
-   gen:function(){var n=rnd(1,50);return{q:'Is '+n+' ODD or EVEN?',a:n%2===0?'even':'odd',type:'word',speak:'Is '+n+' odd or even?'};}},
-  {id:'g2_arrays',name:'Arrays',icon:'⬛',grade:'2',
-   gen:function(){var r=rnd(2,5),c=rnd(2,5);
-     return{q:r+' rows of '+c+'\nHow many total?',a:String(r*c),type:'number',speak:''+r+' rows with '+c+' in each row. How many altogether?'};}},
-  {id:'g2_add1000',name:'Addition to 1000',icon:'➕',grade:'2',
-   gen:function(){var a=rnd(100,899),b=rnd(1,999-a);return{q:a+' + '+b+' = ?',a:String(a+b),type:'number',speak:'What is '+a+' plus '+b+'?'};}},
-  {id:'g2_sub1000',name:'Subtraction to 1000',icon:'➖',grade:'2',
-   gen:function(){var a=rnd(101,999),b=rnd(1,a-1);return{q:a+' - '+b+' = ?',a:String(a-b),type:'number',speak:'What is '+a+' minus '+b+'?'};}},
-  {id:'g2_time',name:'Time to 5 Minutes',icon:'🕐',grade:'2',
-   gen:function(){var h=rnd(1,12),m=rnd(0,11)*5,ms=(m<10?'0':'')+m;
-     return{q:'Clock shows '+h+':'+ms+'\nWhat time is it?',a:h+':'+ms,type:'word',speak:'The clock shows '+h+' hours and '+ms+' minutes. What time is it?'};}},
-  {id:'g2_money',name:'Money',icon:'💵',grade:'2',
-   gen:function(){var p=rnd(5,95);return{q:'Item costs '+p+'¢\nYou pay $1.00\nChange = ?',a:String(100-p),type:'number',speak:'An item costs '+p+' cents. You pay one dollar. How many cents change?'};}},
-  {id:'g2_measure',name:'Measurement',icon:'📐',grade:'2',
-   gen:function(){var a=rnd(5,30),b=rnd(5,30);var ans=a>b?'first':a<b?'second':'same';
-     return{q:'Object A: '+a+'cm\nObject B: '+b+'cm\nWhich is longer?',a:ans,type:'word',speak:'Object A is '+a+' centimetres. Object B is '+b+' centimetres. Which is longer? Say first, second, or same.'};}},
-  {id:'g2_fractions',name:'Fractions',icon:'🍕',grade:'2',
-   gen:function(){var f=pick([{n:1,d:2,w:'one half'},{n:1,d:3,w:'one third'},{n:1,d:4,w:'one quarter'},{n:3,d:4,w:'three quarters'}]);
-     return{q:'Pizza has '+f.d+' slices.\n'+f.w+' eaten.\nHow many slices?',a:String(f.n),type:'number',speak:'A pizza has '+f.d+' slices. '+f.w+' is eaten. How many slices were eaten?'};}},
-  {id:'g2_geometry',name:'Geometry',icon:'🔷',grade:'2',
-   gen:function(){var s=pick([{n:'triangle',si:3},{n:'quadrilateral',si:4},{n:'pentagon',si:5},{n:'hexagon',si:6}]);
-     return{q:'How many sides does a\n'+s.n+' have?',a:String(s.si),type:'number',speak:'How many sides does a '+s.n+' have?'};}},
-  {id:'g2_graphs',name:'Graphs & Data',icon:'📊',grade:'2',
-   gen:function(){var a=rnd(2,8),b=rnd(2,8),c=rnd(2,8);
-     return{q:'Cats='+a+', Dogs='+b+', Birds='+c+'\nTotal animals?',a:String(a+b+c),type:'number',speak:'A graph shows '+a+' cats, '+b+' dogs, and '+c+' birds. How many animals in total?'};}}
+var TOPICS=[
+  {id:'k_add10',name:'Addition to 10',icon:'➕',grade:'K',gen:function(){var a=rnd(0,9),b=rnd(0,10-a);return{q:a+' + '+b+' = ?',a:String(a+b),type:'number',speak:'What is '+a+' plus '+b+'?'};}},
+  {id:'k_sub10',name:'Subtraction to 10',icon:'➖',grade:'K',gen:function(){var a=rnd(1,10),b=rnd(0,a);return{q:a+' - '+b+' = ?',a:String(a-b),type:'number',speak:'What is '+a+' minus '+b+'?'};}},
+  {id:'k_bonds10',name:'Number Bonds to 10',icon:'🔟',grade:'K',gen:function(){var a=rnd(0,10),b=10-a;return{q:a+' + ___ = 10',a:String(b),type:'number',speak:''+a+' plus what equals 10?'};}},
+  {id:'k_count10',name:'Counting 1-10',icon:'🔢',grade:'K',gen:function(){var n=rnd(1,10);return{q:'Count: '+('●').repeat(n),a:String(n),type:'number',speak:'How many dots? Count them carefully.'};}},
+  {id:'k_shapes',name:'2D Shapes',icon:'🔷',grade:'K',gen:function(){var s=pick([{n:'circle',si:0},{n:'square',si:4},{n:'triangle',si:3},{n:'rectangle',si:4},{n:'hexagon',si:6}]);return{q:'Sides on a '+s.n+'?',a:String(s.si),type:'number',speak:'How many sides does a '+s.n+' have?'};}},
+  {id:'k_coins',name:'Coins',icon:'🪙',grade:'K',gen:function(){var c=pick([{n:'penny',v:'1'},{n:'nickel',v:'5'},{n:'dime',v:'10'},{n:'quarter',v:'25'}]);return{q:c.n+' = ? cents',a:c.v,type:'number',speak:'How many cents is a '+c.n+' worth?'};}},
+  {id:'k_oddeven',name:'Odd or Even',icon:'🎭',grade:'K',gen:function(){var n=rnd(1,20);return{q:'Is '+n+' odd or even?',a:n%2===0?'even':'odd',type:'word',speak:'Is '+n+' odd or even?'};}},
+  {id:'k_time',name:'Telling Time',icon:'🕐',grade:'K',gen:function(){var h=rnd(1,12);return{q:'Clock: '+h+':00 = ?',a:h+" o'clock",type:'word',speak:'The clock shows '+h+' oclock. What time is it?'};}},
+  {id:'g2_add100',name:'Addition to 100',icon:'➕',grade:'2',gen:function(){var a=rnd(10,89),b=rnd(1,99-a);return{q:a+' + '+b+' = ?',a:String(a+b),type:'number',speak:'What is '+a+' plus '+b+'?'};}},
+  {id:'g2_sub100',name:'Subtraction to 100',icon:'➖',grade:'2',gen:function(){var a=rnd(11,99),b=rnd(1,a);return{q:a+' - '+b+' = ?',a:String(a-b),type:'number',speak:'What is '+a+' minus '+b+'?'};}},
+  {id:'g2_add20',name:'Addition to 20',icon:'➕',grade:'2',gen:function(){var a=rnd(1,19),b=rnd(1,20-a);return{q:a+' + '+b+' = ?',a:String(a+b),type:'number',speak:'What is '+a+' plus '+b+'?'};}},
+  {id:'g2_sub20',name:'Subtraction to 20',icon:'➖',grade:'2',gen:function(){var a=rnd(2,20),b=rnd(1,a);return{q:a+' - '+b+' = ?',a:String(a-b),type:'number',speak:'What is '+a+' minus '+b+'?'};}},
+  {id:'g2_place',name:'Place Value',icon:'🔢',grade:'2',gen:function(){var n=rnd(10,999),d=pick(['tens','ones']);var ans=d==='tens'?Math.floor((n%100)/10):n%10;return{q:'In '+n+', '+d+' digit?',a:String(ans),type:'number',speak:'In the number '+n+', what is the '+d+' digit?'};}},
+  {id:'g2_skip',name:'Skip Counting',icon:'🦘',grade:'2',gen:function(){var step=pick([2,5,10]),start=rnd(0,8)*step;return{q:start+', '+(start+step)+', '+(start+step*2)+', ___',a:String(start+step*3),type:'number',speak:'Skip counting by '+step+'s: '+start+', '+(start+step)+', '+(start+step*2)+', what comes next?'};}},
+  {id:'g2_arrays',name:'Arrays',icon:'⬛',grade:'2',gen:function(){var r=rnd(2,5),c=rnd(2,5);return{q:r+' rows × '+c+' = ?',a:String(r*c),type:'number',speak:''+r+' rows with '+c+' in each. How many altogether?'};}},
+  {id:'g2_money',name:'Money',icon:'💵',grade:'2',gen:function(){var p=rnd(5,95);return{q:'Cost: '+p+'¢ Pay: $1.00 Change?',a:String(100-p),type:'number',speak:'Item costs '+p+' cents. You pay one dollar. How much change?'};}},
+  {id:'g2_oddeven',name:'Odd & Even',icon:'🎭',grade:'2',gen:function(){var n=rnd(1,50);return{q:'Is '+n+' odd or even?',a:n%2===0?'even':'odd',type:'word',speak:'Is '+n+' odd or even?'};}},
+  {id:'g2_word',name:'Word Problems',icon:'📖',grade:'2',gen:function(){var a=rnd(5,20),b=rnd(1,15);return{q:a+' + '+b+' birds. Total?',a:String(a+b),type:'number',speak:''+a+' birds on a tree. '+b+' more flew in. How many altogether?'};}}
 ];
 
-function repeat(ch,n){var s='';for(var i=0;i<n;i++)s+=ch;return s;}
+var VERSES=[
+  {t:'I can do all things through Christ who strengthens me.',r:'Philippians 4:13'},
+  {t:'Be strong and courageous.',r:'Joshua 1:9'},
+  {t:'With God all things are possible.',r:'Matthew 19:26'},
+  {t:'The joy of the Lord is your strength.',r:'Nehemiah 8:10'},
+];
+var OK_MSGS=['🌟 Correct!','✅ Right!','🎉 Brilliant!','⭐ Perfect!','🏆 Yes!'];
+var NO_MSGS=['Not quite!','Good try!','Almost!'];
 
-// ═══════════════════════
-//  ANSWER MATCHING
-// ═══════════════════════
+// ── STATE ──
+var playerName='',playerGrade='K',speakOn=true;
+var currentTopicId='',currentTopicIdx=0;
+var questions=[],qIdx=0,score=0,correctCount=0;
+var currentQ=null,sessionActive=false;
+var currentOptions=[],selectedOptionIdx=-1;
+var recognition=null;
+var missedQuestions=[],isRetry=false;
+// Conversation phases: 'question' | 'confirm' | 'final'
+var convPhase='question';
 var WORD_MAP={
   'zero':'0','one':'1','two':'2','three':'3','four':'4','five':'5',
   'six':'6','seven':'7','eight':'8','nine':'9','ten':'10',
   'eleven':'11','twelve':'12','thirteen':'13','fourteen':'14','fifteen':'15',
   'sixteen':'16','seventeen':'17','eighteen':'18','nineteen':'19','twenty':'20',
-  'twenty one':'21','twenty two':'22','twenty three':'23','twenty four':'24',
-  'twenty five':'25','twenty six':'26','twenty seven':'27','twenty eight':'28',
-  'twenty nine':'29','thirty':'30','forty':'40','fifty':'50','sixty':'60',
-  'seventy':'70','eighty':'80','ninety':'90','hundred':'100',
-  'oh':'0','to':'2','for':'4','ate':'8','won':'1','too':'2','tu':'2',
-  'nein':'9','fife':'5','fort':'40','sex':'6','sick':'6','tree':'3',
-  'heaven':'7','late':'8','nil':'0','nought':'0','naught':'0',
-  'a':'1','an':'1'
+  'thirty':'30','forty':'40','fifty':'50','sixty':'60','seventy':'70',
+  'eighty':'80','ninety':'90','hundred':'100','oh':'0','nil':'0','nought':'0',
+  'odd':'odd','even':'even','yes':'yes','no':'no','yeah':'yes','nope':'no',
+  'yep':'yes','correct':'yes'
 };
-
-// Enhanced matching — also checks if heard contains the answer
-function enhancedMatch(heard, expected){
-  heard = String(heard).toLowerCase().trim();
-  expected = String(expected).toLowerCase().trim();
-
-  // Direct match
-  if(heard === expected) return true;
-
-  // Number match via word-to-number conversion
-  var heardNum = textToNum(heard);
-  var expNum = parseInt(expected);
-  if(!isNaN(heardNum) && !isNaN(expNum) && heardNum === expNum) return true;
-
-  // Word answers — check containment
-  if(heard.includes(expected) && expected.length > 2) return true;
-  if(expected.includes(heard) && heard.length > 2) return true;
-
-  // First word match for word answers
-  var heardFirst = heard.split(' ')[0];
-  var expFirst = expected.split(' ')[0];
-  if(heardFirst === expFirst && heardFirst.length > 2) return true;
-
-  // Fuzzy: remove spaces and compare
-  if(heard.replace(/\s/g,'') === expected.replace(/\s/g,'')) return true;
-
-  return false;
-}
-
-function cleanText(t){
-  return t.toLowerCase()
-    .replace(/[^a-z0-9\s]/g,' ')
-    .replace(/\bthe answer is\b|\banswer is\b|\bi think\b|\bi say\b|\bit is\b|\bits\b|\bequals\b|\bis\b/g,' ')
-    .replace(/\s+/g,' ').trim();
-}
-
-function textToNum(t){
-  t = cleanText(t);
-  // Direct digit
-  var digits = t.replace(/\D/g,'');
-  if(digits && !isNaN(parseInt(digits))) return parseInt(digits);
-  // Word lookup
-  var words = t.split(' ');
-  var total = 0, current = 0;
-  for(var i=0;i<words.length;i++){
-    var w = words[i];
-    if(WORD_MAP[w]!==undefined){
-      var n = parseInt(WORD_MAP[w]);
-      if(n===100){ current = current===0?100:current*100; }
-      else if(n>=20){ current+=n; }
-      else { current+=n; }
-    } else if(!isNaN(parseInt(w))){ current+=parseInt(w); }
-  }
-  total+=current;
-  return total>0?total:NaN;
-}
-
-function isMatch(said, expected){
-  var cleaned = cleanText(said);
-  // Try both the cleaned text and raw text for best chance of matching
-  return enhancedMatch(cleaned, expected) || enhancedMatch(said, expected);
-}
-
-// ═══════════════════════
-//  STATE
-// ═══════════════════════
-var playerName='', playerGrade='K', speakOn=true;
-var isChrome = false;
-var missedQuestions = [];
-var isRetry = false; // track missed questions to insert similar ones
-
-function getSimilarQuestion(q){
-  // Generate a question with the same answer but different numbers
-  var target = parseInt(q.a);
-  if(isNaN(target)) return null;
-  var topic = getGradeTopics()[currentTopicIdx];
-  if(!topic) return null;
-  // Try up to 5 times to get a question with same answer
-  for(var i=0;i<5;i++){
-    var newQ = topic.gen();
-    if(parseInt(newQ.a) === target && newQ.q !== q.q) return newQ;
-  }
-  // Fallback: just return a new question
-  return topic.gen();
-}
-var currentTopicId='', currentTopicIdx=0;
-var questions=[], qIdx=0, score=0, correctCount=0;
-  missedQuestions=[]; isRetry=false;
-var currentQ=null, sessionActive=false;
-var recognition=null, micState='idle'; // idle | listening | processing | disabled
 
 function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
-function loadSave(){try{var r=lsGet('vm2');return r?JSON.parse(r):{t:{}};}catch(e){return{t:{}};}}
-function saveTopic(id,stars){var s=loadSave();s.t[id]={stars:stars,badge:stars>=1};lsSet('vm2',JSON.stringify(s));}
+function loadSave(){try{var r=lsGet('vm_opts');return r?JSON.parse(r):{t:{}};}catch(e){return{t:{}};}}
+function saveTopic(id,stars){var s=loadSave();s.t[id]={stars:stars,badge:stars>=1};lsSet('vm_opts',JSON.stringify(s));}
 
-// ═══════════════════════
-//  SCREENS
-// ═══════════════════════
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
-  var sc=el(id); if(sc) sc.classList.add('active');
+  var sc=el(id);if(sc)sc.classList.add('active');
 }
 
-// ═══════════════════════
-//  NAME SETUP
-// ═══════════════════════
+// ── NAME ──
 var selAge=null;
 function buildAgeGrid(){
-  var g=el('age-grid'); if(!g) return;
+  var g=el('age-grid');if(!g)return;
   g.innerHTML='';
   for(var a=4;a<=11;a++){
     var b=document.createElement('button');
-    b.className='age-btn'; b.textContent=a; b.dataset.age=a;
+    b.className='age-btn';b.textContent=a;b.dataset.age=a;
     b.onclick=function(btn){return function(){
       document.querySelectorAll('.age-btn').forEach(function(x){x.className='age-btn';});
-      btn.className='age-btn sel';
-      selAge=parseInt(btn.dataset.age);
+      btn.className='age-btn sel';selAge=parseInt(btn.dataset.age);
     };}(b);
     g.appendChild(b);
   }
 }
 
 function confirmName(){
-  var n=(el('name-input')||{}).value||'';
-  n=n.trim();
+  var n=(el('name-input')||{}).value||'';n=n.trim();
   if(!n){alert('Please type your name!');return;}
   if(!selAge){alert('Please pick your age!');return;}
-  playerName=n;
-  playerGrade=selAge<=6?'K':'2';
-  // Also try kk_profile
+  playerName=n;playerGrade=selAge<=6?'K':'2';
   try{var kk=JSON.parse(lsGet('kk_profile')||'{}');
     if(kk&&kk.name&&kk.name.toLowerCase()===n.toLowerCase()) playerGrade=(kk.isEasy||kk.age<=6)?'K':'2';}catch(e){}
-  setText('topic-welcome','Hi '+playerName+'! Choose a topic! 🎓');
+  txt('topic-welcome','Hi '+playerName+'! Choose a topic! 🎓');
   buildTopicList();
   speak('Hello '+playerName+'! Let us do some maths! Choose your topic.');
   showScreen('screen-topics');
 }
 
-// ═══════════════════════
-//  TOPICS
-// ═══════════════════════
+// ── TOPICS ──
 function gradeTopics(){return TOPICS.filter(function(t){return t.grade===playerGrade;});}
 
 function buildTopicList(){
-  var topics=gradeTopics(), save=loadSave();
-  var list=el('topic-list'); if(!list) return;
+  var topics=gradeTopics(),save=loadSave();
+  var list=el('topic-list');if(!list)return;
   list.innerHTML='';
   topics.forEach(function(topic,i){
-    var ts=save.t[topic.id]||{stars:0,badge:false};
+    var ts=save.t[topic.id]||{};
     var unlocked=i===0||(save.t[topics[i-1].id]&&save.t[topics[i-1].id].badge);
     var div=document.createElement('div');
     div.className='topic-row'+(unlocked?'':' locked');
     div.innerHTML='<div class="tr-icon">'+topic.icon+'</div>'
       +'<div class="tr-name">'+topic.name+'</div>'
-      +'<div class="tr-badge">'+(unlocked?(ts.badge?'✅':ts.stars>0?'⭐'.repeat(ts.stars):'▶'):'🔒')+'</div>';
+      +'<div class="tr-badge">'+(unlocked?(ts.badge?'✅':'▶'):'🔒')+'</div>';
     if(unlocked) div.onclick=function(t,idx){return function(){startSession(t,idx);};}(topic,i);
     list.appendChild(div);
   });
 }
 
-// ═══════════════════════
-//  SESSION
-// ═══════════════════════
+// ── GENERATE OPTIONS ──
+function makeOptions(correctAnswer,questionType){
+  var opts=[correctAnswer];
+  if(questionType==='number'){
+    var correct=parseInt(correctAnswer);
+    var attempts=0;
+    while(opts.length<3&&attempts<20){
+      attempts++;
+      var wrong;
+      var diff=rnd(1,5);
+      wrong=rnd(0,1)?(correct+diff):(Math.max(0,correct-diff));
+      var wrongStr=String(wrong);
+      if(wrongStr!==correctAnswer&&opts.indexOf(wrongStr)<0) opts.push(wrongStr);
+    }
+  } else {
+    // Word answers — odd/even, o'clock etc
+    var wordAlts={'even':['odd','same'],'odd':['even','same'],
+      "o'clock":['thirty','quarter past'],'more':['less','equal'],
+      'less':['more','equal'],'equal':['more','less'],
+      'first':['second','third'],'second':['first','third'],'third':['first','second']};
+    var alts=wordAlts[correctAnswer]||['not sure','something else'];
+    opts.push(alts[0]);
+    if(opts.length<3) opts.push(alts[1]||'none of these');
+  }
+  // Shuffle
+  return opts.sort(function(){return Math.random()-.5;});
+}
+
+// ── SESSION ──
 function startSession(topic,topicIdx){
-  currentTopicId=topic.id; currentTopicIdx=topicIdx;
-  questions=[]; for(var i=0;i<10;i++) questions.push(topic.gen());
-  qIdx=0; score=0; correctCount=0; sessionActive=true;
-  setText('s-qnum','1/10'); setText('s-score','0'); setText('s-correct','0');
-  setStyle('s-prog','width','0%');
+  currentTopicId=topic.id;currentTopicIdx=topicIdx;
+  questions=[];for(var i=0;i<10;i++) questions.push(topic.gen());
+  qIdx=0;score=0;correctCount=0;missedQuestions=[];isRetry=false;sessionActive=true;
+  txt('s-qnum','1/10');txt('s-score','0');txt('s-correct','0');
+  el('s-prog').style.width='0%';
   showScreen('screen-session');
-  setMicState('disabled');
-  speak('Great! We are doing '+topic.name+'. I will read each question. Tap the big button and say your answer clearly!');
-  setTimeout(loadQ, 3500);
+  speak('Great! We are doing '+topic.name+'. I will read each question. Listen carefully and say your answer!');
+  setTimeout(loadQ,3500);
 }
 
 function loadQ(){
   if(qIdx>=questions.length){endSession();return;}
   currentQ=questions[qIdx];
-  setText('s-qnum',(qIdx+1)+'/10');
-  setStyle('s-prog','width',(qIdx/10*100)+'%');
-  setText('q-topic', (gradeTopics()[currentTopicIdx]||{}).name||'');
-  setText('q-text', currentQ.q);
-  setText('q-hint','Tap 🎙️ after hearing the question!');
-  setClass('q-card','q-card');
-  setClass('feedback','feedback');
-  setText('transcript-interim','');
-  setText('transcript-final','');
-  setText('status-text','Reading question...');
-  setMicState('disabled');
+  convPhase='question';
+  selectedOptionIdx=-1;
+  isRetry=false;
 
-  // Speak question then enable mic
-  speak(currentQ.speak||currentQ.q);
-  var ms = Math.max(2500, (currentQ.speak||currentQ.q).split(' ').length*400);
+  txt('s-qnum',(qIdx+1)+'/10');
+  el('s-prog').style.width=Math.round(qIdx/10*100)+'%';
+  txt('q-topic',(gradeTopics()[currentTopicIdx]||{}).name||'');
+  txt('q-text',currentQ.q);
+  txt('q-sub','Listen to the question...');
+  cls('q-card','q-card');
+  cls('feedback','feedback');
+  txt('transcript-box','Listening...');
+  el('mic-anim').className='mic-anim';
+
+  // Generate and show options
+  currentOptions=makeOptions(currentQ.a,currentQ.type);
+  ['A','B','C'].forEach(function(lbl,i){
+    txt('opt-text-'+i,currentOptions[i]);
+    var btn=el('opt-'+i);
+    if(btn) btn.className='opt-btn';
+  });
+  el('options-wrap').style.opacity='0.4';
+
+  // Phase: read question then options
+  var questionText=currentQ.speak||currentQ.q;
+  speak(questionText);
+  var qDelay=questionText.split(' ').length*400+800;
+
   setTimeout(function(){
     if(!sessionActive) return;
-    if(isChrome){
-      // Chrome — start listening automatically, no tap needed
-      setMicState('ready');
-      setText('status-text','Say your answer now!');
-      setText('q-hint','🎙️ Speak your answer!');
-      startListening();
-    } else {
-      // Safari — user must tap
-      setMicState('ready');
-      setText('status-text','TAP the mic and say your answer!');
-      setText('q-hint','🎙️ Tap the mic icon then speak!');
-      speak('Say your answer now.');
-    }
-  }, ms+500);
+    // Read options
+    el('options-wrap').style.opacity='1';
+    var optsText='Your options are. A: '+currentOptions[0]+'. B: '+currentOptions[1]+'. C: '+currentOptions[2]+'. Which number is correct? Say A, B, or C.';
+    speak(optsText);
+    var optsDelay=optsText.split(' ').length*380+500;
+    txt('q-sub','Say A, B, or C');
+    setPhase('question','Say A, B, or C','Speak the letter of your answer');
+    setTimeout(function(){
+      if(sessionActive) startListening('question');
+    }, optsDelay);
+  }, qDelay);
 }
 
-// ═══════════════════════
-//  MIC STATE MACHINE
-// ═══════════════════════
-function setMicState(state){
-  micState=state;
-  var icon=el('mic-icon-display');
-  var txtEl=el('mic-btn-text');
-  var btn=el('mic-btn');
-  // Always show mic emoji — no red dot
-  var icons={ready:'🎙️',listening:'🎙️',processing:'🎙️',disabled:'🎙️'};
-  var texts={
-    ready:'TAP to answer',
-    listening:'🟡 Listening... speak now!',
-    processing:'Checking your answer...',
-    disabled:'Please wait...'
-  };
-  if(icon) icon.textContent=icons[state]||'🎙️';
-  if(txtEl){
-    txtEl.textContent=texts[state]||'';
-    txtEl.style.color=state==='listening'?'#ffd200':state==='processing'?'#a5b4fc':'#4ade80';
-  }
-  if(icon){
-    icon.style.transform=state==='listening'?'scale(1.2)':'scale(1)';
-    icon.style.filter=state==='listening'?'drop-shadow(0 0 16px #ffd200)':
-                      state==='ready'?'drop-shadow(0 0 8px #4ade80)':'none';
-  }
-  // Button background
-  if(btn){
-    btn.style.cursor=state==='ready'?'pointer':'default';
-  }
+function setPhase(phase,main,sub){
+  convPhase=phase;
+  txt('status-phase',phase==='question'?'CHOOSE OPTION':phase==='confirm'?'CONFIRM ANSWER':'FINAL ANSWER');
+  txt('status-main',main);
+  txt('status-sub',sub||'');
 }
 
-function onMicTap(){
-  // On Chrome mic is automatic — tap is just a fallback
-  // On Safari/other tap is required each time
-  if(micState==='ready'||micState==='disabled') startListening();
-}
-
-function startListening(){
+// ── LISTENING ──
+function startListening(phase){
   if(!sessionActive) return;
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){
-    setText('status-text','Voice not supported on this browser.');
+  if(!SR){txt('transcript-box','Voice not supported — use Chrome or Safari');return;}
+  if(recognition){try{recognition.onresult=null;recognition.onerror=null;recognition.onend=null;recognition.abort();}catch(e){}recognition=null;}
+  if(window.speechSynthesis&&window.speechSynthesis.speaking){
+    window.speechSynthesis.cancel();
+    setTimeout(function(){doListen(phase);},400);
+  } else {
+    doListen(phase);
+  }
+}
+
+function doListen(phase){
+  if(!sessionActive) return;
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();
+  recognition.lang='en-US';
+  recognition.continuous=false;
+  recognition.interimResults=false;
+  recognition.maxAlternatives=5;
+  var hasResult=false;
+
+  el('mic-anim').className='mic-anim active';
+  txt('transcript-box','🎙️ Listening...');
+
+  recognition.onresult=function(e){
+    hasResult=true;
+    var heard='';
+    for(var i=0;i<e.results.length;i++) heard+=e.results[i][0].transcript;
+    heard=heard.trim().toLowerCase();
+    txt('transcript-box','"'+heard+'"');
+    el('mic-anim').className='mic-anim';
+    handleSpeech(heard,phase);
+  };
+  recognition.onerror=function(e){
+    hasResult=true;
+    el('mic-anim').className='mic-anim';
+    if(e.error==='no-speech'){
+      txt('transcript-box','Nothing heard. Please say your answer.');
+      setTimeout(function(){if(sessionActive)startListening(phase);},1500);
+    } else {
+      txt('transcript-box','Error: '+e.error+'. Please try again.');
+      setTimeout(function(){if(sessionActive)startListening(phase);},2000);
+    }
+  };
+  recognition.onend=function(){
+    el('mic-anim').className='mic-anim';
+    if(!hasResult&&sessionActive){
+      txt('transcript-box','Tap Skip if needed or speak again.');
+      setTimeout(function(){if(sessionActive)startListening(phase);},1500);
+    }
+  };
+  try{recognition.start();}catch(e){txt('transcript-box','Tap Skip to continue.');}
+}
+
+// ── SPEECH HANDLING ──
+function handleSpeech(heard,phase){
+  if(phase==='question'){
+    // Expecting A, B, or C
+    var optIdx=-1;
+    if(heard.indexOf('a')===0||heard==='ay'||heard==='option a'||heard==='first') optIdx=0;
+    else if(heard.indexOf('b')===0||heard==='option b'||heard==='second') optIdx=1;
+    else if(heard.indexOf('c')===0||heard==='see'||heard==='option c'||heard==='third') optIdx=2;
+    // Also allow saying the actual answer
+    for(var i=0;i<3;i++){
+      if(heard===currentOptions[i]||heard===currentOptions[i].toLowerCase()) optIdx=i;
+      var n=parseInt(currentOptions[i]);
+      if(!isNaN(n)&&parseInt(WORD_MAP[heard]||heard)===n) optIdx=i;
+    }
+    if(optIdx>=0){
+      selectedOptionIdx=optIdx;
+      highlightOption(optIdx);
+      // Confirm phase
+      var confirmText='You chose option '+(optIdx===0?'A':optIdx===1?'B':'C')+': '+currentOptions[optIdx]+'. Is that your final answer?';
+      speak(confirmText);
+      setPhase('confirm',currentOptions[optIdx],'Is that your final answer?');
+      var delay=confirmText.split(' ').length*400+500;
+      setTimeout(function(){if(sessionActive)startListening('confirm');},delay);
+    } else {
+      speak('Please say A, B, or C.');
+      setTimeout(function(){if(sessionActive)startListening('question');},1800);
+    }
+  } else if(phase==='confirm'){
+    // Expecting yes or no
+    var isYes=heard.indexOf('yes')>=0||heard==='yeah'||heard==='yep'||heard==='correct'||heard==='sure';
+    var isNo=heard.indexOf('no')>=0||heard==='nope'||heard==='nah'||heard==='wrong';
+    if(isYes){
+      // Check answer
+      var chosen=currentOptions[selectedOptionIdx];
+      var correct=chosen===currentQ.a||
+        (!isNaN(parseInt(chosen))&&parseInt(chosen)===parseInt(currentQ.a));
+      showFeedback(correct);
+    } else if(isNo){
+      // Go back to question phase
+      unhighlightOptions();
+      selectedOptionIdx=-1;
+      speak('OK! Let me read the options again. A: '+currentOptions[0]+'. B: '+currentOptions[1]+'. C: '+currentOptions[2]+'. Which one is correct?');
+      setPhase('question','Say A, B, or C','Choose your answer');
+      var delay2=(currentOptions.join(' ').split(' ').length*380)+1000;
+      setTimeout(function(){if(sessionActive)startListening('question');},delay2);
+    } else {
+      speak('Please say yes or no. Is that your final answer?');
+      setTimeout(function(){if(sessionActive)startListening('confirm');},2000);
+    }
+  }
+}
+
+function highlightOption(idx){
+  for(var i=0;i<3;i++){
+    var btn=el('opt-'+i);
+    if(btn) btn.className='opt-btn'+(i===idx?' highlight':'');
+  }
+}
+function unhighlightOptions(){
+  for(var i=0;i<3;i++){var btn=el('opt-'+i);if(btn)btn.className='opt-btn';}
+}
+
+function showFeedback(correct){
+  if(recognition)try{recognition.abort();}catch(e){}
+  for(var i=0;i<3;i++){
+    var btn=el('opt-'+i);
+    if(!btn) continue;
+    if(i===selectedOptionIdx) btn.className='opt-btn '+(correct?'correct':'wrong');
+    else if(currentOptions[i]===currentQ.a) btn.className='opt-btn correct';
+  }
+  cls('q-card','q-card '+(correct?'correct':'wrong'));
+  var msgs_ok=['🌟 Correct!','✅ Right!','🎉 Brilliant!','⭐ Perfect!'];
+  txt('fb-icon',correct?'✅':'❌');
+  txt('fb-msg',correct?pick(msgs_ok):pick(NO_MSGS));
+  txt('fb-detail',correct?'Answer: '+currentQ.a:'The answer is: '+currentQ.a);
+  cls('fb-msg','fb-msg '+(correct?'c':'w'));
+  cls('feedback','feedback '+(correct?'correct':'wrong')+' show');
+
+  if(correct){correctCount++;score+=10;}
+  txt('s-score',score);txt('s-correct',correctCount);
+
+  var say=correct?
+    pick(['Well done! The answer is '+currentQ.a+'.','Correct! Excellent!','Brilliant! That is right!']):
+    'The answer is '+currentQ.a+'. Keep going!';
+  if(!correct&&!isRetry){
+    isRetry=true;
+    say='Not quite! One more chance. '+currentQ.speak;
+    speak(say);
+    var delay=say.split(' ').length*400+800;
+    setTimeout(function(){
+      cls('feedback','feedback');
+      unhighlightOptions();
+      selectedOptionIdx=-1;
+      convPhase='question';
+      var optsText='Your options are. A: '+currentOptions[0]+'. B: '+currentOptions[1]+'. C: '+currentOptions[2]+'. Choose the right one.';
+      speak(optsText);
+      setPhase('question','One more chance — say A, B, or C','You can do it!');
+      var optsDelay=optsText.split(' ').length*380+500;
+      setTimeout(function(){if(sessionActive)startListening('question');},optsDelay);
+    },delay);
     return;
   }
 
-  // Clean up any existing recognition
-  if(recognition){
-    try{recognition.onresult=null;recognition.onerror=null;recognition.onend=null;recognition.abort();}catch(e){}
-    recognition=null;
-  }
-
-  // CRITICAL for Safari: must stop speech synthesis BEFORE starting mic
-  // AND wait for it to actually stop (small delay)
-  if(window.speechSynthesis && window.speechSynthesis.speaking){
-    window.speechSynthesis.cancel();
-    setTimeout(function(){doStartListening(SR);}, 400);
-  } else {
-    doStartListening(SR);
-  }
-}
-
-function doStartListening(SR){
-  if(!sessionActive) return;
-
-  recognition = new SR();
-  recognition.lang = 'en-US';
-  recognition.continuous = false;
-  // KEY FIX: interimResults=false is MORE reliable on Safari
-  // Safari often fires interim but never fires final when interimResults=true
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 5;
-
-  var hasResult = false;
-
-  recognition.onstart = function(){
-    setMicState('listening');
-    setClass('q-card','q-card listening');
-    setText('status-text','🎙️ Listening... say your answer clearly!');
-    setText('transcript-interim','Say your answer now...');
-    setText('transcript-final','');
-  };
-
-  recognition.onresult = function(e){
-    hasResult = true;
-    // With interimResults=false, all results are final
-    var heard = '';
-    for(var i=0;i<e.results.length;i++){
-      heard += e.results[i][0].transcript;
-    }
-    heard = heard.trim();
-    if(heard){
-      setText('transcript-final','"'+heard+'"');
-      setText('transcript-interim','');
-      setMicState('processing');
-      setText('status-text','Got it! Checking your answer...');
-      checkAnswer(heard);
-    }
-  };
-
-  recognition.onspeechend = function(){
-    // Speech detected and ended — recognition will fire onresult shortly
-    setText('transcript-interim','Processing...');
-  };
-
-  recognition.onerror = function(e){
-    hasResult = true; // prevent onend from showing "try again" falsely
-    console.log('Speech error:', e.error);
-    setMicState('ready');
-    setClass('q-card','q-card');
-    setText('transcript-interim','');
-    if(e.error==='no-speech'){
-      setText('status-text','Nothing heard. Tap and try again!');
-      setText('transcript-final','Speak clearly after tapping the button');
-    } else if(e.error==='not-allowed'){
-      setText('status-text','Mic blocked. Allow microphone in Safari settings.');
-      setText('transcript-final','Go to Settings → Safari → Microphone → Allow');
-    } else if(e.error==='audio-capture'){
-      setText('status-text','No microphone found.');
-    } else {
-      setText('status-text','Tap the button and try again!');
-      setText('transcript-final','Error: '+e.error+' — please tap again');
-    }
-  };
-
-  recognition.onend = function(){
-    if(!hasResult){
-      // Recognition ended without any result or error
-      // This is common on Safari — just reset and let user try again
-      setMicState('ready');
-      setClass('q-card','q-card');
-      setText('status-text','Tap the button and speak your answer!');
-      setText('transcript-interim','');
-    }
-  };
-
-  try{
-    recognition.start();
-  } catch(e){
-    console.log('Recognition start error:', e.message);
-    setMicState('ready');
-    setText('status-text','Tap again to try!');
-  }
-}
-
-// ═══════════════════════
-//  ANSWER CHECK
-// ═══════════════════════
-function checkAnswer(heard){
-  if(!currentQ||!sessionActive) return;
-  var correct=isMatch(heard, currentQ.a);
+  speak(say);
   if(!correct) missedQuestions.push(currentQ);
-  showFeedback(correct, heard);
-}
-
-function showFeedback(correct, heard){
-  var msgs_ok=['🌟 Correct!','✅ Right!','🎉 Brilliant!','⭐ Perfect!','🏆 Yes!'];
-  var msgs_no=['Not quite!','Good try!','Almost there!'];
-  setText('fb-icon', correct?'✅':'❌');
-  setText('fb-msg', correct?pick(msgs_ok):pick(msgs_no));
-  setText('fb-answer', correct?'Answer: '+currentQ.a:'The answer is: '+currentQ.a);
-  setClass('fb-msg', 'fb-msg '+(correct?'correct':'wrong'));
-  setClass('feedback','feedback '+(correct?'correct':'wrong')+' show');
-  setClass('q-card','q-card '+(correct?'correct':'wrong'));
-  setMicState('disabled');
-
-  if(correct){ correctCount++; score+=10; }
-  setText('s-score',score);
-  setText('s-correct',correctCount);
-
-  var say, speakDelay;
-
-  if(correct){
-    say = pick(['Well done! The answer is '+currentQ.a+'.','Correct! '+currentQ.a+'. Excellent!','Brilliant! That is right!']);
-    speak(say);
-    speakDelay = Math.max(3000, say.split(' ').length * 380 + 1000);
-    qIdx++;
-    setTimeout(function(){
-      setClass('feedback','feedback');
-      setText('transcript-interim',''); setText('transcript-final','');
-      isRetry=false;
-      loadQ();
-    }, speakDelay);
-  } else if(!isRetry){
-    // First wrong — give one more chance
-    isRetry=true;
-    say = 'Not quite! You have one more chance. ' + currentQ.speak;
-    speak(say);
-    speakDelay = Math.max(3000, say.split(' ').length * 380 + 1000);
-    setTimeout(function(){
-      setClass('feedback','feedback');
-      setText('transcript-interim',''); setText('transcript-final','');
-      // Don't increment qIdx — same question again
-      setMicState('ready');
-      setText('status-text','ONE MORE CHANCE — tap and answer!');
-      setText('q-hint','💪 One more chance — you can do it!');
-    }, speakDelay);
-  } else {
-    // Second wrong — move on
-    isRetry=false;
-    say = 'The answer is '+currentQ.a+'. '+currentQ.a+'. Try to remember!';
-    speak(say);
-    speakDelay = Math.max(3500, say.split(' ').length * 380 + 1000);
-    qIdx++;
-    setTimeout(function(){
-      setClass('feedback','feedback');
-      setText('transcript-interim',''); setText('transcript-final','');
-      loadQ();
-    }, speakDelay);
-  }
+  isRetry=false;
+  var speakDelay=Math.max(3000,say.split(' ').length*400+1000);
+  qIdx++;
+  setTimeout(function(){
+    cls('feedback','feedback');
+    txt('transcript-box','Listening...');
+    loadQ();
+  },speakDelay);
 }
 
 function skipQ(){
-  if(recognition) try{recognition.abort();}catch(e){}
-  setMicState('disabled');
-  speak('Skipping. Next question.');
-  qIdx++;
+  if(recognition)try{recognition.abort();}catch(e){}
+  speak('Skipping. Next question.');qIdx++;
   setTimeout(loadQ,1200);
 }
-
 function repeatQ(){
-  if(recognition) try{recognition.abort();}catch(e){}
-  setMicState('disabled');
-  setText('status-text','Repeating question...');
-  speak(currentQ.speak||currentQ.q);
-  var ms=Math.max(2500,(currentQ.speak||currentQ.q).split(' ').length*400);
+  if(recognition)try{recognition.abort();}catch(e){}
+  speak(currentQ.speak);
+  var d=currentQ.speak.split(' ').length*400+500;
   setTimeout(function(){
-    if(!sessionActive) return;
-    if(isChrome){
-      setMicState('ready');
-      setText('status-text','Say your answer now!');
-      startListening();
-    } else {
-      setMicState('ready');
-      setText('status-text','Tap the mic and say your answer!');
-    }
-  }, ms+500);
+    var optsText='A: '+currentOptions[0]+'. B: '+currentOptions[1]+'. C: '+currentOptions[2]+'. Say A, B, or C.';
+    speak(optsText);
+    setPhase('question','Say A, B, or C','');
+    setTimeout(function(){if(sessionActive)startListening('question');},optsText.split(' ').length*380+500);
+  },d);
 }
 
 function endSession(){
   sessionActive=false;
-  if(recognition) try{recognition.abort();}catch(e){}
+  if(recognition)try{recognition.abort();}catch(e){}
   var pct=Math.round(correctCount/questions.length*100);
   var stars=pct>=80?3:pct>=60?2:1;
   saveTopic(currentTopicId,stars);
-  setText('res-icon',stars===3?'🏆':stars===2?'⭐':'👏');
-  setText('res-stars','⭐'.repeat(stars));
-  setText('res-title',stars===3?'Outstanding!':stars===2?'Well Done, '+playerName+'!':'Good Effort, '+playerName+'!');
-  var rg=el('res-grid');
-  if(rg) rg.innerHTML=
-    '<div class="res-box"><div class="res-val">'+correctCount+'</div><div class="res-label">Correct</div></div>'+
-    '<div class="res-box"><div class="res-val">'+questions.length+'</div><div class="res-label">Questions</div></div>'+
-    '<div class="res-box"><div class="res-val">'+pct+'%</div><div class="res-label">Score</div></div>';
-  var badge=el('badge-pop');
-  if(pct>=80&&badge){badge.textContent='🏅 '+(gradeTopics()[currentTopicIdx]||{}).name+' Badge Earned!';badge.className='badge-pop show';}
-  else if(badge) badge.className='badge-pop';
-  var verses=['"I can do all things through Christ who strengthens me." — Phil 4:13',
-    '"Be strong and courageous." — Joshua 1:9','"With God all things are possible." — Matt 19:26'];
-  setText('res-verse',pick(verses));
-  var resultMsg = pct>=80?
-    'Outstanding '+playerName+'! You scored '+pct+' percent! You earned a badge!' :
-    'Well done '+playerName+'! You scored '+pct+' percent. Keep practising!';
-  speak(resultMsg);
-  // Read scripture verse after result message
-  var verseObj = pick(VERSES);
-  var verseText = typeof verseObj==='object' ? verseObj.text+'. '+verseObj.ref : verseObj;
-  setTimeout(function(){
-    speak(verseText+'. Keep going '+playerName+'! You are doing great!');
-  }, (resultMsg.split(' ').length * 350) + 1000);
+  var rv=pick(VERSES);
+  el('r-icon').textContent=stars===3?'🏆':stars===2?'⭐':'👏';
+  txt('r-stars','⭐'.repeat(stars));
+  txt('r-title',stars===3?'Outstanding!':stars===2?'Well Done, '+playerName+'!':'Good Effort, '+playerName+'!');
+  var sg=el('r-stats');
+  if(sg) sg.innerHTML='<div class="stat-box"><div class="stat-val">'+correctCount+'</div><div class="stat-lbl">Correct</div></div>'
+    +'<div class="stat-box"><div class="stat-val">'+questions.length+'</div><div class="stat-lbl">Questions</div></div>'
+    +'<div class="stat-box"><div class="stat-val">'+pct+'%</div><div class="stat-lbl">Score</div></div>';
+  txt('r-verse',rv.t+' — '+rv.r);
   showScreen('screen-result');
+  var resultMsg=pct>=80?'Outstanding '+playerName+'! '+pct+' percent!':'Well done '+playerName+'! Keep practising!';
+  speak(resultMsg);
+  setTimeout(function(){speak(rv.t+'. '+rv.r+'.');},resultMsg.split(' ').length*380+1000);
 }
 
 function playAgain(){startSession(gradeTopics()[currentTopicIdx],currentTopicIdx);}
 
-// ═══════════════════════
-//  SPEECH
-// ═══════════════════════
+// ── SPEECH ──
 var voice=null;
 function initVoices(){
   if(!window.speechSynthesis) return;
   function set(){
     var vs=window.speechSynthesis.getVoices();
-    voice=vs.find(function(v){return v.name.match(/samantha|karen|victoria|moira|google uk english female|google us english/i);})||
+    voice=vs.find(function(v){return v.name.match(/samantha|karen|victoria|moira|google uk english female/i);})||
           vs.find(function(v){return v.lang&&v.lang.startsWith('en');})||vs[0]||null;
   }
   set();
   if(window.speechSynthesis.onvoiceschanged!==undefined) window.speechSynthesis.onvoiceschanged=set;
-  setTimeout(set,500); setTimeout(set,1500);
+  setTimeout(set,500);
 }
-
 function speak(text){
   if(!speakOn||!window.speechSynthesis||!text) return;
-  try{
-    window.speechSynthesis.cancel();
+  try{window.speechSynthesis.cancel();
     var u=new SpeechSynthesisUtterance(text);
-    u.rate=0.88; u.pitch=1.0; u.volume=1;
+    u.rate=0.88;u.pitch=1.0;u.volume=1;
     if(voice) u.voice=voice;
     window.speechSynthesis.speak(u);
   }catch(e){}
 }
+function toggleSpeak(){speakOn=!speakOn;txt('vol-btn',speakOn?'🔊':'🔇');}
 
-function toggleSpeak(){
-  speakOn=!speakOn;
-  setText('vol-icon', speakOn?'🔊':'🔇');
-}
-
-// ═══════════════════════
-//  BOOT
-// ═══════════════════════
 buildAgeGrid();
 initVoices();
-// Try load kk_profile
-try{
-  var kk=JSON.parse(lsGet('kk_profile')||'{}');
-  if(kk&&kk.name){
-    var ni=el('name-input'); if(ni) ni.value=kk.name;
-    selAge=kk.age||7;
-    document.querySelectorAll('.age-btn').forEach(function(b){
-      if(parseInt(b.dataset.age)===selAge){b.className='age-btn sel';}
-    });
-  }
-}catch(e){}
+try{var kk=JSON.parse(lsGet('kk_profile')||'{}');
+  if(kk&&kk.name){var ni=el('name-input');if(ni)ni.value=kk.name;
+    selAge=kk.age||7;document.querySelectorAll('.age-btn').forEach(function(b){if(parseInt(b.dataset.age)===selAge)b.className='age-btn sel';});
+  }}catch(e){}
 </script>
 </body>
 </html>
