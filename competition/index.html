@@ -308,6 +308,7 @@ var speakOn=true;
 // Break state
 var breakTimerInterval=null;
 var BREAK_DURATION=420; // 7 minutes in seconds
+var PLAYER_TIME=150; // 2.5 minutes per player (declared early for use in startGame)
 var breakTimeLeft=BREAK_DURATION;
 var roundCount=0; // track full rounds for auto-break
 var autoBreakAfterRound=true;
@@ -382,7 +383,7 @@ function startGame(){
       name:name, age:age,
       grade:age<=6?'K':'2',
       score:0, streak:0,
-      timeLeft:120, // 2 mins each
+      timeLeft:PLAYER_TIME, // 2 mins each
       qBank:[], qIdx:0,
       avatar:AVATARS[i%AVATARS.length]
     });
@@ -541,7 +542,7 @@ function startPlayerTimer(){
 function updateTimerBar(){
   var p=players[currentPlayerIdx];
   if(!p) return;
-  var pct=Math.round(p.timeLeft/120*100);
+  var pct=Math.round(p.timeLeft/PLAYER_TIME*100);
   var fill=el('timer-fill');
   if(fill){
     fill.style.width=pct+'%';
@@ -668,73 +669,92 @@ function isMatch(heard,expected){
 
 function checkAnswer(heard){
   if(!currentQ||!gameActive) return;
-  stopTimer();
+  stopTimer(); // pause timer while processing answer
   var p=players[currentPlayerIdx];
   var correct=isMatch(heard,currentQ.a);
 
   if(correct){
     p.score++;
     p.streak++;
-    // Streak bonus: 3 in a row = double points
-    if(p.streak>=3){p.score++;speak('STREAK BONUS!');}
+    if(p.streak>=3){
+      // Streak bonus
+      p.score++;
+      txt('heard-text','🔥 STREAK BONUS!');
+    }
+    renderScoreboard('sb-rows-game');
     showFeedback(true,heard);
+
   } else if(!isRetry){
-    // One retry
+    // First wrong — one retry, DON'T advance question yet
     isRetry=true;
     p.streak=0;
+    renderScoreboard('sb-rows-game');
     var retryMsg='Not quite '+p.name+'! One more chance. '+currentQ.speak;
     speak(retryMsg);
     cls('q-card','q-card wrong');
-    txt('heard-text','Try again!');
-    var delay=retryMsg.split(' ').length*380+800;
+    var speechMs = Math.ceil(retryMsg.split(' ').length / 2.5 * 1000) + 800;
     setTimeout(function(){
       if(!gameActive) return;
-      cls('q-card','q-card');
+      cls('q-card','q-card listening');
       cls('feedback-flash','feedback-flash');
       setMicState('ready');
-      txt('mic-label','ONE MORE CHANCE — TAP!');
-      startPlayerTimer();
-    }, delay);
+      txt('mic-label','ONE MORE CHANCE!');
+      txt('heard-text','');
+      startPlayerTimer(); // resume timer for retry
+    }, speechMs);
+
   } else {
+    // Second wrong — move on
+    isRetry=false;
     p.streak=0;
+    renderScoreboard('sb-rows-game');
     showFeedback(false,heard);
   }
-
-  renderScoreboard('sb-rows-game');
 }
 
 function showFeedback(correct,heard){
   if(recognition)try{recognition.abort();}catch(e){}
+  stopTimer(); // pause timer while giving feedback
+
   var p=players[currentPlayerIdx];
-  var OK=['🌟 Correct!','✅ Right!','🎉 Brilliant!','⭐ Yes!'];
-  var NO=['Not quite!','Good try!','Keep going!'];
+  var OK=['Well done '+p.name+'! Correct!','Yes! '+p.name+' scores!','Brilliant '+p.name+'!','Correct! Great job '+p.name+'!'];
+  var NO_MSG='The answer is '+currentQ.a+'. Keep going '+p.name+'!';
+
   txt('ff-icon',correct?'✅':'❌');
-  txt('ff-msg',correct?pick(OK):pick(NO));
-  txt('ff-detail',correct?p.name+' gets a point! Score: '+p.score:'The answer was: '+currentQ.a);
+  txt('ff-msg',correct?pick(['🌟 Correct!','✅ Right!','🎉 Brilliant!','⭐ Yes!']):'Not quite!');
+  txt('ff-detail',correct?p.name+' scores! Total: '+p.score:'Answer: '+currentQ.a);
   cls('ff-msg','ff-msg '+(correct?'c':'w'));
   cls('feedback-flash','feedback-flash '+(correct?'correct':'wrong')+' show');
   cls('q-card','q-card '+(correct?'correct':'wrong'));
   setMicState('idle');
 
-  var say=correct?
-    pick(['Well done '+p.name+'! Correct!','Yes! '+p.name+' scores!','Brilliant '+p.name+'!']):
-    'The answer is '+currentQ.a+'. Keep going '+p.name+'!';
-  speak(say);
+  var say = correct ? pick(OK) : NO_MSG;
 
-  var delay=Math.max(2500,say.split(' ').length*380+800);
+  // CRITICAL: Calculate exact speech duration before doing ANYTHING else
+  var wordsPerSec = 2.5; // ~2.5 words per second at rate 0.9
+  var speechMs = Math.ceil(say.split(' ').length / wordsPerSec * 1000) + 1200;
+
+  // Increment counters NOW before any async
   p.qIdx++;
   currentTurnQ++;
+  isRetry = false;
 
+  // Speak feedback
+  speak(say);
+
+  // Wait for speech to FULLY finish, then proceed
   setTimeout(function(){
     if(!gameActive) return;
     cls('feedback-flash','feedback-flash');
-    if(currentTurnQ>=Q_PER_TURN){
-      // Turn complete — next player
-      nextPlayer();
+    txt('heard-text','');
+
+    if(currentTurnQ >= Q_PER_TURN){
+      nextPlayer(); // full turn done
     } else {
+      startPlayerTimer(); // resume timer for next question
       loadQuestion();
     }
-  }, delay);
+  }, speechMs);
 }
 
 // ══════════════════════════════════
@@ -743,32 +763,28 @@ function showFeedback(correct,heard){
 function nextPlayer(){
   stopTimer();
   if(!gameActive) return;
+
   // Check if all players are out of time
-  var allDone=players.every(function(p){return p.timeLeft<=0;});
-  if(allDone){endGame();return;}
+  var allDone = players.every(function(p){ return p.timeLeft <= 0; });
+  if(allDone){ endGame(); return; }
 
-  // Check if this completes a full round — if so, auto-break
-  var justFinishedIdx=currentPlayerIdx;
-
-  // Move to next player who still has time
-  var startIdx=currentPlayerIdx;
+  // Simple sequential cycling — find next player with time remaining
+  var attempts = 0;
   do {
-    currentPlayerIdx=(currentPlayerIdx+1)%players.length;
-  } while(players[currentPlayerIdx].timeLeft<=0 && currentPlayerIdx!==startIdx);
+    currentPlayerIdx = (currentPlayerIdx + 1) % players.length;
+    attempts++;
+  } while(players[currentPlayerIdx].timeLeft <= 0 && attempts < players.length);
 
-  if(players[currentPlayerIdx].timeLeft<=0){endGame();return;}
+  if(players[currentPlayerIdx].timeLeft <= 0){ endGame(); return; }
 
-  // Auto-break when we've completed a full round (wrapped back to player 0)
-  if(currentPlayerIdx===0 && justFinishedIdx===players.length-1){
-    roundCount++;
-    speak('Great round everyone! Time for a break!');
-    setTimeout(function(){
-      if(gameActive) takeBreak();
-    },1500);
-    return;
-  }
+  // Reset turn question counter for new player's turn
+  currentTurnQ = 0;
 
-  showTurnAnnounce();
+  // Small gap between turns so feedback speech fully finishes
+  setTimeout(function(){
+    if(!gameActive) return;
+    showTurnAnnounce();
+  }, 600);
 }
 
 function skipQuestion(){
@@ -791,17 +807,28 @@ function confirmEndGame(){
 // ══════════════════════════════════
 //  BREAK SYSTEM
 // ══════════════════════════════════
+// Save state when break starts
+var breakSavedState = null;
+
 function takeBreak(){
   if(!gameActive) return;
   stopTimer();
   if(recognition) try{recognition.abort();}catch(e){}
-  gameActive=false; // pause game
-  breakTimeLeft=BREAK_DURATION;
+
+  // Save exact game state
+  breakSavedState = {
+    playerIdx: currentPlayerIdx,
+    turnQ: currentTurnQ,
+    qForPlayer: players[currentPlayerIdx].qIdx
+  };
+
+  gameActive = false;
+  breakTimeLeft = BREAK_DURATION;
   renderScoreboard('sb-rows-break');
-  var rv=pick(VERSES);
-  txt('break-verse',rv.t+' — '+rv.r);
+  var rv = pick(VERSES);
+  txt('break-verse', rv.t + ' — ' + rv.r);
   showScreen('screen-break');
-  speak('Break time! Take a breath! Well done everyone! '+rv.t);
+  speak('Break time! Take a breath! Well done everyone! ' + rv.t + '. ' + rv.r);
   startBreakTimer();
 }
 
@@ -828,20 +855,26 @@ function updateBreakTimerDisplay(){
 
 function endBreak(){
   if(breakTimerInterval){clearInterval(breakTimerInterval);breakTimerInterval=null;}
-  gameActive=true;
-  showScreen('screen-question');
-  // Resume — announce whose turn it is
-  var p=players[currentPlayerIdx];
-  speak('Welcome back! Continuing with '+p.name+'. Your turn!');
-  var delay=2000;
+
+  // Restore exact saved state
+  if(breakSavedState){
+    currentPlayerIdx = breakSavedState.playerIdx;
+    currentTurnQ = breakSavedState.turnQ;
+    players[currentPlayerIdx].qIdx = breakSavedState.qForPlayer;
+    breakSavedState = null;
+  }
+
+  gameActive = true;
+  var p = players[currentPlayerIdx];
+  speak('Welcome back! ' + p.name + ', it is your turn. Get ready!');
+  var delay = p.name.split(' ').length * 400 + 2500;
+
   setTimeout(function(){
-    if(currentTurnQ===0) loadQuestion();
-    else {
-      // Was mid-turn — just reload same question
-      setMicState('ready');
-      txt('mic-label','TAP to answer!');
-      startPlayerTimer();
-    }
+    if(!gameActive) return;
+    showScreen('screen-question');
+    renderScoreboard('sb-rows-game');
+    // Show turn announcement then load question
+    showTurnAnnounce();
   }, delay);
 }
 
