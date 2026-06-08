@@ -216,13 +216,15 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:#f0f7ff;color:#
   <div style="font-family:'Fredoka One',cursive;font-size:26px;text-align:center;margin:8px 0;color:#6c63ff">Kingdom Kids Math</div>
   <div style="font-size:14px;color:#888;text-align:center;margin-bottom:4px">Who is doing maths today?</div>
   <div class="player-cards">
-    <div class="player-card" onclick="selectPlayer('anu')">
-      <div class="pc-avatar">⭐</div>
+    <div class="player-card" id="math-main-card" onclick="selectMainMathPlayer()">
+      <div class="pc-avatar" id="math-main-avatar">🏆</div>
       <div>
-        <div class="pc-name">Anu</div>
-        <div class="pc-grade">Kindergarten · Age 5</div>
-        <div class="pc-progress" id="anu-math-progress">Loading...</div>
+        <div class="pc-name" id="math-main-name">Loading...</div>
+        <div class="pc-grade" id="math-main-grade">Loading grade...</div>
+        <div class="pc-progress" id="math-main-progress">Tap to start!</div>
       </div>
+    </div>
+  </div>
     </div>
     <div class="player-card" onclick="selectPlayer('dominion')">
       <div class="pc-avatar">🏆</div>
@@ -1199,21 +1201,34 @@ function selectPlayer(player){
   showScreen('screen-mode');
 }
 
+function kkGetMathProfile(){
+  try{var r=localStorage.getItem('kk_profile');return r?JSON.parse(r):{name:'Friend',age:7,isEasy:false};}
+  catch(e){return {name:'Friend',age:7,isEasy:false};}
+}
+
+function selectMainMathPlayer(){
+  var prof=kkGetMathProfile();
+  var player=(prof.isEasy||prof.age<=6)?'anu':'dominion';
+  selectPlayer(player);
+}
+
 function refreshPlayerCards(){
-  ['anu','dominion'].forEach(function(p){
-    var save=loadMathSave(p);
-    var topics=p==='anu'?KINDERGARTEN_TOPICS:GRADE2_TOPICS;
-    var badges=Object.keys(save.topics).filter(function(k){return save.topics[k].badge;}).length;
-    var el=document.getElementById(p+'-math-progress');
-    if(el) el.textContent=badges+' of '+topics.length+' topics completed';
-  });
-  // Load from KK profile
-  var kk=null;
-  try{var r=lsGet('kk_profile');kk=r?JSON.parse(r):null;}catch(e){}
-  if(kk&&kk.name){
-    var anuCard=document.querySelector('#screen-player .player-card:first-of-type .pc-name');
-    // Keep Anu/Dominion names as they map to grade levels
-  }
+  var prof=kkGetMathProfile();
+  var isEasy=prof.isEasy||prof.age<=6;
+  var player=isEasy?'anu':'dominion';
+  var topics=isEasy?KINDERGARTEN_TOPICS:GRADE2_TOPICS;
+  var save=loadMathSave(player);
+  var badges=Object.keys(save.topics).filter(function(k){return save.topics[k].badge;}).length;
+
+  var av=document.getElementById('math-main-avatar');
+  if(av) av.textContent=isEasy?'⭐':'🏆';
+  var nm=document.getElementById('math-main-name');
+  if(nm) nm.textContent=prof.name&&prof.name!=='Friend'?prof.name:'Set up your name in the Hub!';
+  var gr=document.getElementById('math-main-grade');
+  if(gr) gr.textContent=(isEasy?'Kindergarten':'2nd Grade')+' · Age '+prof.age;
+  var pr=document.getElementById('math-main-progress');
+  if(pr) pr.textContent=badges+' of '+topics.length+' topics completed';
+
 }
 
 // ═══════════════════════════════════════════
