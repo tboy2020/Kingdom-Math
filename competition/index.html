@@ -430,8 +430,16 @@ function startGame(){
   players.forEach(function(p){
     var bank=p.grade==='K'?K_QUESTIONS:G2_QUESTIONS;
     // Generate 30 questions (plenty for 2 mins)
-    for(var i=0;i<30;i++) p.qBank.push(bank[i%bank.length]());
+    var totalNeeded = Math.max(60, (Q_PER_TURN * MAX_ROUNDS) + 10);
+    for(var i=0;i<totalNeeded;i++) p.qBank.push(bank[i%bank.length]());
   });
+
+  // Read parent settings (questions per round + number of rounds)
+  try{
+    var cfg = JSON.parse(localStorage.getItem('kk_comp_settings') || '{}');
+    if(cfg.qpr) Q_PER_TURN = cfg.qpr;
+    if(cfg.rounds) MAX_ROUNDS = cfg.rounds;
+  }catch(e){}
 
   currentPlayerIdx=0;
   currentTurnQ=0;
