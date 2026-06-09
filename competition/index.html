@@ -125,7 +125,7 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
 <div class="screen active" id="screen-welcome">
   <div class="welcome-icon">🏆</div>
   <div style="font-family:'Fredoka One',cursive;font-size:30px;color:#ffd200;text-align:center">Math Competition!</div>
-  <div style="font-size:14px;color:#aaa;text-align:center;line-height:1.7">Voice-powered math battle!<br>Each player answers at their own grade level.<br>2 questions per turn. Most points wins!</div>
+  <div style="font-size:14px;color:#aaa;text-align:center;line-height:1.7">Voice-powered math battle!<br>Each player answers at their own grade level.<br>2 minutes per question · 5 turns each · Most points wins!</div>
   <button class="btn btn-gold" onclick="showScreen('screen-setup')" style="width:100%;max-width:320px;font-size:22px;padding:18px">⚔️ Set Up Game!</button>
 </div>
 
@@ -340,11 +340,13 @@ var speakOn=true;
 // Break state
 var breakTimerInterval=null;
 var BREAK_DURATION=420; // 7 minutes in seconds
-var PLAYER_TIME=150; // 2.5 minutes per player
+var QUESTION_TIME=120; // 2 minutes PER QUESTION
 var breakTimeLeft=BREAK_DURATION;
 // Guards against multiple firings
 var turnTransitioning=false;
-var answerProcessed=false; // blocks duplicate answer processing
+var answerProcessed=false;
+var roundsPlayed=0;
+var MAX_ROUNDS=5; // each player gets 5 turns (5 x 2 questions = 10 questions each)
 
 // ══════════════════════════════════
 //  SCREENS
@@ -416,7 +418,7 @@ function startGame(){
       name:name, age:age,
       grade:age<=6?'K':'2',
       score:0, streak:0,
-      timeLeft:PLAYER_TIME, // 2 mins each
+      timeLeft:QUESTION_TIME, // resets each question
       qBank:[], qIdx:0,
       avatar:AVATARS[i%AVATARS.length]
     });
@@ -433,6 +435,7 @@ function startGame(){
   isRetry=false;
   turnTransitioning=false;
   answerProcessed=false;
+  roundsPlayed=0;
   gameActive=true;
   showTurnAnnounce();
 }
@@ -551,7 +554,9 @@ function loadQuestion(){
   renderScoreboard('sb-rows-game');
   updateTimerBar();
 
-  // Timer runs throughout — start it now
+  // RESET timer to full 2 minutes for this NEW question
+  players[currentPlayerIdx].timeLeft = QUESTION_TIME;
+  updateTimerBar();
   startPlayerTimer();
 
   // Speak question, THEN options, THEN start listening — all chained via queue
@@ -577,17 +582,34 @@ function startPlayerTimer(){
     updateTimerBar();
     if(p.timeLeft<=0){
       clearInterval(timerInterval);
-      speak(p.name+' time is up!');
+      clearSpeech();
       if(recognition)try{recognition.abort();}catch(e){}
-      setTimeout(nextPlayer,1500);
+      answerProcessed=true; // prevent late answers
+      // Time up on THIS question — reveal answer, move to next question
+      speak(p.name+', time is up for this question! The answer is '+currentQ.a+'.', function(){
+        timeUpAdvance();
+      });
     }
   },1000);
+}
+
+function timeUpAdvance(){
+  if(!gameActive) return;
+  var p=players[currentPlayerIdx];
+  p.streak=0; // missed = streak broken
+  p.qIdx++;
+  currentTurnQ++;
+  if(currentTurnQ>=Q_PER_TURN){
+    nextPlayer();
+  } else {
+    loadQuestion(); // loadQuestion resets the per-question timer
+  }
 }
 
 function updateTimerBar(){
   var p=players[currentPlayerIdx];
   if(!p) return;
-  var pct=Math.round(p.timeLeft/PLAYER_TIME*100);
+  var pct=Math.round(p.timeLeft/QUESTION_TIME*100);
   var fill=el('timer-fill');
   if(fill){
     fill.style.width=pct+'%';
