@@ -528,6 +528,8 @@ function loadQuestion(){
   if(p.timeLeft <= 0){ nextPlayer(); return; }
   if(p.qIdx >= p.qBank.length){ nextPlayer(); return; }
 
+  clearSpeech(); // clear any pending speech from previous question
+
   currentQ = p.qBank[p.qIdx];
   isRetry = false;
   answerProcessed = false;
@@ -536,7 +538,6 @@ function loadQuestion(){
   buildOpts(currentQ);
   resetOpts();
 
-  // Update UI
   txt('q-tag', p.name + ' · ' + p.grade + ' · Q' + (currentTurnQ+1) + ' of ' + Q_PER_TURN);
   txt('q-text', currentQ.q);
   txt('q-prog', 'Question ' + (currentTurnQ+1) + ' of ' + Q_PER_TURN);
@@ -545,29 +546,22 @@ function loadQuestion(){
   txt('heard-text', '');
   txt('timer-player-label', p.name + "'s time");
   setMicState('idle');
+  txt('mic-label', 'Listen to the question...');
   renderScoreboard('sb-rows-game');
   updateTimerBar();
 
-  // 1) Read the question
-  speak(currentQ.speak);
-  var qDelay = Math.ceil(currentQ.speak.split(' ').length / 2.5 * 1000) + 400;
+  // Timer runs throughout — start it now
+  startPlayerTimer();
 
-  setTimeout(function(){
+  // Speak question, THEN options, THEN start listening — all chained via queue
+  speak(currentQ.speak);
+  var optsText = 'A — ' + currentOpts[0] + '. B — ' + currentOpts[1] + '. C — ' + currentOpts[2] + '. Take your time. Say A, B, or C when ready.';
+  speak(optsText, function(){
+    // This runs ONLY after options finish speaking
     if(!gameActive || players[currentPlayerIdx].timeLeft <= 0) return;
-    // 2) Read the options
-    var optsText = 'A — ' + currentOpts[0] + '. B — ' + currentOpts[1] + '. C — ' + currentOpts[2] + '. Say A, B, or C.';
-    speak(optsText);
-    var optsDelay = Math.ceil(optsText.split(' ').length / 2.5 * 1000) + 300;
-    setTimeout(function(){
-      if(!gameActive || players[currentPlayerIdx].timeLeft <= 0) return;
-      // 3) Auto-listen
-      convPhase = 'letter';
-      setMicState('listening');
-      txt('mic-label', '🎙️ Say A, B or C...');
-      startPlayerTimer();
-      autoListen();
-    }, optsDelay);
-  }, qDelay);
+    convPhase = 'letter';
+    beginContinuousListening();
+  });
 }
 
 // ══════════════════════════════════
@@ -710,93 +704,121 @@ function setMicState(state){
 
 // old onMicTap removed — using new one below
 
+function beginContinuousListening(){
+  if(!gameActive || answerProcessed) return;
+  setMicState('listening');
+  txt('mic-label', '🎙️ Listening — say A, B or C anytime');
+  startRecognition(true); // continuous mode
+}
+
 function autoListen(){
-  if(!gameActive) return;
-  if(answerProcessed) return;
+  // Used for re-listening after confirm/retry prompts
+  if(!gameActive || answerProcessed) return;
+  setMicState('listening');
+  startRecognition(true);
+}
+
+function startRecognition(continuous){
+  if(!gameActive || answerProcessed) return;
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR){ setMicState('ready'); txt('mic-label','Tap mic to answer'); return; }
+  if(!SR){ setMicState('ready'); txt('mic-label','Tap an option below'); return; }
 
   if(recognition){
     try{ recognition.onresult=null; recognition.onerror=null; recognition.onend=null; recognition.abort(); }catch(e){}
     recognition = null;
   }
+  // Wait for any speech to fully stop before opening mic
   if(window.speechSynthesis && window.speechSynthesis.speaking){
-    window.speechSynthesis.cancel();
-    setTimeout(function(){ doListenNow(); }, 350);
-  } else {
-    doListenNow();
+    setTimeout(function(){ startRecognition(continuous); }, 300);
+    return;
   }
+  doRecognition(continuous);
 }
 
-function doListenNow(){
+function doRecognition(continuous){
   if(!gameActive || answerProcessed) return;
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR) return;
   recognition = new SR();
   recognition.lang = 'en-US';
-  recognition.continuous = false;
+  recognition.continuous = false; // Safari ignores true anyway
   recognition.interimResults = false;
   recognition.maxAlternatives = 5;
-  var hasResult = false;
+  var gotResult = false;
 
-  el('mic-big').style.filter = 'drop-shadow(0 0 14px #ffd200)';
+  var mic = el('mic-big');
+  if(mic) mic.style.filter = 'drop-shadow(0 0 14px #ffd200)';
 
   recognition.onresult = function(e){
-    hasResult = true;
+    gotResult = true;
     var heard = '';
-    for(var i = 0; i < e.results.length; i++) heard += e.results[i][0].transcript;
+    for(var i=0;i<e.results.length;i++) heard += e.results[i][0].transcript;
     heard = heard.trim().toLowerCase();
     txt('heard-text', '"' + heard + '"');
-    el('mic-big').style.filter = 'none';
+    if(mic) mic.style.filter = 'none';
     if(convPhase === 'letter') processLetterResponse(heard);
     else if(convPhase === 'final') processFinalResponse(heard);
   };
 
   recognition.onerror = function(e){
-    hasResult = true;
-    el('mic-big').style.filter = 'none';
+    gotResult = true;
+    if(mic) mic.style.filter = 'none';
     if(e.error === 'no-speech'){
-      txt('heard-text', 'Nothing heard — tap mic or say A, B or C');
+      // Silence — keep mic available by auto-restarting (still within their time)
+      if(gameActive && !answerProcessed && players[currentPlayerIdx].timeLeft > 0){
+        setTimeout(function(){
+          if(gameActive && !answerProcessed) startRecognition(continuous);
+        }, 400);
+      }
+    } else if(e.error === 'not-allowed' || e.error === 'service-not-allowed'){
       setMicState('ready');
+      txt('mic-label', '🔇 Allow mic, or tap an option below');
     } else {
-      txt('heard-text', 'Could not hear — tap mic to try again');
-      setMicState('ready');
+      // Other error — show tap to speak again
+      showTapToSpeak();
     }
   };
 
   recognition.onend = function(){
-    el('mic-big').style.filter = 'none';
-    if(!hasResult && gameActive && !answerProcessed){
-      txt('heard-text', 'Tap 🎙️ if needed');
-      setMicState('ready');
+    if(mic) mic.style.filter = 'none';
+    if(!gotResult && gameActive && !answerProcessed && players[currentPlayerIdx].timeLeft > 0){
+      // Browser cut off the mic after silence — auto-restart so it stays on
+      setTimeout(function(){
+        if(gameActive && !answerProcessed && players[currentPlayerIdx].timeLeft > 0){
+          startRecognition(continuous);
+        }
+      }, 300);
     }
   };
 
   try{ recognition.start(); }
-  catch(e){ setMicState('ready'); txt('mic-label','Tap mic to answer'); }
+  catch(e){ showTapToSpeak(); }
 }
 
+function showTapToSpeak(){
+  setMicState('ready');
+  txt('mic-label', '🎙️ Tap to speak again');
+  var mic = el('mic-big');
+  if(mic) mic.style.filter = 'drop-shadow(0 0 8px #4ade80)';
+}
+
+// orphan doListenNow removed
+
 function processLetterResponse(heard){
-  // Map what was heard to A, B or C
   var letterMap = {
-    'a':'A','ay':'A','eh':'A','option a':'A',
+    'a':'A','ay':'A','eh':'A','option a':'A','hey':'A',
     'b':'B','be':'B','bee':'B','option b':'B',
     'c':'C','see':'C','sea':'C','si':'C','option c':'C'
   };
   var letter = null;
-  // Direct match
   if(letterMap[heard]) letter = letterMap[heard];
-  // Starts with a/b/c
   if(!letter && heard.length >= 1){
-    var first = heard.charAt(0);
-    if(first === 'a') letter = 'A';
-    else if(first === 'b') letter = 'B';
-    else if(first === 'c') letter = 'C';
+    var f = heard.charAt(0);
+    if(f==='a') letter='A'; else if(f==='b') letter='B'; else if(f==='c') letter='C';
   }
-  // Said the actual answer value
   if(!letter){
-    for(var i = 0; i < currentOpts.length; i++){
-      if(isMatch(heard, currentOpts[i])){ letter = ['A','B','C'][i]; break; }
+    for(var i=0;i<currentOpts.length;i++){
+      if(isMatch(heard, currentOpts[i])){ letter=['A','B','C'][i]; break; }
     }
   }
 
@@ -804,58 +826,55 @@ function processLetterResponse(heard){
     selectedOptIdx = ['A','B','C'].indexOf(letter);
     highlightOpt(selectedOptIdx, 'selected');
     txt('heard-text', 'You said: ' + letter + ' — ' + currentOpts[selectedOptIdx]);
-    // Ask final answer confirmation
     convPhase = 'final';
+    setMicState('idle');
+    txt('mic-label', '...');
     var confirmMsg = 'You chose ' + letter + ' — ' + currentOpts[selectedOptIdx] + '. Is that your final answer?';
-    speak(confirmMsg);
-    txt('mic-label', '🎙️ Say Yes or No...');
-    var delay = Math.ceil(confirmMsg.split(' ').length / 2.5 * 1000) + 300;
-    setTimeout(function(){
-      if(gameActive && !answerProcessed) autoListen();
-    }, delay);
+    // Speak confirm, THEN listen for yes/no
+    speak(confirmMsg, function(){
+      if(!gameActive || answerProcessed) return;
+      setMicState('listening');
+      txt('mic-label', '🎙️ Say Yes or No');
+      autoListen();
+    });
   } else {
-    // Couldn't identify letter — ask again
     var retry = 'Please say A, B, or C.';
-    speak(retry);
-    var delay2 = Math.ceil(retry.split(' ').length / 2.5 * 1000) + 200;
-    setTimeout(function(){
-      if(gameActive && !answerProcessed) autoListen();
-    }, delay2);
+    speak(retry, function(){
+      if(!gameActive || answerProcessed) return;
+      autoListen();
+    });
   }
 }
 
 function processFinalResponse(heard){
-  var isYes = /yes|yeah|yep|correct|right|sure|ok|yea/.test(heard);
-  var isNo  = /no|nope|nah|wrong|change|different/.test(heard);
+  var isYes = /yes|yeah|yep|correct|right|sure|ok|yea|confirm/.test(heard);
+  var isNo  = /no|nope|nah|wrong|change|different|again/.test(heard);
 
   if(isYes){
     if(answerProcessed) return;
     answerProcessed = true;
-    stopTimer();
+    if(recognition) try{ recognition.abort(); }catch(e){}
     var chosen = currentOpts[selectedOptIdx];
     var correct = isMatch(chosen, currentQ.a);
     processResult(correct, chosen);
   } else if(isNo){
-    // Go back to choosing a letter
     convPhase = 'letter';
     selectedOptIdx = -1;
     resetOpts();
-    var rereadMsg = 'OK! ' + 'A — ' + currentOpts[0] + '. B — ' + currentOpts[1] + '. C — ' + currentOpts[2] + '. Choose again.';
-    speak(rereadMsg);
-    txt('mic-label', '🎙️ Say A, B or C...');
     txt('heard-text', '');
-    var delay = Math.ceil(rereadMsg.split(' ').length / 2.5 * 1000) + 300;
-    setTimeout(function(){
-      if(gameActive && !answerProcessed) autoListen();
-    }, delay);
+    var rereadMsg = 'OK! A — ' + currentOpts[0] + '. B — ' + currentOpts[1] + '. C — ' + currentOpts[2] + '. Choose again.';
+    speak(rereadMsg, function(){
+      if(!gameActive || answerProcessed) return;
+      setMicState('listening');
+      txt('mic-label', '🎙️ Say A, B or C');
+      autoListen();
+    });
   } else {
-    // Unclear response
-    var ask = 'Please say yes or no. Is that your final answer?';
-    speak(ask);
-    var delay2 = Math.ceil(ask.split(' ').length / 2.5 * 1000) + 200;
-    setTimeout(function(){
-      if(gameActive && !answerProcessed) autoListen();
-    }, delay2);
+    var ask = 'Please say yes or no.';
+    speak(ask, function(){
+      if(!gameActive || answerProcessed) return;
+      autoListen();
+    });
   }
 }
 
@@ -864,11 +883,12 @@ function handleLetter(letter){
   processLetterResponse(letter.toLowerCase());
 }
 
-// onMicTap — fallback if auto-listen fails
+// onMicTap — tap the mic to (re)start listening
 function onMicTap(){
-  if(answerProcessed) return;
+  if(answerProcessed || !gameActive) return;
   if(recognition) try{ recognition.abort(); }catch(e){}
-  txt('mic-label', '🎙️ Listening...');
+  setMicState('listening');
+  txt('mic-label', convPhase==='final' ? '🎙️ Say Yes or No' : '🎙️ Say A, B or C');
   autoListen();
 }
 
@@ -923,24 +943,29 @@ function isMatch(heard,expected){
 
 function processResult(correct, chosen){
   var p = players[currentPlayerIdx];
+  stopTimer();
   highlightOpt(selectedOptIdx, correct ? 'correct' : 'wrong');
+  setMicState('idle');
+  txt('mic-label', '');
 
   if(correct){
     p.score++;
     p.streak++;
-    if(p.streak >= 3){ p.score++; txt('heard-text','🔥 STREAK BONUS! +2 points!'); }
+    var bonus = false;
+    if(p.streak >= 3){ p.score++; bonus = true; }
     renderScoreboard('sb-rows-game');
-    showFeedback(true, chosen);
+    showFeedbackVisual(true, chosen, bonus);
+    var okMsg = bonus ? 'Correct! Streak bonus! Well done ' + p.name + '!' :
+                pick(['Correct! Well done ' + p.name + '!','Yes! ' + p.name + ' scores!','Brilliant ' + p.name + '!']);
+    speak(okMsg, function(){ advanceAfterAnswer(); });
 
   } else if(!isRetry){
     isRetry = true;
     p.streak = 0;
     renderScoreboard('sb-rows-game');
-    var retryMsg = 'Not quite ' + p.name + '! One more chance. ' + currentQ.speak;
-    speak(retryMsg);
-    cls('q-card','q-card wrong');
-    var speechMs = Math.ceil(retryMsg.split(' ').length / 2.5 * 1000) + 600;
-    setTimeout(function(){
+    showFeedbackVisual(false, chosen, false);
+    var retryMsg = 'Not quite ' + p.name + '! One more chance. A — ' + currentOpts[0] + '. B — ' + currentOpts[1] + '. C — ' + currentOpts[2] + '. Choose again.';
+    speak(retryMsg, function(){
       if(!gameActive) return;
       answerProcessed = false;
       convPhase = 'letter';
@@ -949,69 +974,49 @@ function processResult(correct, chosen){
       cls('q-card','q-card');
       cls('feedback-flash','feedback-flash');
       txt('heard-text','');
-      var optsMsg = 'A — '+currentOpts[0]+'. B — '+currentOpts[1]+'. C — '+currentOpts[2]+'. Choose again.';
-      speak(optsMsg);
-      txt('mic-label','🎙️ Say A, B or C...');
-      var od = Math.ceil(optsMsg.split(' ').length / 2.5 * 1000) + 300;
-      setTimeout(function(){
-        if(gameActive && !answerProcessed){ startPlayerTimer(); autoListen(); }
-      }, od);
-    }, speechMs);
+      startPlayerTimer();
+      setMicState('listening');
+      txt('mic-label','🎙️ Say A, B or C');
+      autoListen();
+    });
 
   } else {
     isRetry = false;
     p.streak = 0;
     renderScoreboard('sb-rows-game');
-    showFeedback(false, chosen);
+    showFeedbackVisual(false, chosen, false);
+    var wrongMsg = 'The answer is ' + currentQ.a + '. Keep going ' + p.name + '!';
+    speak(wrongMsg, function(){ advanceAfterAnswer(); });
+  }
+}
+
+function showFeedbackVisual(correct, chosen, bonus){
+  txt('ff-icon', correct ? '✅' : '❌');
+  txt('ff-msg', correct ? (bonus ? '🔥 Streak Bonus!' : pick(['🌟 Correct!','✅ Right!','🎉 Brilliant!'])) : 'Not quite!');
+  txt('ff-detail', correct ? players[currentPlayerIdx].name + ' scores! Total: ' + players[currentPlayerIdx].score : 'Answer: ' + currentQ.a);
+  cls('ff-msg', 'ff-msg ' + (correct ? 'c' : 'w'));
+  cls('feedback-flash', 'feedback-flash ' + (correct ? 'correct' : 'wrong') + ' show');
+  cls('q-card', 'q-card ' + (correct ? 'correct' : 'wrong'));
+}
+
+function advanceAfterAnswer(){
+  if(!gameActive) return;
+  cls('feedback-flash', 'feedback-flash');
+  txt('heard-text', '');
+  var p = players[currentPlayerIdx];
+  p.qIdx++;
+  currentTurnQ++;
+  if(currentTurnQ >= Q_PER_TURN){
+    nextPlayer();
+  } else {
+    startPlayerTimer();
+    loadQuestion();
   }
 }
 
 function checkAnswer(heard){ processLetterResponse(heard); }
 
-function showFeedback(correct,heard){
-  if(recognition)try{recognition.abort();}catch(e){}
-  stopTimer(); // pause timer while giving feedback
-
-  var p=players[currentPlayerIdx];
-  var OK=['Well done '+p.name+'! Correct!','Yes! '+p.name+' scores!','Brilliant '+p.name+'!','Correct! Great job '+p.name+'!'];
-  var NO_MSG='The answer is '+currentQ.a+'. Keep going '+p.name+'!';
-
-  txt('ff-icon',correct?'✅':'❌');
-  txt('ff-msg',correct?pick(['🌟 Correct!','✅ Right!','🎉 Brilliant!','⭐ Yes!']):'Not quite!');
-  txt('ff-detail',correct?p.name+' scores! Total: '+p.score:'Answer: '+currentQ.a);
-  cls('ff-msg','ff-msg '+(correct?'c':'w'));
-  cls('feedback-flash','feedback-flash '+(correct?'correct':'wrong')+' show');
-  cls('q-card','q-card '+(correct?'correct':'wrong'));
-  setMicState('idle');
-
-  var say = correct ? pick(OK) : NO_MSG;
-
-  // CRITICAL: Calculate exact speech duration before doing ANYTHING else
-  var wordsPerSec = 2.5; // ~2.5 words per second at rate 0.9
-  var speechMs = Math.ceil(say.split(' ').length / wordsPerSec * 1000) + 1200;
-
-  // Increment counters NOW before any async
-  p.qIdx++;
-  currentTurnQ++;
-  isRetry = false;
-
-  // Speak feedback
-  speak(say);
-
-  // Wait for speech to FULLY finish, then proceed
-  setTimeout(function(){
-    if(!gameActive) return;
-    cls('feedback-flash','feedback-flash');
-    txt('heard-text','');
-
-    if(currentTurnQ >= Q_PER_TURN){
-      nextPlayer(); // full turn done
-    } else {
-      startPlayerTimer(); // resume timer for next question
-      loadQuestion();
-    }
-  }, speechMs);
-}
+// old showFeedback removed — replaced by showFeedbackVisual + advanceAfterAnswer
 
 // ══════════════════════════════════
 //  TURN MANAGEMENT
@@ -1249,14 +1254,47 @@ function initVoices(){
   if(window.speechSynthesis.onvoiceschanged!==undefined) window.speechSynthesis.onvoiceschanged=set;
   setTimeout(set,500);
 }
-function speak(text){
-  if(!speakOn||!window.speechSynthesis||!text) return;
-  try{window.speechSynthesis.cancel();
-    var u=new SpeechSynthesisUtterance(text);
-    u.rate=0.9;u.pitch=1.0;u.volume=1;
-    if(voice) u.voice=voice;
+// ── SPEECH QUEUE — guarantees no overlap ──
+var speechQueue = [];
+var speaking = false;
+
+function speak(text, onDone){
+  if(!speakOn || !window.speechSynthesis || !text){
+    if(onDone) onDone();
+    return;
+  }
+  speechQueue.push({text:text, onDone:onDone});
+  if(!speaking) processSpeechQueue();
+}
+
+function processSpeechQueue(){
+  if(speechQueue.length === 0){ speaking = false; return; }
+  speaking = true;
+  var item = speechQueue.shift();
+  try{
+    var u = new SpeechSynthesisUtterance(item.text);
+    u.rate = 0.9; u.pitch = 1.0; u.volume = 1;
+    if(voice) u.voice = voice;
+    u.onend = function(){
+      if(item.onDone) item.onDone();
+      // Small gap between utterances for clarity
+      setTimeout(processSpeechQueue, 250);
+    };
+    u.onerror = function(){
+      if(item.onDone) item.onDone();
+      setTimeout(processSpeechQueue, 250);
+    };
     window.speechSynthesis.speak(u);
-  }catch(e){}
+  }catch(e){
+    if(item.onDone) item.onDone();
+    setTimeout(processSpeechQueue, 250);
+  }
+}
+
+function clearSpeech(){
+  speechQueue = [];
+  speaking = false;
+  if(window.speechSynthesis) try{ window.speechSynthesis.cancel(); }catch(e){}
 }
 function toggleSpeak(){speakOn=!speakOn;txt('vol-btn',speakOn?'🔊':'🔇');}
 
