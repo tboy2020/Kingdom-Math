@@ -418,9 +418,12 @@ function startGame(){
       name:name, age:age,
       grade:age<=6?'K':'2',
       score:0, streak:0,
-      timeLeft:QUESTION_TIME, // resets each question
+      timeLeft:QUESTION_TIME,
       qBank:[], qIdx:0,
-      avatar:AVATARS[i%AVATARS.length]
+      avatar:AVATARS[i%AVATARS.length],
+      correctCount:0, wrongCount:0,
+      roundScores:[], // score earned each round
+      topicsAnswered:{} // {questionText: {correct:n, wrong:n}}
     });
   }
   // Build question banks for each player
@@ -596,7 +599,9 @@ function startPlayerTimer(){
 function timeUpAdvance(){
   if(!gameActive) return;
   var p=players[currentPlayerIdx];
-  p.streak=0; // missed = streak broken
+  p.streak=0;
+  p.wrongCount++;
+  recordTopic(p, false);
   p.qIdx++;
   currentTurnQ++;
   if(currentTurnQ>=Q_PER_TURN){
@@ -979,6 +984,34 @@ function isMatch(heard,expected){
   return false;
 }
 
+function getTopicName(q){
+  var qt = (q && q.q) ? q.q : '';
+  var low = qt.toLowerCase();
+  if(qt.indexOf('+') >= 0) return 'Addition';
+  if(qt.indexOf('-') >= 0 || qt.indexOf('\u2212') >= 0) return 'Subtraction';
+  if(qt.indexOf('\u00d7') >= 0 || low.indexOf('rows') >= 0) return 'Multiplication/Arrays';
+  if(low.indexOf('odd') >= 0 || low.indexOf('even') >= 0) return 'Odd/Even';
+  if(low.indexOf('clock') >= 0 || qt.indexOf(':') >= 0) return 'Time';
+  if(low.indexOf('cent') >= 0 || qt.indexOf('\u00a2') >= 0 || qt.indexOf('$') >= 0) return 'Money';
+  if(low.indexOf('count') >= 0 || qt.indexOf('\u25cf') >= 0) return 'Counting';
+  if(low.indexOf('side') >= 0 || low.indexOf('shape') >= 0) return 'Shapes';
+  if(low.indexOf('digit') >= 0) return 'Place Value';
+  if(low.indexOf('slice') >= 0 || low.indexOf('quarter') >= 0 || low.indexOf('half') >= 0) return 'Fractions';
+  if(low.indexOf('more') >= 0 || low.indexOf('less') >= 0) return 'Compare';
+  if(qt.indexOf(',') >= 0 && low.indexOf('next') < 0) return 'Skip Counting';
+  if(low.indexOf('next') >= 0) return 'Skip Counting';
+  return 'Mixed';
+}
+
+function recordTopic(player, correct){
+  if(!currentQ) return;
+  var topic = getTopicName(currentQ);
+  if(!player.topicsAnswered) player.topicsAnswered = {};
+  if(!player.topicsAnswered[topic]) player.topicsAnswered[topic] = {correct:0, wrong:0};
+  if(correct) player.topicsAnswered[topic].correct++;
+  else player.topicsAnswered[topic].wrong++;
+}
+
 function processResult(correct, chosen){
   var p = players[currentPlayerIdx];
   stopTimer();
@@ -989,6 +1022,8 @@ function processResult(correct, chosen){
   if(correct){
     p.score++;
     p.streak++;
+    p.correctCount++;
+    recordTopic(p, true);
     var bonus = false;
     if(p.streak >= 3){ p.score++; bonus = true; }
     renderScoreboard('sb-rows-game');
@@ -1021,6 +1056,8 @@ function processResult(correct, chosen){
   } else {
     isRetry = false;
     p.streak = 0;
+    p.wrongCount++;
+    recordTopic(p, false);
     renderScoreboard('sb-rows-game');
     showFeedbackVisual(false, chosen, false);
     var wrongMsg = 'The answer is ' + currentQ.a + '. Keep going ' + p.name + '!';
@@ -1075,6 +1112,10 @@ function nextPlayer(){
 
   if(wasLastPlayer){
     roundsPlayed++;
+    // Record each player's cumulative score snapshot for this round
+    players.forEach(function(pl){
+      pl.roundScores.push(pl.score);
+    });
     // Game ends after MAX_ROUNDS complete rounds
     if(roundsPlayed >= MAX_ROUNDS){
       turnTransitioning = false;
@@ -1218,10 +1259,58 @@ function checkAutoBreak(){
 // ══════════════════════════════════
 //  END GAME
 // ══════════════════════════════════
+function saveGameToDashboard(){
+  try{
+    var store = JSON.parse(localStorage.getItem('kk_comp_dashboard') || '{}');
+    if(!store.children) store.children = {};
+    if(!store.games) store.games = [];
+
+    var gameRecord = {
+      date: new Date().toISOString(),
+      players: []
+    };
+
+    players.forEach(function(p){
+      // Per-child cumulative record
+      if(!store.children[p.name]){
+        store.children[p.name] = {
+          name: p.name, grade: p.grade,
+          totalCorrect: 0, totalWrong: 0, gamesPlayed: 0,
+          topics: {}
+        };
+      }
+      var child = store.children[p.name];
+      child.totalCorrect += p.correctCount;
+      child.totalWrong += p.wrongCount;
+      child.gamesPlayed += 1;
+      child.grade = p.grade;
+      // Merge topic data
+      for(var topic in p.topicsAnswered){
+        if(!child.topics[topic]) child.topics[topic] = {correct:0, wrong:0};
+        child.topics[topic].correct += p.topicsAnswered[topic].correct;
+        child.topics[topic].wrong += p.topicsAnswered[topic].wrong;
+      }
+      // This game's record
+      gameRecord.players.push({
+        name: p.name, grade: p.grade,
+        score: p.score,
+        correct: p.correctCount, wrong: p.wrongCount,
+        roundScores: p.roundScores.slice()
+      });
+    });
+
+    store.games.push(gameRecord);
+    // Keep last 50 games
+    if(store.games.length > 50) store.games = store.games.slice(-50);
+    localStorage.setItem('kk_comp_dashboard', JSON.stringify(store));
+  }catch(e){ console.log('Dashboard save error:', e); }
+}
+
 function endGame(){
   gameActive=false;
   stopTimer();
   if(recognition)try{recognition.abort();}catch(e){}
+  saveGameToDashboard();
 
   // Sort players by score
   var sorted=players.slice().sort(function(a,b){return b.score-a.score;});
