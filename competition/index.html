@@ -198,27 +198,48 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
     <div class="timer-track"><div class="timer-fill" id="timer-fill" style="width:100%"></div></div>
   </div>
 
+  <!-- QUESTION CARD -->
   <div class="q-card" id="q-card">
     <div class="q-tag" id="q-tag">Question</div>
     <div class="q-text" id="q-text">Loading...</div>
     <div class="q-progress" id="q-prog">Q 1 of 2</div>
   </div>
 
-  <!-- BACKUP OPTIONS — A/B/C buttons -->
-  <div id="backup-opts" style="width:100%;display:none;flex-direction:column;gap:8px">
-    <div style="font-size:11px;color:#888;text-align:center;text-transform:uppercase;letter-spacing:1px">Or tap an option:</div>
-    <div style="display:flex;gap:8px;width:100%">
-      <button id="bopt-0" onclick="selectBackupOpt(0)" style="flex:1;background:rgba(255,255,255,.08);border:2px solid rgba(255,210,0,.25);border-radius:14px;padding:12px 6px;font-family:'Fredoka One',cursive;font-size:18px;color:#fff;cursor:pointer"></button>
-      <button id="bopt-1" onclick="selectBackupOpt(1)" style="flex:1;background:rgba(255,255,255,.08);border:2px solid rgba(255,210,0,.25);border-radius:14px;padding:12px 6px;font-family:'Fredoka One',cursive;font-size:18px;color:#fff;cursor:pointer"></button>
-      <button id="bopt-2" onclick="selectBackupOpt(2)" style="flex:1;background:rgba(255,255,255,.08);border:2px solid rgba(255,210,0,.25);border-radius:14px;padding:12px 6px;font-family:'Fredoka One',cursive;font-size:18px;color:#fff;cursor:pointer"></button>
-    </div>
+  <!-- A B C OPTIONS — visual reference, tappable as backup -->
+  <div style="width:100%;display:flex;gap:10px" id="abc-wrap">
+    <button id="abc-0" onclick="selectOpt(0)"
+      style="flex:1;background:rgba(255,255,255,.07);border:3px solid rgba(255,210,0,.2);
+             border-radius:18px;padding:14px 6px;font-family:'Fredoka One',cursive;
+             font-size:16px;color:#fff;cursor:pointer;transition:all .25s;text-align:center;
+             display:flex;flex-direction:column;align-items:center;gap:4px">
+      <span style="font-size:11px;color:#ffd200;letter-spacing:1px">A</span>
+      <span id="abc-val-0">?</span>
+    </button>
+    <button id="abc-1" onclick="selectOpt(1)"
+      style="flex:1;background:rgba(255,255,255,.07);border:3px solid rgba(255,210,0,.2);
+             border-radius:18px;padding:14px 6px;font-family:'Fredoka One',cursive;
+             font-size:16px;color:#fff;cursor:pointer;transition:all .25s;text-align:center;
+             display:flex;flex-direction:column;align-items:center;gap:4px">
+      <span style="font-size:11px;color:#ffd200;letter-spacing:1px">B</span>
+      <span id="abc-val-1">?</span>
+    </button>
+    <button id="abc-2" onclick="selectOpt(2)"
+      style="flex:1;background:rgba(255,255,255,.07);border:3px solid rgba(255,210,0,.2);
+             border-radius:18px;padding:14px 6px;font-family:'Fredoka One',cursive;
+             font-size:16px;color:#fff;cursor:pointer;transition:all .25s;text-align:center;
+             display:flex;flex-direction:column;align-items:center;gap:4px">
+      <span style="font-size:11px;color:#ffd200;letter-spacing:1px">C</span>
+      <span id="abc-val-2">?</span>
+    </button>
   </div>
-  <button onclick="toggleBackupOpts()" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:6px 16px;font-size:12px;color:#888;cursor:pointer;font-family:'Nunito',sans-serif" id="backup-toggle">📱 Show options</button>
 
-  <div class="mic-area">
-    <div class="mic-big ready" id="mic-big" onclick="onMicTap()">🎙️</div>
-    <div class="mic-label" id="mic-label">TAP to answer</div>
-    <div class="heard-text" id="heard-text"></div>
+  <!-- MIC STATUS -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:6px;width:100%">
+    <div style="font-size:44px;transition:all .3s" id="mic-big" onclick="onMicTap()">🎙️</div>
+    <div style="font-family:'Fredoka One',cursive;font-size:15px;color:#4ade80;
+                text-align:center;min-height:22px" id="mic-label">Listening...</div>
+    <div style="font-size:13px;color:#ffd200;font-style:italic;min-height:20px;
+                text-align:center" id="heard-text"></div>
   </div>
 
   <div class="feedback-flash" id="feedback-flash">
@@ -595,64 +616,97 @@ function stopTimer(){if(timerInterval){clearInterval(timerInterval);timerInterva
 // ══════════════════════════════════
 //  MIC
 // ══════════════════════════════════
-// ── BACKUP OPTIONS ──
-var currentBackupOpts=[];
-var backupOptsVisible=false;
+// ── A/B/C OPTIONS SYSTEM ──
+var currentOpts = [];       // ['13','11','9']
+var convPhase = 'letter';   // 'letter' | 'final'
+var selectedOptIdx = -1;
 
-function toggleBackupOpts(){
-  backupOptsVisible=!backupOptsVisible;
-  var wrap=el('backup-opts');
-  var btn=el('backup-toggle');
-  if(wrap) wrap.style.display=backupOptsVisible?'flex':'none';
-  if(btn) btn.textContent=backupOptsVisible?'🎙️ Use voice instead':'📱 Show options';
-}
-
-function buildBackupOpts(q){
-  // Generate 3 options with correct answer included
-  var correct=q.a;
-  var opts=[correct];
+function buildOpts(q){
+  var correct = q.a;
+  var opts = [correct];
   if(!isNaN(parseInt(correct))){
-    var n=parseInt(correct);
-    var attempts=0;
-    while(opts.length<3&&attempts<20){
+    var n = parseInt(correct);
+    var used = [n];
+    var attempts = 0;
+    while(opts.length < 3 && attempts < 30){
       attempts++;
-      var diff=Math.max(1,Math.floor(n/3));
-      var wrong=n+(Math.random()>.5?1:-1)*Math.floor(Math.random()*diff+1);
-      wrong=Math.max(0,wrong);
-      if(String(wrong)!==correct&&opts.indexOf(String(wrong))<0) opts.push(String(wrong));
+      var spread = Math.max(2, Math.floor(n * 0.4 + 1));
+      var wrong = n + (Math.random() > .5 ? 1 : -1) * (Math.floor(Math.random() * spread) + 1);
+      wrong = Math.max(0, wrong);
+      if(used.indexOf(wrong) < 0){ used.push(wrong); opts.push(String(wrong)); }
     }
+    if(opts.length < 3) opts.push(String(n + (n > 5 ? -2 : 3)));
   } else {
-    var wordAlts={'even':['odd','skip'],'odd':['even','skip'],
+    var wordAlts = {
+      'even':['odd','both'],'odd':['even','neither'],
       'more':['less','equal'],'less':['more','equal'],'equal':['more','less'],
       'first':['second','third'],'second':['first','third'],'third':['first','second'],
-      'same':['first','second']};
-    var alts=wordAlts[correct]||['option 2','option 3'];
-    opts.push(alts[0]||'B');opts.push(alts[1]||'C');
+      'same':['first','second'],"o'clock":['half past','quarter past']
+    };
+    var alts = wordAlts[correct] || ['not sure','neither'];
+    opts.push(alts[0]||'B'); opts.push(alts[1]||'C');
   }
   // Shuffle
-  opts=opts.sort(function(){return Math.random()-.5;});
-  currentBackupOpts=opts;
-  var labels=['A','B','C'];
-  opts.forEach(function(opt,i){
-    var btn=el('bopt-'+i);
-    if(btn){btn.textContent=labels[i]+'. '+opt;btn.style.borderColor='rgba(255,210,0,.25)';btn.style.color='#fff';}
+  currentOpts = opts.sort(function(){ return Math.random() - .5; });
+  // Update display
+  ['A','B','C'].forEach(function(lbl, i){
+    var valEl = el('abc-val-'+i);
+    if(valEl) valEl.textContent = currentOpts[i];
+    var btn = el('abc-'+i);
+    if(btn){
+      btn.style.borderColor = 'rgba(255,210,0,.2)';
+      btn.style.background = 'rgba(255,255,255,.07)';
+      btn.style.color = '#fff';
+    }
   });
 }
 
-function selectBackupOpt(idx){
-  if(!currentQ||!gameActive) return;
-  var chosen=currentBackupOpts[idx];
-  var correct=(chosen===currentQ.a||
-    (!isNaN(parseInt(chosen))&&parseInt(chosen)===parseInt(currentQ.a)));
-  // Highlight selected
-  for(var i=0;i<3;i++){
-    var b=el('bopt-'+i);
-    if(!b) continue;
-    if(i===idx) b.style.borderColor=correct?'#4ade80':'#f87171';
-    else if(currentBackupOpts[i]===currentQ.a) b.style.borderColor='#4ade80';
+function highlightOpt(idx, state){
+  // state: 'selected' | 'correct' | 'wrong'
+  var colors = {
+    selected: {border:'#60a5fa', bg:'rgba(96,165,250,.15)'},
+    correct:  {border:'#4ade80', bg:'rgba(74,222,128,.15)'},
+    wrong:    {border:'#f87171', bg:'rgba(248,113,113,.12)'}
+  };
+  var col = colors[state] || colors.selected;
+  for(var i = 0; i < 3; i++){
+    var btn = el('abc-'+i);
+    if(!btn) continue;
+    if(i === idx){
+      btn.style.borderColor = col.border;
+      btn.style.background = col.bg;
+    } else if(state !== 'selected' && currentOpts[i] === currentQ.a){
+      // Show correct answer when revealing result
+      btn.style.borderColor = '#4ade80';
+      btn.style.background = 'rgba(74,222,128,.08)';
+    } else {
+      btn.style.borderColor = 'rgba(255,255,255,.1)';
+      btn.style.background = 'rgba(255,255,255,.04)';
+    }
   }
-  txt('heard-text','"'+chosen+'" (tapped)');
-  checkAnswer(chosen);
+}
+
+function resetOpts(){
+  for(var i = 0; i < 3; i++){
+    var btn = el('abc-'+i);
+    if(btn){
+      btn.style.borderColor = 'rgba(255,210,0,.2)';
+      btn.style.background = 'rgba(255,255,255,.07)';
+      btn.style.color = '#fff';
+    }
+  }
+  selectedOptIdx = -1;
+}
+
+// Tapped on screen — treat as if they said the letter
+function selectOpt(idx){
+  if(!currentQ || !gameActive) return;
+  if(answerProcessed) return;
+  if(recognition) try{ recognition.abort(); }catch(e){}
+  selectedOptIdx = idx;
+  highlightOpt(idx, 'selected');
+  txt('heard-text', 'Tapped: ' + ['A','B','C'][idx] + ' — ' + currentOpts[idx]);
+  handleLetter(['A','B','C'][idx]);
 }
 
 function setMicState(state){
@@ -668,53 +722,168 @@ function onMicTap(){
   if(micState==='ready') startListening();
 }
 
-function startListening(){
+// startListening replaced by autoListen
+
+function autoListen(){
   if(!gameActive) return;
-  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){txt('heard-text','Voice not supported');return;}
-  if(recognition){try{recognition.onresult=null;recognition.onerror=null;recognition.onend=null;recognition.abort();}catch(e){}recognition=null;}
-  if(window.speechSynthesis&&window.speechSynthesis.speaking){
+  if(answerProcessed) return;
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ setMicState('ready'); txt('mic-label','Tap mic to answer'); return; }
+
+  if(recognition){
+    try{ recognition.onresult=null; recognition.onerror=null; recognition.onend=null; recognition.abort(); }catch(e){}
+    recognition = null;
+  }
+  if(window.speechSynthesis && window.speechSynthesis.speaking){
     window.speechSynthesis.cancel();
-    setTimeout(doListen,350);
-  } else {doListen();}
+    setTimeout(function(){ doListenNow(); }, 350);
+  } else {
+    doListenNow();
+  }
 }
 
-function doListen(){
-  if(!gameActive) return;
-  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+function doListenNow(){
+  if(!gameActive || answerProcessed) return;
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR) return;
-  recognition=new SR();
-  recognition.lang='en-US';
-  recognition.continuous=false;
-  recognition.interimResults=false;
-  recognition.maxAlternatives=5;
-  var hasResult=false;
-  setMicState('listening');
-  recognition.onresult=function(e){
-    hasResult=true;
-    var heard='';
-    for(var i=0;i<e.results.length;i++) heard+=e.results[i][0].transcript;
-    heard=heard.trim();
-    txt('heard-text','"'+heard+'"');
-    setMicState('processing');
-    checkAnswer(heard);
+  recognition = new SR();
+  recognition.lang = 'en-US';
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 5;
+  var hasResult = false;
+
+  el('mic-big').style.filter = 'drop-shadow(0 0 14px #ffd200)';
+
+  recognition.onresult = function(e){
+    hasResult = true;
+    var heard = '';
+    for(var i = 0; i < e.results.length; i++) heard += e.results[i][0].transcript;
+    heard = heard.trim().toLowerCase();
+    txt('heard-text', '"' + heard + '"');
+    el('mic-big').style.filter = 'none';
+    if(convPhase === 'letter') processLetterResponse(heard);
+    else if(convPhase === 'final') processFinalResponse(heard);
   };
-  recognition.onerror=function(e){
-    hasResult=true;
-    setMicState('ready');
-    if(e.error==='no-speech'){
-      txt('heard-text','Nothing heard. Tap again!');
-    } else {
-      txt('heard-text','Try again!');
-    }
-  };
-  recognition.onend=function(){
-    if(!hasResult&&gameActive){
+
+  recognition.onerror = function(e){
+    hasResult = true;
+    el('mic-big').style.filter = 'none';
+    if(e.error === 'no-speech'){
+      txt('heard-text', 'Nothing heard — tap mic or say A, B or C');
       setMicState('ready');
-      txt('heard-text','Tap and speak!');
+    } else {
+      txt('heard-text', 'Could not hear — tap mic to try again');
+      setMicState('ready');
     }
   };
-  try{recognition.start();}catch(e){setMicState('ready');}
+
+  recognition.onend = function(){
+    el('mic-big').style.filter = 'none';
+    if(!hasResult && gameActive && !answerProcessed){
+      txt('heard-text', 'Tap 🎙️ if needed');
+      setMicState('ready');
+    }
+  };
+
+  try{ recognition.start(); }
+  catch(e){ setMicState('ready'); txt('mic-label','Tap mic to answer'); }
+}
+
+function processLetterResponse(heard){
+  // Map what was heard to A, B or C
+  var letterMap = {
+    'a':'A','ay':'A','eh':'A','option a':'A',
+    'b':'B','be':'B','bee':'B','option b':'B',
+    'c':'C','see':'C','sea':'C','si':'C','option c':'C'
+  };
+  var letter = null;
+  // Direct match
+  if(letterMap[heard]) letter = letterMap[heard];
+  // Starts with a/b/c
+  if(!letter && heard.length >= 1){
+    var first = heard.charAt(0);
+    if(first === 'a') letter = 'A';
+    else if(first === 'b') letter = 'B';
+    else if(first === 'c') letter = 'C';
+  }
+  // Said the actual answer value
+  if(!letter){
+    for(var i = 0; i < currentOpts.length; i++){
+      if(isMatch(heard, currentOpts[i])){ letter = ['A','B','C'][i]; break; }
+    }
+  }
+
+  if(letter){
+    selectedOptIdx = ['A','B','C'].indexOf(letter);
+    highlightOpt(selectedOptIdx, 'selected');
+    txt('heard-text', 'You said: ' + letter + ' — ' + currentOpts[selectedOptIdx]);
+    // Ask final answer confirmation
+    convPhase = 'final';
+    var confirmMsg = 'You chose ' + letter + ' — ' + currentOpts[selectedOptIdx] + '. Is that your final answer?';
+    speak(confirmMsg);
+    txt('mic-label', '🎙️ Say Yes or No...');
+    var delay = Math.ceil(confirmMsg.split(' ').length / 2.5 * 1000) + 300;
+    setTimeout(function(){
+      if(gameActive && !answerProcessed) autoListen();
+    }, delay);
+  } else {
+    // Couldn't identify letter — ask again
+    var retry = 'Please say A, B, or C.';
+    speak(retry);
+    var delay2 = Math.ceil(retry.split(' ').length / 2.5 * 1000) + 200;
+    setTimeout(function(){
+      if(gameActive && !answerProcessed) autoListen();
+    }, delay2);
+  }
+}
+
+function processFinalResponse(heard){
+  var isYes = /yes|yeah|yep|correct|right|sure|ok|yea/.test(heard);
+  var isNo  = /no|nope|nah|wrong|change|different/.test(heard);
+
+  if(isYes){
+    if(answerProcessed) return;
+    answerProcessed = true;
+    stopTimer();
+    var chosen = currentOpts[selectedOptIdx];
+    var correct = isMatch(chosen, currentQ.a);
+    processResult(correct, chosen);
+  } else if(isNo){
+    // Go back to choosing a letter
+    convPhase = 'letter';
+    selectedOptIdx = -1;
+    resetOpts();
+    var rereadMsg = 'OK! ' + 'A — ' + currentOpts[0] + '. B — ' + currentOpts[1] + '. C — ' + currentOpts[2] + '. Choose again.';
+    speak(rereadMsg);
+    txt('mic-label', '🎙️ Say A, B or C...');
+    txt('heard-text', '');
+    var delay = Math.ceil(rereadMsg.split(' ').length / 2.5 * 1000) + 300;
+    setTimeout(function(){
+      if(gameActive && !answerProcessed) autoListen();
+    }, delay);
+  } else {
+    // Unclear response
+    var ask = 'Please say yes or no. Is that your final answer?';
+    speak(ask);
+    var delay2 = Math.ceil(ask.split(' ').length / 2.5 * 1000) + 200;
+    setTimeout(function(){
+      if(gameActive && !answerProcessed) autoListen();
+    }, delay2);
+  }
+}
+
+function handleLetter(letter){
+  // Called when option is tapped on screen
+  processLetterResponse(letter.toLowerCase());
+}
+
+// onMicTap — fallback if auto-listen fails
+function onMicTap(){
+  if(answerProcessed) return;
+  if(recognition) try{ recognition.abort(); }catch(e){}
+  txt('mic-label', '🎙️ Listening...');
+  autoListen();
 }
 
 // ══════════════════════════════════
