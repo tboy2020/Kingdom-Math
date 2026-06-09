@@ -85,6 +85,40 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
   <div id="view-children"></div>
   <div id="view-games" style="display:none"></div>
 
+  <!-- PARENT SETTINGS (PIN protected) -->
+  <div style="margin-top:20px;background:rgba(255,255,255,.05);border:2px solid rgba(255,210,0,.2);border-radius:18px;padding:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleSettings()">
+      <div style="font-family:'Fredoka One',cursive;font-size:16px;color:#ffd200">⚙️ Parent Settings</div>
+      <div style="font-size:18px" id="settings-chevron">▼</div>
+    </div>
+
+    <!-- PIN entry -->
+    <div id="settings-pin" style="display:none;margin-top:14px">
+      <div style="font-size:13px;color:#aaa;text-align:center;margin-bottom:10px">Enter parent PIN to change game settings</div>
+      <input id="pin-input" type="password" inputmode="numeric" maxlength="6" placeholder="PIN"
+        style="width:100%;background:rgba(255,255,255,.08);border:2px solid rgba(255,210,0,.3);border-radius:12px;padding:12px;font-family:'Fredoka One',cursive;font-size:22px;color:#fff;outline:none;text-align:center;letter-spacing:6px;margin-bottom:10px"/>
+      <button onclick="checkPin()" style="width:100%;background:linear-gradient(135deg,#f7971e,#ffd200);border:none;border-radius:12px;padding:12px;font-family:'Fredoka One',cursive;font-size:16px;color:#1a0800;cursor:pointer">Unlock</button>
+      <div id="pin-msg" style="font-size:12px;color:#f87171;text-align:center;margin-top:8px;min-height:16px"></div>
+      <div style="font-size:11px;color:#666;text-align:center;margin-top:6px">First time? Default PIN is <strong>1234</strong></div>
+    </div>
+
+    <!-- Settings panel (after PIN) -->
+    <div id="settings-panel" style="display:none;margin-top:14px">
+      <div style="margin-bottom:14px">
+        <div style="font-size:13px;color:#ddd;font-weight:700;margin-bottom:6px">Questions per round</div>
+        <div style="display:flex;gap:8px" id="qpr-row"></div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:13px;color:#ddd;font-weight:700;margin-bottom:6px">Number of rounds</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap" id="rounds-row"></div>
+      </div>
+      <div style="background:rgba(108,99,255,.1);border-radius:12px;padding:10px;font-size:12px;color:#a5b4fc;text-align:center;margin-bottom:12px" id="settings-summary"></div>
+      <button onclick="saveSettings()" style="width:100%;background:linear-gradient(135deg,#4caf50,#2e7d32);border:none;border-radius:12px;padding:12px;font-family:'Fredoka One',cursive;font-size:16px;color:#fff;cursor:pointer">💾 Save Settings</button>
+      <button onclick="changePin()" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:10px;font-size:13px;color:#aaa;cursor:pointer;margin-top:8px;font-family:'Nunito',sans-serif">🔑 Change PIN</button>
+      <div id="settings-saved-msg" style="font-size:13px;color:#4ade80;text-align:center;margin-top:8px;min-height:18px"></div>
+    </div>
+  </div>
+
   <button class="clear-btn" onclick="clearDashboard()">🗑️ Clear All Data</button>
 </div>
 
@@ -198,6 +232,119 @@ function clearDashboard(){
     renderChildren();
     renderGames();
     alert('Dashboard cleared.');
+  }
+}
+
+// ── SETTINGS ──
+var settingsUnlocked = false;
+var selQPR = 2, selRounds = 5;
+
+function getSettings(){
+  try{
+    var s = JSON.parse(localStorage.getItem('kk_comp_settings') || '{}');
+    return {
+      qpr: s.qpr || 2,
+      rounds: s.rounds || 5,
+      pin: s.pin || '1234'
+    };
+  }catch(e){ return {qpr:2, rounds:5, pin:'1234'}; }
+}
+
+function saveSettingsData(obj){
+  var cur = getSettings();
+  var merged = Object.assign(cur, obj);
+  try{ localStorage.setItem('kk_comp_settings', JSON.stringify(merged)); }catch(e){}
+}
+
+function toggleSettings(){
+  var pin = el('settings-pin');
+  var panel = el('settings-panel');
+  var chev = el('settings-chevron');
+  var isOpen = pin.style.display !== 'none' || panel.style.display !== 'none';
+  if(isOpen){
+    pin.style.display = 'none';
+    panel.style.display = 'none';
+    chev.textContent = '▼';
+  } else {
+    chev.textContent = '▲';
+    if(settingsUnlocked){
+      panel.style.display = 'block';
+      buildSettingsControls();
+    } else {
+      pin.style.display = 'block';
+      var pi = el('pin-input'); if(pi) pi.focus();
+    }
+  }
+}
+
+function checkPin(){
+  var entered = (el('pin-input') || {}).value || '';
+  var s = getSettings();
+  if(entered === s.pin){
+    settingsUnlocked = true;
+    el('settings-pin').style.display = 'none';
+    el('settings-panel').style.display = 'block';
+    el('pin-msg').textContent = '';
+    el('pin-input').value = '';
+    buildSettingsControls();
+  } else {
+    el('pin-msg').textContent = 'Incorrect PIN. Try again.';
+    el('pin-input').value = '';
+  }
+}
+
+function buildSettingsControls(){
+  var s = getSettings();
+  selQPR = s.qpr;
+  selRounds = s.rounds;
+
+  // Questions per round: 1-5
+  var qprRow = el('qpr-row');
+  qprRow.innerHTML = '';
+  [1,2,3,4,5].forEach(function(n){
+    var btn = document.createElement('button');
+    btn.textContent = n;
+    btn.style.cssText = 'flex:1;background:' + (n===selQPR?'rgba(255,210,0,.25)':'rgba(255,255,255,.06)') +
+      ';border:2px solid ' + (n===selQPR?'#ffd200':'rgba(255,255,255,.15)') +
+      ';border-radius:10px;padding:12px;font-family:\'Fredoka One\',cursive;font-size:18px;color:' +
+      (n===selQPR?'#ffd200':'#aaa') + ';cursor:pointer';
+    btn.onclick = function(){ selQPR = n; buildSettingsControls(); };
+    qprRow.appendChild(btn);
+  });
+
+  // Number of rounds: 1-10
+  var roundsRow = el('rounds-row');
+  roundsRow.innerHTML = '';
+  [1,2,3,4,5,6,7,8,9,10].forEach(function(n){
+    var btn = document.createElement('button');
+    btn.textContent = n;
+    btn.style.cssText = 'width:calc(20% - 7px);background:' + (n===selRounds?'rgba(255,210,0,.25)':'rgba(255,255,255,.06)') +
+      ';border:2px solid ' + (n===selRounds?'#ffd200':'rgba(255,255,255,.15)') +
+      ';border-radius:10px;padding:10px 0;font-family:\'Fredoka One\',cursive;font-size:16px;color:' +
+      (n===selRounds?'#ffd200':'#aaa') + ';cursor:pointer';
+    btn.onclick = function(){ selRounds = n; buildSettingsControls(); };
+    roundsRow.appendChild(btn);
+  });
+
+  // Summary
+  var totalQ = selQPR * selRounds;
+  el('settings-summary').textContent = 'Each child answers ' + selQPR + ' question' + (selQPR!==1?'s':'') +
+    ' per turn × ' + selRounds + ' round' + (selRounds!==1?'s':'') + ' = ' + totalQ + ' questions total per child';
+}
+
+function saveSettings(){
+  saveSettingsData({ qpr: selQPR, rounds: selRounds });
+  el('settings-saved-msg').textContent = '✅ Saved! New games will use these settings.';
+  setTimeout(function(){ el('settings-saved-msg').textContent = ''; }, 3000);
+}
+
+function changePin(){
+  var newPin = prompt('Enter a new 4-digit PIN:');
+  if(newPin && /^\d{4,6}$/.test(newPin)){
+    saveSettingsData({ pin: newPin });
+    alert('PIN changed successfully!');
+  } else if(newPin !== null){
+    alert('PIN must be 4 to 6 digits.');
   }
 }
 
