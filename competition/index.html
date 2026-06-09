@@ -523,59 +523,49 @@ function formatTime(secs){
 // ══════════════════════════════════
 function loadQuestion(){
   if(!gameActive) return;
-  if(turnTransitioning) return; // guard
-  var p=players[currentPlayerIdx];
-  if(p.timeLeft<=0){nextPlayer();return;}
-  if(p.qIdx>=p.qBank.length){nextPlayer();return;}
+  if(turnTransitioning) return;
+  var p = players[currentPlayerIdx];
+  if(p.timeLeft <= 0){ nextPlayer(); return; }
+  if(p.qIdx >= p.qBank.length){ nextPlayer(); return; }
 
-  currentQ=p.qBank[p.qIdx];
-  isRetry=false;
-  answerProcessed=false;
-  backupOptsVisible=false;
-  var bWrap=el('backup-opts'); if(bWrap) bWrap.style.display='none';
-  var bToggle=el('backup-toggle'); if(bToggle) bToggle.textContent='📱 Show options';
-  buildBackupOpts(currentQ);
+  currentQ = p.qBank[p.qIdx];
+  isRetry = false;
+  answerProcessed = false;
+  convPhase = 'letter';
+  selectedOptIdx = -1;
+  buildOpts(currentQ);
+  resetOpts();
 
   // Update UI
-  txt('q-tag',p.name+' · '+p.grade+' · Q'+(currentTurnQ+1)+' of '+Q_PER_TURN);
-  txt('q-text',currentQ.q);
-  txt('q-prog','Question '+(currentTurnQ+1)+' of '+Q_PER_TURN);
-  cls('q-card','q-card');
-  cls('feedback-flash','feedback-flash');
-  txt('heard-text','');
-  txt('timer-player-label',p.name+'\'s time');
+  txt('q-tag', p.name + ' · ' + p.grade + ' · Q' + (currentTurnQ+1) + ' of ' + Q_PER_TURN);
+  txt('q-text', currentQ.q);
+  txt('q-prog', 'Question ' + (currentTurnQ+1) + ' of ' + Q_PER_TURN);
+  cls('q-card', 'q-card');
+  cls('feedback-flash', 'feedback-flash');
+  txt('heard-text', '');
+  txt('timer-player-label', p.name + "'s time");
   setMicState('idle');
-
   renderScoreboard('sb-rows-game');
-
-  // Update timer display
   updateTimerBar();
 
-  // Speak question (timer starts after options are read) then automatically read the options
+  // 1) Read the question
   speak(currentQ.speak);
-  var qWords = currentQ.speak.split(' ').length;
-  var qDelay = Math.ceil(qWords / 2.5 * 1000) + 600;
+  var qDelay = Math.ceil(currentQ.speak.split(' ').length / 2.5 * 1000) + 400;
 
   setTimeout(function(){
-    if(!gameActive || players[currentPlayerIdx].timeLeft<=0) return;
-    // Build options first (may not be built yet)
-    if(currentBackupOpts.length===0) buildBackupOpts(currentQ);
-    // Read options aloud
-    var optsText = 'Your options are: A — ' + currentBackupOpts[0] +
-      ', B — ' + currentBackupOpts[1] +
-      ', C — ' + currentBackupOpts[2] +
-      '. Say the number, or tap an option.';
+    if(!gameActive || players[currentPlayerIdx].timeLeft <= 0) return;
+    // 2) Read the options
+    var optsText = 'A — ' + currentOpts[0] + '. B — ' + currentOpts[1] + '. C — ' + currentOpts[2] + '. Say A, B, or C.';
     speak(optsText);
-    var optsDelay = Math.ceil(optsText.split(' ').length / 2.5 * 1000) + 400;
-    // Show backup options automatically
-    backupOptsVisible=true;
-    var bWrap=el('backup-opts'); if(bWrap) bWrap.style.display='flex';
-    var bToggle=el('backup-toggle'); if(bToggle) bToggle.textContent='🎙️ Voice only';
+    var optsDelay = Math.ceil(optsText.split(' ').length / 2.5 * 1000) + 300;
     setTimeout(function(){
-      if(!gameActive || players[currentPlayerIdx].timeLeft<=0) return;
-      setMicState('ready');
-      txt('mic-label','Say the number or tap A/B/C!');
+      if(!gameActive || players[currentPlayerIdx].timeLeft <= 0) return;
+      // 3) Auto-listen
+      convPhase = 'letter';
+      setMicState('listening');
+      txt('mic-label', '🎙️ Say A, B or C...');
       startPlayerTimer();
+      autoListen();
     }, optsDelay);
   }, qDelay);
 }
@@ -718,11 +708,7 @@ function setMicState(state){
   txt('mic-label',labels[state]||'');
 }
 
-function onMicTap(){
-  if(micState==='ready') startListening();
-}
-
-// startListening replaced by autoListen
+// old onMicTap removed — using new one below
 
 function autoListen(){
   if(!gameActive) return;
@@ -935,54 +921,52 @@ function isMatch(heard,expected){
   return false;
 }
 
-function checkAnswer(heard){
-  if(!currentQ||!gameActive) return;
-  if(answerProcessed) return; // block duplicate calls
-  answerProcessed=true;
-  stopTimer(); // pause timer while processing answer
-  var p=players[currentPlayerIdx];
-  var correct=isMatch(heard,currentQ.a);
+function processResult(correct, chosen){
+  var p = players[currentPlayerIdx];
+  highlightOpt(selectedOptIdx, correct ? 'correct' : 'wrong');
 
   if(correct){
     p.score++;
     p.streak++;
-    if(p.streak>=3){
-      // Streak bonus
-      p.score++;
-      txt('heard-text','🔥 STREAK BONUS!');
-    }
+    if(p.streak >= 3){ p.score++; txt('heard-text','🔥 STREAK BONUS! +2 points!'); }
     renderScoreboard('sb-rows-game');
-    showFeedback(true,heard);
+    showFeedback(true, chosen);
 
   } else if(!isRetry){
-    // First wrong — one retry, DON'T advance question yet
-    isRetry=true;
-    p.streak=0;
+    isRetry = true;
+    p.streak = 0;
     renderScoreboard('sb-rows-game');
-    var retryMsg='Not quite '+p.name+'! One more chance. '+currentQ.speak;
+    var retryMsg = 'Not quite ' + p.name + '! One more chance. ' + currentQ.speak;
     speak(retryMsg);
     cls('q-card','q-card wrong');
-    var speechMs = Math.ceil(retryMsg.split(' ').length / 2.5 * 1000) + 800;
+    var speechMs = Math.ceil(retryMsg.split(' ').length / 2.5 * 1000) + 600;
     setTimeout(function(){
       if(!gameActive) return;
-      answerProcessed=false; // allow retry answer
-      cls('q-card','q-card listening');
+      answerProcessed = false;
+      convPhase = 'letter';
+      selectedOptIdx = -1;
+      resetOpts();
+      cls('q-card','q-card');
       cls('feedback-flash','feedback-flash');
-      setMicState('ready');
-      txt('mic-label','ONE MORE CHANCE!');
       txt('heard-text','');
-      buildBackupOpts(currentQ); // rebuild options for retry
-      startPlayerTimer();
+      var optsMsg = 'A — '+currentOpts[0]+'. B — '+currentOpts[1]+'. C — '+currentOpts[2]+'. Choose again.';
+      speak(optsMsg);
+      txt('mic-label','🎙️ Say A, B or C...');
+      var od = Math.ceil(optsMsg.split(' ').length / 2.5 * 1000) + 300;
+      setTimeout(function(){
+        if(gameActive && !answerProcessed){ startPlayerTimer(); autoListen(); }
+      }, od);
     }, speechMs);
 
   } else {
-    // Second wrong — move on
-    isRetry=false;
-    p.streak=0;
+    isRetry = false;
+    p.streak = 0;
     renderScoreboard('sb-rows-game');
-    showFeedback(false,heard);
+    showFeedback(false, chosen);
   }
 }
+
+function checkAnswer(heard){ processLetterResponse(heard); }
 
 function showFeedback(correct,heard){
   if(recognition)try{recognition.abort();}catch(e){}
