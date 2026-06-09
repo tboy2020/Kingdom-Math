@@ -205,6 +205,7 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
     <div class="res-grid" id="res-grid"></div>
     <div class="badge-pop" id="badge-pop">🏅 Badge Earned!</div>
     <div class="res-verse" id="res-verse"></div>
+    <div id="r-next-note" style="font-family:'Fredoka One',cursive;font-size:14px;color:#4ade80;text-align:center;margin-top:8px;min-height:20px"></div>
   </div>
   <div class="action-row" style="margin-top:14px">
     <button class="btn btn-gold" onclick="playAgain()">▶ Again</button>
@@ -434,7 +435,24 @@ var recognition=null, micState='idle'; // idle | listening | processing | disabl
 function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
 function loadSave(){try{var r=lsGet('vm2');return r?JSON.parse(r):{t:{}};}catch(e){return{t:{}};}}
-function saveTopic(id,stars){var s=loadSave();s.t[id]={stars:stars,badge:stars>=1};lsSet('vm2',JSON.stringify(s));}
+function saveTopic(id, stars, pct){
+  var s = loadSave();
+  if(!s.t[id]) s.t[id] = {stars:0, badge:false, sessions:[], bestPct:0};
+  var t = s.t[id];
+  // Store session score
+  if(!t.sessions) t.sessions = [];
+  t.sessions.push(pct||0);
+  if(t.sessions.length > 10) t.sessions = t.sessions.slice(-10);
+  // Update best
+  if(stars > t.stars) t.stars = stars;
+  if((pct||0) > (t.bestPct||0)) t.bestPct = pct||0;
+  // Badge: last 2 sessions both ≥80%
+  var last2 = t.sessions.slice(-2);
+  if(last2.length >= 2 && last2[0] >= 80 && last2[1] >= 80){
+    t.badge = true;
+  }
+  lsSet('vm2', JSON.stringify(s));
+}
 
 // ═══════════════════════
 //  SCREENS
@@ -491,11 +509,15 @@ function buildTopicList(){
   topics.forEach(function(topic,i){
     var ts=save.t[topic.id]||{stars:0,badge:false};
     var unlocked=i===0||(save.t[topics[i-1].id]&&save.t[topics[i-1].id].badge);
+    var sessDone=(ts.sessions||[]).length;
+    var sessProgress=ts.badge?'✅ Badge earned':sessDone>0?sessDone+'/2 sessions':'';
     var div=document.createElement('div');
     div.className='topic-row'+(unlocked?'':' locked');
     div.innerHTML='<div class="tr-icon">'+topic.icon+'</div>'
-      +'<div class="tr-name">'+topic.name+'</div>'
-      +'<div class="tr-badge">'+(unlocked?(ts.badge?'✅':ts.stars>0?'⭐'.repeat(ts.stars):'▶'):'🔒')+'</div>';
+      +'<div style="flex:1"><div class="tr-name">'+topic.name+'</div>'
+      +(sessProgress?'<div style="font-size:11px;color:#4ade80;margin-top:2px">'+sessProgress+'</div>':'')
+      +'</div>'
+      +'<div class="tr-badge">'+(unlocked?(ts.badge?'✅':sessDone>0?'⭐':'▶'):'🔒')+'</div>';
     if(unlocked) div.onclick=function(t,idx){return function(){startSession(t,idx);};}(topic,i);
     list.appendChild(div);
   });
@@ -792,38 +814,94 @@ function repeatQ(){
 }
 
 function endSession(){
-  sessionActive=false;
-  if(recognition) try{recognition.abort();}catch(e){}
-  var pct=Math.round(correctCount/questions.length*100);
-  var stars=pct>=80?3:pct>=60?2:1;
-  saveTopic(currentTopicId,stars);
-  setText('res-icon',stars===3?'🏆':stars===2?'⭐':'👏');
-  setText('res-stars','⭐'.repeat(stars));
-  setText('res-title',stars===3?'Outstanding!':stars===2?'Well Done, '+playerName+'!':'Good Effort, '+playerName+'!');
-  var rg=el('res-grid');
-  if(rg) rg.innerHTML=
-    '<div class="res-box"><div class="res-val">'+correctCount+'</div><div class="res-label">Correct</div></div>'+
-    '<div class="res-box"><div class="res-val">'+questions.length+'</div><div class="res-label">Questions</div></div>'+
-    '<div class="res-box"><div class="res-val">'+pct+'%</div><div class="res-label">Score</div></div>';
-  var badge=el('badge-pop');
-  if(pct>=80&&badge){badge.textContent='🏅 '+(gradeTopics()[currentTopicIdx]||{}).name+' Badge Earned!';badge.className='badge-pop show';}
-  else if(badge) badge.className='badge-pop';
-  var verses=['"I can do all things through Christ who strengthens me." — Phil 4:13',
-    '"Be strong and courageous." — Joshua 1:9','"With God all things are possible." — Matt 19:26'];
-  setText('res-verse',pick(verses));
-  var resultMsg = pct>=80?
-    'Outstanding '+playerName+'! You scored '+pct+' percent! You earned a badge!' :
-    'Well done '+playerName+'! You scored '+pct+' percent. Keep practising!';
-  speak(resultMsg);
-  // Read scripture verse after result message
-  var verseObj = pick(VERSES);
-  var verseText = typeof verseObj==='object' ? verseObj.text+'. '+verseObj.ref : verseObj;
-  setTimeout(function(){
-    speak(verseText+'. Keep going '+playerName+'! You are doing great!');
-  }, (resultMsg.split(' ').length * 350) + 1000);
-  showScreen('screen-result');
-}
+  sessionActive = false;
+  if(recognition) try{ recognition.abort(); }catch(e){}
 
+  var pct = Math.round(correctCount / questions.length * 100);
+  var stars = pct>=80 ? 3 : pct>=60 ? 2 : 1;
+
+  // Save FIRST before reading back
+  saveTopic(currentTopicId, stars, pct);
+
+  // Now read the saved state
+  var saved = loadSave();
+  var topicData = saved.t[currentTopicId] || {sessions:[], badge:false, stars:0};
+  var sessionsDone = topicData.sessions ? topicData.sessions.length : 0;
+  var badgeEarned = topicData.badge || false;
+  var sessionsLeft = Math.max(0, 2 - sessionsDone);
+
+  // Update result UI
+  setText('res-icon', stars===3 ? '🏆' : stars===2 ? '⭐' : '👏');
+  setText('res-stars', '⭐'.repeat(stars));
+  setText('res-title', stars===3 ? 'Outstanding, '+playerName+'!' : stars===2 ? 'Well Done, '+playerName+'!' : 'Good Effort, '+playerName+'!');
+
+  // Stats grid
+  var rg = el('res-grid');
+  if(rg) rg.innerHTML =
+    '<div class="res-box"><div class="res-val">'+correctCount+'/'+questions.length+'</div><div class="res-label">Correct</div></div>' +
+    '<div class="res-box"><div class="res-val">'+pct+'%</div><div class="res-label">Score</div></div>' +
+    '<div class="res-box"><div class="res-val">'+sessionsDone+'/2</div><div class="res-label">Sessions</div></div>';
+
+  // Badge — ALWAYS visible with correct message
+  var badge = el('badge-pop');
+  var topicName = (gradeTopics()[currentTopicIdx] || {}).name || 'Topic';
+  if(badge){
+    badge.style.background = '';
+    badge.style.color = '';
+    badge.style.border = '';
+    if(badgeEarned){
+      badge.textContent = '🏅 ' + topicName + ' Badge Earned! Next topic unlocked!';
+      badge.className = 'badge-pop show';
+    } else if(pct >= 80 && sessionsLeft === 1){
+      badge.textContent = '🎯 1 more session at 80%+ to earn the ' + topicName + ' badge!';
+      badge.className = 'badge-pop show';
+      badge.style.background = 'rgba(255,210,0,.12)';
+      badge.style.color = '#ffd200';
+    } else if(pct < 80){
+      badge.textContent = '💪 Score 80%+ to progress toward the ' + topicName + ' badge!';
+      badge.className = 'badge-pop show';
+      badge.style.background = 'rgba(255,255,255,.07)';
+      badge.style.color = '#aaa';
+    } else {
+      badge.textContent = '🎯 Keep going! '+ sessionsDone +'/2 sessions done.';
+      badge.className = 'badge-pop show';
+      badge.style.background = 'rgba(255,210,0,.08)';
+      badge.style.color = '#ffd200';
+    }
+  }
+
+  // Next topic hint
+  var nextTopics = gradeTopics();
+  var nextNote = el('r-next-note');
+  if(nextNote){
+    if(badgeEarned && currentTopicIdx+1 < nextTopics.length){
+      var nextT = nextTopics[currentTopicIdx+1];
+      nextNote.textContent = 'Next up: ' + nextT.icon + ' ' + nextT.name + ' →';
+      nextNote.style.color = '#4ade80';
+    } else {
+      nextNote.textContent = '';
+    }
+  }
+
+  // Scripture
+  var verseObj = pick(VERSES);
+  var verseText = typeof verseObj==='object' ? verseObj.text + '. ' + verseObj.ref : verseObj;
+  setText('res-verse', typeof verseObj==='object' ? '"'+verseObj.text+'" — '+verseObj.ref : verseObj);
+
+  showScreen('screen-result');
+
+  // Speak result then scripture
+  var resultMsg = badgeEarned ?
+    'Outstanding ' + playerName + '! You scored ' + pct + ' percent and earned the ' + topicName + ' badge! Well done!' :
+    pct >= 80 ?
+    'Well done ' + playerName + '! You scored ' + pct + ' percent! One more session to earn your badge!' :
+    'Good effort ' + playerName + '! You scored ' + pct + ' percent. You need 80 percent to earn a badge. Keep practising!';
+  speak(resultMsg);
+  var speechDelay = Math.ceil(resultMsg.split(' ').length / 2.5 * 1000) + 800;
+  setTimeout(function(){
+    speak(verseText + '. Keep going ' + playerName + '! You are doing great!');
+  }, speechDelay);
+}
 function playAgain(){startSession(gradeTopics()[currentTopicIdx],currentTopicIdx);}
 
 // ═══════════════════════
