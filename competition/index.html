@@ -462,33 +462,34 @@ function showTurnAnnounce(){
 
   renderScoreboard('sb-rows-turn');
 
-  // Announce name
-  var announcement=p.name+'\'s turn! Get ready!';
-  speak(announcement);
-
-  // Countdown after announcement
-  var annDelay=announcement.split(' ').length*350+500;
-  setTimeout(function(){
+  // Announce name, THEN countdown (chained via speech callback)
+  var announcement = p.name + "'s turn! Get ready!";
+  speak(announcement, function(){
+    if(!gameActive) return;
     runCountdown(3, function(){
-      currentTurnQ=0;
+      currentTurnQ = 0;
       showScreen('screen-question');
       loadQuestion();
     });
-  }, annDelay);
+  });
 }
 
 function runCountdown(n, done){
-  var cdEl=el('countdown');
-  if(cdEl) cdEl.style.display='block';
-  if(n<=0){
-    if(cdEl) cdEl.style.display='none';
-    speak('Go!');
-    setTimeout(done, 600);
+  var cdEl = el('countdown');
+  if(cdEl) cdEl.style.display = 'block';
+  if(n <= 0){
+    if(cdEl) cdEl.style.display = 'none';
+    // Speak "Go!" and wait for it to finish before calling done
+    speak('Go!', function(){
+      if(done) done();
+    });
     return;
   }
-  txt('countdown',String(n));
-  speak(String(n));
-  setTimeout(function(){runCountdown(n-1,done);},1000);
+  txt('countdown', String(n));
+  // Speak the number, and only move to next count when it finishes
+  speak(String(n), function(){
+    setTimeout(function(){ runCountdown(n-1, done); }, 200);
+  });
 }
 
 // ══════════════════════════════════
@@ -555,7 +556,7 @@ function loadQuestion(){
 
   // Speak question, THEN options, THEN start listening — all chained via queue
   speak(currentQ.speak);
-  var optsText = 'A — ' + currentOpts[0] + '. B — ' + currentOpts[1] + '. C — ' + currentOpts[2] + '. Take your time. Say A, B, or C when ready.';
+  var optsText = 'A — ' + currentOpts[0] + '. B — ' + currentOpts[1] + '. C — ' + currentOpts[2] + '. Take your time. Say the number, or the letter A, B, or C.';
   speak(optsText, function(){
     // This runs ONLY after options finish speaking
     if(!gameActive || players[currentPlayerIdx].timeLeft <= 0) return;
@@ -707,7 +708,7 @@ function setMicState(state){
 function beginContinuousListening(){
   if(!gameActive || answerProcessed) return;
   setMicState('listening');
-  txt('mic-label', '🎙️ Listening — say A, B or C anytime');
+  txt('mic-label', '🎙️ Say the number or letter (A, B, C)');
   startRecognition(true); // continuous mode
 }
 
@@ -806,31 +807,46 @@ function showTapToSpeak(){
 
 function processLetterResponse(heard){
   var letterMap = {
-    'a':'A','ay':'A','eh':'A','option a':'A','hey':'A',
-    'b':'B','be':'B','bee':'B','option b':'B',
-    'c':'C','see':'C','sea':'C','si':'C','option c':'C'
+    'a':'A','ay':'A','eh':'A','option a':'A','hey':'A','a.':'A',
+    'b':'B','be':'B','bee':'B','option b':'B','b.':'B',
+    'c':'C','see':'C','sea':'C','si':'C','option c':'C','c.':'C'
   };
   var letter = null;
+  var matchedByNumber = false;
+
+  // 1) Did they say a letter directly?
   if(letterMap[heard]) letter = letterMap[heard];
   if(!letter && heard.length >= 1){
     var f = heard.charAt(0);
-    if(f==='a') letter='A'; else if(f==='b') letter='B'; else if(f==='c') letter='C';
+    // Only treat single first-char as letter if the whole thing is short (like "a" or "a.")
+    if(heard.length <= 3 && (f==='a'||f==='b'||f==='c')){
+      letter = f.toUpperCase();
+    }
   }
+
+  // 2) Did they say a number/value that matches an option?
   if(!letter){
     for(var i=0;i<currentOpts.length;i++){
-      if(isMatch(heard, currentOpts[i])){ letter=['A','B','C'][i]; break; }
+      if(isMatch(heard, currentOpts[i])){
+        letter = ['A','B','C'][i];
+        matchedByNumber = true;
+        break;
+      }
     }
   }
 
   if(letter){
     selectedOptIdx = ['A','B','C'].indexOf(letter);
     highlightOpt(selectedOptIdx, 'selected');
-    txt('heard-text', 'You said: ' + letter + ' — ' + currentOpts[selectedOptIdx]);
+    var val = currentOpts[selectedOptIdx];
+    txt('heard-text', 'You said: ' + (matchedByNumber ? val + ' (option ' + letter + ')' : letter + ' — ' + val));
     convPhase = 'final';
     setMicState('idle');
     txt('mic-label', '...');
-    var confirmMsg = 'You chose ' + letter + ' — ' + currentOpts[selectedOptIdx] + '. Is that your final answer?';
-    // Speak confirm, THEN listen for yes/no
+    // Confirm BOTH the number and the letter
+    var confirmMsg = matchedByNumber ?
+      'You said ' + val + ', which is option ' + letter + '. Is that your final answer?' :
+      'You chose ' + letter + ', which is ' + val + '. Is that your final answer?';
     speak(confirmMsg, function(){
       if(!gameActive || answerProcessed) return;
       setMicState('listening');
@@ -838,7 +854,7 @@ function processLetterResponse(heard){
       autoListen();
     });
   } else {
-    var retry = 'Please say A, B, or C.';
+    var retry = 'Please say the number, or the letter A, B, or C.';
     speak(retry, function(){
       if(!gameActive || answerProcessed) return;
       autoListen();
@@ -1075,9 +1091,11 @@ var breakSavedState = null;
 function takeBreak(){
   if(!gameActive) return;
   stopTimer();
-  if(recognition) try{recognition.abort();}catch(e){}
+  // STOP everything immediately — speech AND recognition
+  clearSpeech();
+  if(recognition) try{ recognition.abort(); }catch(e){}
 
-  // Save exact game state
+  // Save exact state
   breakSavedState = {
     playerIdx: currentPlayerIdx,
     turnQ: currentTurnQ,
@@ -1085,12 +1103,14 @@ function takeBreak(){
   };
 
   gameActive = false;
+  answerProcessed = true; // block any pending answer handlers
   breakTimeLeft = BREAK_DURATION;
   renderScoreboard('sb-rows-break');
   var rv = pick(VERSES);
   txt('break-verse', rv.t + ' — ' + rv.r);
   showScreen('screen-break');
-  speak('Break time! Take a breath! Well done everyone! ' + rv.t + '. ' + rv.r);
+  // Now speak break message (queue was cleared so nothing overlaps)
+  speak('Break time! Take a breath! Well done everyone! ' + rv.t);
   startBreakTimer();
 }
 
@@ -1128,6 +1148,7 @@ function endBreak(){
 
   gameActive = true;
   turnTransitioning = false;
+  answerProcessed = false;
   var p = players[currentPlayerIdx];
   speak('Welcome back! ' + p.name + ', it is your turn. Get ready!');
   var delay = p.name.split(' ').length * 400 + 2500;
