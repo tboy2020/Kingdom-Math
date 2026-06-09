@@ -1062,29 +1062,44 @@ function checkAnswer(heard){ processLetterResponse(heard); }
 function nextPlayer(){
   stopTimer();
   if(!gameActive) return;
-  if(turnTransitioning) return; // guard against double calls
+  if(turnTransitioning) return;
   turnTransitioning = true;
 
-  var allDone = players.every(function(p){ return p.timeLeft <= 0; });
-  if(allDone){ turnTransitioning=false; endGame(); return; }
+  // When the LAST player finishes, one full round is complete
+  var wasLastPlayer = (currentPlayerIdx === players.length - 1);
 
-  // Cycle to next player with time remaining
-  var start = currentPlayerIdx;
-  var found = false;
-  for(var i=1; i<=players.length; i++){
-    var next = (start + i) % players.length;
-    if(players[next].timeLeft > 0){ currentPlayerIdx=next; found=true; break; }
-  }
-  if(!found){ turnTransitioning=false; endGame(); return; }
-
+  // Cycle to next player
+  currentPlayerIdx = (currentPlayerIdx + 1) % players.length;
   currentTurnQ = 0;
   isRetry = false;
+
+  if(wasLastPlayer){
+    roundsPlayed++;
+    // Game ends after MAX_ROUNDS complete rounds
+    if(roundsPlayed >= MAX_ROUNDS){
+      turnTransitioning = false;
+      endGame();
+      return;
+    }
+    // Take an automatic break after each full round (except the last)
+    turnTransitioning = false;
+    autoBreakThenContinue();
+    return;
+  }
 
   setTimeout(function(){
     turnTransitioning = false;
     if(!gameActive) return;
     showTurnAnnounce();
   }, 800);
+}
+
+function autoBreakThenContinue(){
+  clearSpeech();
+  if(recognition) try{ recognition.abort(); }catch(e){}
+  speak('Round ' + roundsPlayed + ' complete! Great job everyone!', function(){
+    takeBreak(true); // true = auto-break (already advanced to next player)
+  });
 }
 
 function skipQuestion(){
@@ -1110,18 +1125,18 @@ function confirmEndGame(){
 // Save state when break starts
 var breakSavedState = null;
 
-function takeBreak(){
-  if(!gameActive) return;
+function takeBreak(isAuto){
+  if(!gameActive && !isAuto) return;
   stopTimer();
-  // STOP everything immediately — speech AND recognition
   clearSpeech();
   if(recognition) try{ recognition.abort(); }catch(e){}
 
-  // Save exact state
+  // Save state — mark whether this is an auto-break (post-round) or manual (mid-turn)
   breakSavedState = {
     playerIdx: currentPlayerIdx,
     turnQ: currentTurnQ,
-    qForPlayer: players[currentPlayerIdx].qIdx
+    qForPlayer: players[currentPlayerIdx].qIdx,
+    isAutoBreak: isAuto === true
   };
 
   gameActive = false;
@@ -1132,7 +1147,8 @@ function takeBreak(){
   txt('break-verse', rv.t + ' — ' + rv.r);
   showScreen('screen-break');
   // Now speak break message (queue was cleared so nothing overlaps)
-  speak('Break time! Take a breath! Well done everyone! ' + rv.t);
+  var roundMsg = roundsPlayed < MAX_ROUNDS ? ' Next up: Round ' + (roundsPlayed + 1) + ' of ' + MAX_ROUNDS + '.' : '';
+  speak('Break time! Take a breath! Well done everyone!' + roundMsg + ' ' + rv.t);
   startBreakTimer();
 }
 
@@ -1158,30 +1174,29 @@ function updateBreakTimerDisplay(){
 }
 
 function endBreak(){
-  if(breakTimerInterval){clearInterval(breakTimerInterval);breakTimerInterval=null;}
+  if(breakTimerInterval){ clearInterval(breakTimerInterval); breakTimerInterval=null; }
 
-  // Restore exact saved state
-  if(breakSavedState){
+  // Only restore state for a MANUAL mid-turn break.
+  // Auto-break after a round already advanced to the next player, so skip restore.
+  if(breakSavedState && !breakSavedState.isAutoBreak){
     currentPlayerIdx = breakSavedState.playerIdx;
     currentTurnQ = breakSavedState.turnQ;
     players[currentPlayerIdx].qIdx = breakSavedState.qForPlayer;
-    breakSavedState = null;
   }
+  breakSavedState = null;
 
   gameActive = true;
   turnTransitioning = false;
   answerProcessed = false;
-  var p = players[currentPlayerIdx];
-  speak('Welcome back! ' + p.name + ', it is your turn. Get ready!');
-  var delay = p.name.split(' ').length * 400 + 2500;
+  clearSpeech();
 
-  setTimeout(function(){
+  var p = players[currentPlayerIdx];
+  speak('Welcome back! ' + p.name + ', it is your turn!', function(){
     if(!gameActive) return;
     showScreen('screen-question');
     renderScoreboard('sb-rows-game');
-    // Show turn announcement then load question
     showTurnAnnounce();
-  }, delay);
+  });
 }
 
 // Auto-break after each full round (all players have had one turn)
