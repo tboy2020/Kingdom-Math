@@ -269,6 +269,9 @@ function toggleSettings(){
     chev.textContent = '▲';
     if(settingsUnlocked){
       panel.style.display = 'block';
+      var sv2 = getSettings();
+      selQPR = sv2.qpr;
+      selRounds = sv2.rounds;
       buildSettingsControls();
     } else {
       pin.style.display = 'block';
@@ -286,6 +289,10 @@ function checkPin(){
     el('settings-panel').style.display = 'block';
     el('pin-msg').textContent = '';
     el('pin-input').value = '';
+    // Load saved values ONCE
+    var sv = getSettings();
+    selQPR = sv.qpr;
+    selRounds = sv.rounds;
     buildSettingsControls();
   } else {
     el('pin-msg').textContent = 'Incorrect PIN. Try again.';
@@ -294,10 +301,6 @@ function checkPin(){
 }
 
 function buildSettingsControls(){
-  var s = getSettings();
-  selQPR = s.qpr;
-  selRounds = s.rounds;
-
   // Questions per round: 1-5
   var qprRow = el('qpr-row');
   qprRow.innerHTML = '';
