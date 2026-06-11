@@ -439,6 +439,7 @@ function startGame(){
     var cfg = JSON.parse(localStorage.getItem('kk_comp_settings') || '{}');
     if(cfg.qpr) Q_PER_TURN = cfg.qpr;
     if(cfg.rounds) MAX_ROUNDS = cfg.rounds;
+    if(cfg.breakMins) BREAK_DURATION = cfg.breakMins * 60;
   }catch(e){}
 
   currentPlayerIdx=0;
