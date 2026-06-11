@@ -1,4 +1,20 @@
-<!DOCTYPE html>
+<!
+
+  // Break time in minutes
+  var breakRow = el('break-row');
+  if(breakRow){
+    breakRow.innerHTML = '';
+    [3,5,7,10,15].forEach(function(n){
+      var btn3 = document.createElement('button');
+      btn3.textContent = n + 'min';
+      btn3.style.cssText = 'flex:1;background:' + (n===selBreakMins?'rgba(255,210,0,.25)':'rgba(255,255,255,.06)') +
+        ';border:2px solid ' + (n===selBreakMins?'#ffd200':'rgba(255,255,255,.15)') +
+        ';border-radius:10px;padding:12px;font-family:Fredoka One,cursive;font-size:14px;color:' +
+        (n===selBreakMins?'#ffd200':'#aaa') + ';cursor:pointer';
+      btn3.onclick = function(){ selBreakMins=n; buildSettingsControls(); };
+      breakRow.appendChild(btn3);
+    });
+  }DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -111,6 +127,10 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
       <div style="margin-bottom:14px">
         <div style="font-size:13px;color:#ddd;font-weight:700;margin-bottom:6px">Number of rounds</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap" id="rounds-row"></div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:13px;color:#ddd;font-weight:700;margin-bottom:6px">Break time (minutes)</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap" id="break-row"></div>
       </div>
       <div style="background:rgba(108,99,255,.1);border-radius:12px;padding:10px;font-size:12px;color:#a5b4fc;text-align:center;margin-bottom:12px" id="settings-summary"></div>
       <button onclick="saveSettings()" style="width:100%;background:linear-gradient(135deg,#4caf50,#2e7d32);border:none;border-radius:12px;padding:12px;font-family:'Fredoka One',cursive;font-size:16px;color:#fff;cursor:pointer">💾 Save Settings</button>
@@ -237,7 +257,7 @@ function clearDashboard(){
 
 // ── SETTINGS ──
 var settingsUnlocked = false;
-var selQPR = 2, selRounds = 5;
+var selQPR = 2, selRounds = 5, selBreakMins = 7;
 
 function getSettings(){
   try{
@@ -245,9 +265,10 @@ function getSettings(){
     return {
       qpr: s.qpr || 2,
       rounds: s.rounds || 5,
+      breakMins: s.breakMins || 7,
       pin: s.pin || '1234'
     };
-  }catch(e){ return {qpr:2, rounds:5, pin:'1234'}; }
+  }catch(e){ return {qpr:2, rounds:5, breakMins:7, pin:'1234'}; }
 }
 
 function saveSettingsData(obj){
@@ -272,6 +293,7 @@ function toggleSettings(){
       var sv2 = getSettings();
       selQPR = sv2.qpr;
       selRounds = sv2.rounds;
+      selBreakMins = sv2.breakMins || 7;
       buildSettingsControls();
     } else {
       pin.style.display = 'block';
@@ -293,6 +315,7 @@ function checkPin(){
     var sv = getSettings();
     selQPR = sv.qpr;
     selRounds = sv.rounds;
+    selBreakMins = sv.breakMins || 7;
     buildSettingsControls();
   } else {
     el('pin-msg').textContent = 'Incorrect PIN. Try again.';
@@ -331,12 +354,11 @@ function buildSettingsControls(){
 
   // Summary
   var totalQ = selQPR * selRounds;
-  el('settings-summary').textContent = 'Each child answers ' + selQPR + ' question' + (selQPR!==1?'s':'') +
-    ' per turn × ' + selRounds + ' round' + (selRounds!==1?'s':'') + ' = ' + totalQ + ' questions total per child';
+  el('settings-summary').textContent = selQPR + ' question' + (selQPR>1?'s':'') + ' per round × ' + selRounds + ' rounds = ' + (selQPR*selRounds) + ' questions per child. Break: ' + selBreakMins + ' min';
 }
 
 function saveSettings(){
-  saveSettingsData({ qpr: selQPR, rounds: selRounds });
+  saveSettingsData({ qpr: selQPR, rounds: selRounds, breakMins: selBreakMins });
   el('settings-saved-msg').textContent = '✅ Saved! New games will use these settings.';
   setTimeout(function(){ el('settings-saved-msg').textContent = ''; }, 3000);
 }
