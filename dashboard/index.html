@@ -1,20 +1,5 @@
 <!
-
-  // Break time in minutes
-  var breakRow = el('break-row');
-  if(breakRow){
-    breakRow.innerHTML = '';
-    [3,5,7,10,15].forEach(function(n){
-      var btn3 = document.createElement('button');
-      btn3.textContent = n + 'min';
-      btn3.style.cssText = 'flex:1;background:' + (n===selBreakMins?'rgba(255,210,0,.25)':'rgba(255,255,255,.06)') +
-        ';border:2px solid ' + (n===selBreakMins?'#ffd200':'rgba(255,255,255,.15)') +
-        ';border-radius:10px;padding:12px;font-family:Fredoka One,cursive;font-size:14px;color:' +
-        (n===selBreakMins?'#ffd200':'#aaa') + ';cursor:pointer';
-      btn3.onclick = function(){ selBreakMins=n; buildSettingsControls(); };
-      breakRow.appendChild(btn3);
-    });
-  }DOCTYPE html>
+DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -354,6 +339,22 @@ function buildSettingsControls(){
 
   // Summary
   var totalQ = selQPR * selRounds;
+    // Break time in minutes
+  var breakRow = el('break-row');
+  if(breakRow){
+    breakRow.innerHTML = '';
+    [3,5,7,10,15].forEach(function(n){
+      var btn3 = document.createElement('button');
+      btn3.textContent = n + 'min';
+      btn3.style.cssText = 'flex:1;background:' + (n===selBreakMins?'rgba(255,210,0,.25)':'rgba(255,255,255,.06)') +
+        ';border:2px solid ' + (n===selBreakMins?'#ffd200':'rgba(255,255,255,.15)') +
+        ';border-radius:10px;padding:12px;font-family:Fredoka One,cursive;font-size:14px;color:' +
+        (n===selBreakMins?'#ffd200':'#aaa') + ';cursor:pointer';
+      btn3.onclick = function(){ selBreakMins=n; buildSettingsControls(); };
+      breakRow.appendChild(btn3);
+    });
+  }
+
   el('settings-summary').textContent = selQPR + ' question' + (selQPR>1?'s':'') + ' per round × ' + selRounds + ' rounds = ' + (selQPR*selRounds) + ' questions per child. Break: ' + selBreakMins + ' min';
 }
 
